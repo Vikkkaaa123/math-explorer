@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numerical Explorer | AI-лаборатория численных методов</title>
+    <meta name="description" content="Интерактивный вычислительный комплекс для анализа численных методов с нейросетевыми моделями">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Библиотеки -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@latest/lib/browser/math.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <i class="fas fa-calculator"></i>
+                    Numerical Explorer
+                </h1>
+                <p class="app-subtitle">AI-лаборатория численных методов</p>
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Навигация по вкладкам -->
+            <nav class="tabs-navigation">
+                <div class="tabs-container">
+                    <button class="tab-button active" data-tab="equations">
+                        <i class="fas fa-chart-line"></i>
+                        Уравнения
+                    </button>
+                    <button class="tab-button" data-tab="integration">
+                        <i class="fas fa-integral"></i>
+                        Интегрирование
+                    </button>
+                    <button class="tab-button" data-tab="differential">
+                        <i class="fas fa-project-diagram"></i>
+                        Дифф. уравнения
+                    </button>
+                    <button class="tab-button" data-tab="systems">
+                        <i class="fas fa-cogs"></i>
+                        Системы
+                    </button>
+                    <button class="tab-button" data-tab="area">
+                        <i class="fas fa-shapes"></i>
+                        Площади
+                    </button>
+                    <button class="tab-button" data-tab="ai">
+                        <i class="fas fa-robot"></i>
+                        AI-Сравнение
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Контейнер для вкладок -->
+            <div class="tabs-content">
+                <!-- Вкладка: Нелинейные уравнения -->
+                <div id="equations-tab" class="tab-pane active">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-chart-line"></i> Решение нелинейных уравнений</h2>
+                        <p>Найдите корни уравнения f(x) = 0</p>
+                    </div>
+                    
+                    <div class="input-section">
+                        <div class="input-group">
+                            <label for="equation-function">Функция f(x):</label>
+                            <input type="text" id="equation-function" placeholder="x^3 - 2*x - 5" value="x^3 - 2*x - 5">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="equation-interval-a">Интервал a:</label>
+                                <input type="number" id="equation-interval-a" value="1" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="equation-interval-b">Интервал b:</label>
+                                <input type="number" id="equation-interval-b" value="3" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="equation-precision">Точность:</label>
+                                <input type="number" id="equation-precision" value="0.0001" step="0.0001">
+                            </div>
+                        </div>
+                        <button class="calculate-btn" id="calculate-equation">
+                            <i class="fas fa-play"></i> Рассчитать
+                        </button>
+                    </div>
+
+                    <div class="results-section">
+                        <div class="visualization-container">
+                            <canvas id="equation-chart"></canvas>
+                        </div>
+                        <div class="methods-comparison">
+                            <h3>Сравнение методов</h3>
+                            <div class="results-grid" id="equation-results">
+                                <!-- Результаты будут здесь -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Интегрирование -->
+                <div id="integration-tab" class="tab-pane">
+                    <!-- Аналогичная структура для интегрирования -->
+                    <div class="tab-header">
+                        <h2><i class="fas fa-integral"></i> Численное интегрирование</h2>
+                        <p>Вычисление определённого интеграла ∫f(x)dx</p>
+                    </div>
+                    <!-- Поля ввода для интегрирования -->
+                </div>
+
+                <!-- Вкладка: Дифф. уравнения -->
+                <div id="differential-tab" class="tab-pane">
+                    <!-- Структура для диффуров -->
+                </div>
+
+                <!-- Вкладка: Системы уравнений -->
+                <div id="systems-tab" class="tab-pane">
+                    <!-- Структура для систем -->
+                </div>
+
+                <!-- Вкладка: Поиск площадей -->
+                <div id="area-tab" class="tab-pane">
+                    <!-- Структура для площадей -->
+                </div>
+
+                <!-- Вкладка: AI-Сравнение -->
+                <div id="ai-tab" class="tab-pane">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-robot"></i> AI-Сравнение методов</h2>
+                        <p>Опишите задачу текстом - система подберет лучшие методы</p>
+                    </div>
+                    
+                    <div class="ai-input-section">
+                        <div class="input-group">
+                            <label for="ai-task-input">Опишите математическую задачу:</label>
+                            <textarea id="ai-task-input" placeholder="Например: Найди интеграл от sin(x^2) от 0 до 3, Реши уравнение x^3 = cos(x), Найди площадь между y=x^2 и y=2-x"></textarea>
+                        </div>
+                        <button class="calculate-btn ai-btn" id="analyze-ai-task">
+                            <i class="fas fa-brain"></i> Проанализировать
+                        </button>
+                    </div>
+
+                    <div class="ai-results" id="ai-results">
+                        <!-- AI-анализ будет здесь -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Подвал -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Numerical Explorer. Курсовая работа по вычислительной математике</p>
+                <div class="tech-stack">
+                    <span>JavaScript • TensorFlow.js • Chart.js • Math.js</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Скрипты приложения -->
+    <script type="module" src="js/core/main.js"></script>
+</body>
+</html>
