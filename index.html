@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Numerical Explorer | AI-лаборатория численных методов</title>
+    <title>Калькулятор численных методов</title>
     <meta name="description" content="Интерактивный вычислительный комплекс для анализа численных методов с нейросетевыми моделями">
-    
-    <!-- Стили -->
     <link rel="stylesheet" href="css/style.css">
-    
-    <!-- Библиотеки -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@latest/lib/browser/math.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\
+    <!--<link rel="icon" type="image/x-icon" href="img/favicon.ico">-->
 </head>
 <body>
     <div class="app-container">
-        <!-- Шапка -->
+      
         <header class="app-header">
             <div class="header-content">
                 <h1 class="app-title">
@@ -31,9 +25,7 @@
             </div>
         </header>
 
-        <!-- Основной контент -->
         <main class="main-content">
-            <!-- Навигация по вкладкам -->
             <nav class="tabs-navigation">
                 <div class="tabs-container">
                     <button class="tab-button active" data-tab="equations">
@@ -58,12 +50,11 @@
                     </button>
                     <button class="tab-button" data-tab="ai">
                         <i class="fas fa-robot"></i>
-                        AI-Сравнение
+                        AI-Помощь
                     </button>
                 </div>
             </nav>
 
-            <!-- Контейнер для вкладок -->
             <div class="tabs-content">
                 <!-- Вкладка: Нелинейные уравнения -->
                 <div id="equations-tab" class="tab-pane active">
