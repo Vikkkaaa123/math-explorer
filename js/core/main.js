@@ -60,7 +60,7 @@ findElements() {
     setupEquationsTab() {
         const functionInput = document.getElementById('equation-function');
         if (functionInput && !functionInput.value) {
-            functionInput.value = 'x^3 - 2*x - 5';
+            functionInput.value = 'Введите пример';
         }
         
         const precisionInput = document.getElementById('equation-precision');
