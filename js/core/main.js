@@ -1,149 +1,124 @@
-import { MathParser } from '../math-core/math-parser.js';
-import { EventManager } from './event-handlers.js';
+import MathParser from '../math-core/math-parser.js';
+import EventManager from './event-manager.js';
 
 class NumericalExplorer {
     constructor() {
-        this.config = {};
         this.eventManager = new EventManager();
         this.mathParser = new MathParser();
         
-        this.state = {
-            currentTab: 'equations',
-            calculationInProgress: false,
-            currentResults: null,
-            userPreferences: {
-                precision: 0.0001,
-                theme: 'light'
-            }
-        };
+        this.currentTab = 'equations';
+        this.isCalculating = false;
         
         this.elements = {};
     }
 
     async initialize() {
         try {
-            this.initializeDOMElements();
+            this.findDOMElements();
             this.eventManager.initialize(this);
             await this.mathParser.initialize();
-            this.setInitialState();
+            this.setupInitialState();
             
         } catch (error) {
-            this.showError('Ошибка запуска приложения: ' + error.message);
+            this.showError('Ошибка запуска: ' + error.message);
         }
     }
 
-    initializeDOMElements() {
-        this.elements = {
-            tabsContent: document.querySelector('.tabs-content'),
-            tabPanes: document.querySelectorAll('.tab-pane'),
-            tabButtons: document.querySelectorAll('.tab-button'),
-            header: document.querySelector('.app-header'),
-            main: document.querySelector('.main-content'),
-            footer: document.querySelector('.app-footer'),
-            equationResults: document.getElementById('equation-results'),
-            aiResults: document.getElementById('ai-results'),
-            equationChart: document.getElementById('equation-chart')
-        };
-
-        this.validateDOMElements();
-    }
-
-    validateDOMElements() {
-        const requiredElements = ['tabsContent', 'tabButtons', 'header', 'main', 'footer'];
-        const missingElements = requiredElements.filter(key => !this.elements[key]);
+    findDOMElements() {
+        this.elements.tabButtons = document.querySelectorAll('.tab-button');
+        this.elements.tabPanes = document.querySelectorAll('.tab-pane');
+        this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
         
-        if (missingElements.length > 0) {
-            throw new Error(`Не найдены DOM элементы: ${missingElements.join(', ')}`);
+        if (this.elements.tabButtons.length === 0) {
+            throw new Error('Не найдены кнопки вкладок');
         }
     }
 
-    setInitialState() {
-        this.switchToTab(this.state.currentTab);
-        this.updatePrecisionDisplay();
-        this.applyTheme(this.state.userPreferences.theme);
+    setupInitialState() {
+        this.switchToTab(this.currentTab);
+        this.setDefaultValues();
     }
 
     switchToTab(tabName) {
-        const validTabs = ['equations', 'integration', 'differential', 'systems', 'area', 'ai'];
-        if (!validTabs.includes(tabName)) return;
-
-        this.state.currentTab = tabName;
-        this.updateTabButtons(tabName);
-        this.updateTabPanes(tabName);
-        this.initializeTabSpecificComponents(tabName);
-    }
-
-    updateTabButtons(activeTab) {
+        this.currentTab = tabName;
+        
         this.elements.tabButtons.forEach(button => {
-            const isActive = button.dataset.tab === activeTab;
+            const isActive = button.dataset.tab === tabName;
             button.classList.toggle('active', isActive);
-            button.setAttribute('aria-selected', isActive);
-            button.setAttribute('tabindex', isActive ? '0' : '-1');
         });
-    }
-
-    updateTabPanes(activeTab) {
+        
         this.elements.tabPanes.forEach(pane => {
-            const isActive = pane.id === `${activeTab}-tab`;
+            const isActive = pane.id === `${tabName}-tab`;
             pane.classList.toggle('active', isActive);
-            pane.setAttribute('aria-hidden', !isActive);
         });
+        
+        this.setupTab(tabName);
     }
 
-    initializeTabSpecificComponents(tabName) {
-        // Инициализация специфичная для вкладки
-        const functionInput = document.getElementById('equation-function');
-        if (tabName === 'equations' && functionInput && !functionInput.value) {
-            functionInput.value = 'x^3 - 2*x - 5';
+    setupTab(tabName) {
+        switch(tabName) {
+            case 'equations':
+                this.setupEquationsTab();
+                break;
+            case 'ai':
+                this.setupAITab();
+                break;
         }
     }
 
-    updatePrecisionDisplay() {
+    setupEquationsTab() {
+        const functionInput = document.getElementById('equation-function');
+        if (functionInput && !functionInput.value) {
+            functionInput.value = 'x^3 - 2*x - 5';
+        }
+        
+        const precisionInput = document.getElementById('equation-precision');
+        if (precisionInput && !precisionInput.value) {
+            precisionInput.value = '0.0001';
+        }
+    }
+
+    setupAITab() {
+        const taskInput = document.getElementById('ai-task-input');
+        if (taskInput && !taskInput.placeholder) {
+            taskInput.placeholder = 'Например: найди корень уравнения x^2 - 4 = 0';
+        }
+    }
+
+    setDefaultValues() {
         const precisionInputs = document.querySelectorAll('input[type="number"]');
         precisionInputs.forEach(input => {
             if (input.id.includes('precision') && !input.value) {
-                input.value = this.state.userPreferences.precision;
+                input.value = '0.0001';
             }
         });
     }
 
-    applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        this.state.userPreferences.theme = theme;
-    }
-
     showError(message) {
-        // Можно заменить на красивый toast
-        alert(`Ошибка: ${message}`);
+        alert('Ошибка: ' + message);
     }
 
     setLoadingState(isLoading) {
-        this.state.calculationInProgress = isLoading;
-        document.body.classList.toggle('loading', isLoading);
+        this.isCalculating = isLoading;
         
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(button => {
-            if (!button.classList.contains('calculate-btn')) return;
+        this.elements.calculateButtons.forEach(button => {
             button.disabled = isLoading;
-            button.innerHTML = isLoading ? 
-                '<i class="fas fa-spinner fa-spin"></i> Вычисление...' : 
-                '<i class="fas fa-play"></i> Рассчитать';
+            if (isLoading) {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Вычисление...';
+            } else {
+                button.innerHTML = '<i class="fas fa-play"></i> Рассчитать';
+            }
         });
     }
 
-    getState() {
-        return { ...this.state };
+    getCurrentTab() {
+        return this.currentTab;
     }
 
-    setState(newState) {
-        this.state = { ...this.state, ...newState };
+    getMathParser() {
+        return this.mathParser;
     }
 }
 
-const numericalExplorer = new NumericalExplorer();
-
-document.addEventListener('DOMContentLoaded', () => {
-    numericalExplorer.initialize();
-});
-
-export { NumericalExplorer, numericalExplorer as app };
+const app = new NumericalExplorer();
+export default app;
