@@ -56,10 +56,9 @@ body {
 }
 
 .app-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--primary-color);
-    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -68,12 +67,6 @@ body {
 
 .app-title i {
     color: var(--secondary-color);
-}
-
-.app-subtitle {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    font-weight: 500;
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -194,7 +187,8 @@ body {
 }
 
 .input-group input,
-.input-group textarea {
+.input-group textarea,
+.input-group select {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 2px solid var(--border-color);
@@ -205,7 +199,8 @@ body {
 }
 
 .input-group input:focus,
-.input-group textarea:focus {
+.input-group textarea:focus,
+.input-group select:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -223,7 +218,24 @@ body {
     gap: 1rem;
 }
 
-/* ===== BUTTONS ===== */
+/* ===== SYSTEM INPUTS ===== */
+.system-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.system-eq {
+    width: 100%;
+}
+
+/* ===== BUTTON GROUPS ===== */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
 .calculate-btn {
     display: inline-flex;
     align-items: center;
@@ -249,6 +261,31 @@ body {
     transform: translateY(0);
 }
 
+.compare-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.compare-btn:hover {
+    background: #6d28d9;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.compare-btn:active {
+    transform: translateY(0);
+}
+
 .calculate-btn.ai-btn {
     background: var(--secondary-color);
 }
@@ -270,6 +307,14 @@ body {
     border-radius: var(--border-radius);
     padding: 1.5rem;
     min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visualization-container canvas {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .methods-comparison {
@@ -324,12 +369,6 @@ body {
 
 .footer-content p {
     color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.tech-stack {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -339,7 +378,7 @@ body {
     }
     
     .app-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
     
     .tabs-container {
@@ -363,19 +402,35 @@ body {
     .tab-pane {
         padding: 1rem;
     }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .calculate-btn,
+    .compare-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 480px) {
     .app-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
     
     .tab-header h2 {
         font-size: 1.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
     }
     
     .input-section {
         padding: 1rem;
+    }
+    
+    .system-inputs {
+        gap: 0.5rem;
     }
 }
 
@@ -383,6 +438,7 @@ body {
 .loading {
     opacity: 0.7;
     pointer-events: none;
+    position: relative;
 }
 
 .loading::after {
@@ -410,5 +466,48 @@ body {
 .mb-2 { margin-bottom: 2rem; }
 .mt-1 { margin-top: 1rem; }
 .mt-2 { margin-top: 2rem; }
-.hidden { display: none; }
+.hidden { display: none !important; }
 .visible { display: block; }
+
+/* ===== PLACEHOLDER STYLING ===== */
+::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+:-ms-input-placeholder {
+    color: #9ca3af;
+}
+
+::-ms-input-placeholder {
+    color: #9ca3af;
+}
+
+/* ===== SELECT DROPDOWN STYLING ===== */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+.tabs-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tabs-container::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
