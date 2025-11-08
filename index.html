@@ -8,18 +8,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@latest/lib/browser/math.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\
-    <!--<link rel="icon" type="image/x-icon" href="img/favicon.ico">-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
     
 <body>
     <div class="app-container">
-      
         <header class="app-header">
             <div class="header-content">
                 <h1 class="app-title">
                     <i class="fas fa-calculator"></i>
-                    Калькулятор численных методов
+                    Numerical Explorer
                 </h1>
             </div>
         </header>
@@ -43,13 +41,9 @@
                         <i class="fas fa-cogs"></i>
                         Системы
                     </button>
-                    <button class="tab-button" data-tab="area">
-                        <i class="fas fa-shapes"></i>
-                        Площади
-                    </button>
                     <button class="tab-button" data-tab="ai">
                         <i class="fas fa-robot"></i>
-                        AI-Помощь
+                        AI-Помощник
                     </button>
                 </div>
             </nav>
@@ -59,31 +53,45 @@
                 <div id="equations-tab" class="tab-pane active">
                     <div class="tab-header">
                         <h2><i class="fas fa-chart-line"></i> Решение нелинейных уравнений</h2>
-                        <p>Найдите корни уравнения f(x) = 0</p>
+                        <p>Найдите корни уравнения f(x) = 0. Система автоматически подберет оптимальный метод.</p>
                     </div>
                     
                     <div class="input-section">
                         <div class="input-group">
                             <label for="equation-function">Функция f(x):</label>
-                            <input type="text" id="equation-function" placeholder="x^3 - 2*x - 5" value="x^3 - 2*x - 5">
+                            <input type="text" id="equation-function" placeholder="Введите пример">
                         </div>
                         <div class="input-row">
                             <div class="input-group">
                                 <label for="equation-interval-a">Интервал a:</label>
-                                <input type="number" id="equation-interval-a" value="1" step="0.1">
+                                <input type="number" id="equation-interval-a" placeholder="Введите пример">
                             </div>
                             <div class="input-group">
                                 <label for="equation-interval-b">Интервал b:</label>
-                                <input type="number" id="equation-interval-b" value="3" step="0.1">
+                                <input type="number" id="equation-interval-b" placeholder="Введите пример">
                             </div>
                             <div class="input-group">
                                 <label for="equation-precision">Точность:</label>
-                                <input type="number" id="equation-precision" value="0.0001" step="0.0001">
+                                <input type="number" id="equation-precision" placeholder="Введите пример">
                             </div>
                         </div>
-                        <button class="calculate-btn" id="calculate-equation">
-                            <i class="fas fa-play"></i> Рассчитать
-                        </button>
+                        <div class="input-group">
+                            <label for="equation-method">Метод решения:</label>
+                            <select id="equation-method">
+                                <option value="newton">Метод Ньютона</option>
+                                <option value="bisection">Метод половинного деления</option>
+                                <option value="iteration">Метод простой итерации</option>
+                                <option value="neural">Нейросеть</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button class="calculate-btn" id="calculate-equation">
+                                <i class="fas fa-play"></i> Рассчитать
+                            </button>
+                            <button class="compare-btn" id="compare-equation-methods">
+                                <i class="fas fa-chart-bar"></i> Сравнить все методы
+                            </button>
+                        </div>
                     </div>
 
                     <div class="results-section">
@@ -91,7 +99,7 @@
                             <canvas id="equation-chart"></canvas>
                         </div>
                         <div class="methods-comparison">
-                            <h3>Сравнение методов</h3>
+                            <h3>Результаты расчета</h3>
                             <div class="results-grid" id="equation-results">
                                 <!-- Результаты будут здесь -->
                             </div>
@@ -101,40 +109,166 @@
 
                 <!-- Вкладка: Интегрирование -->
                 <div id="integration-tab" class="tab-pane">
-                    <!-- Аналогичная структура для интегрирования -->
                     <div class="tab-header">
                         <h2><i class="fas fa-integral"></i> Численное интегрирование</h2>
-                        <p>Вычисление определённого интеграла ∫f(x)dx</p>
+                        <p>Вычисление определённого интеграла ∫f(x)dx с выбором оптимального метода</p>
                     </div>
-                    <!-- Поля ввода для интегрирования -->
+                    <div class="input-section">
+                        <div class="input-group">
+                            <label for="integration-function">Функция f(x):</label>
+                            <input type="text" id="integration-function" placeholder="Введите пример">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="integration-a">Нижний предел a:</label>
+                                <input type="number" id="integration-a" placeholder="Введите пример">
+                            </div>
+                            <div class="input-group">
+                                <label for="integration-b">Верхний предел b:</label>
+                                <input type="number" id="integration-b" placeholder="Введите пример">
+                            </div>
+                            <div class="input-group">
+                                <label for="integration-precision">Точность:</label>
+                                <input type="number" id="integration-precision" placeholder="Введите пример">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="integration-method">Метод интегрирования:</label>
+                            <select id="integration-method">
+                                <option value="simpson">Метод Симпсона</option>
+                                <option value="trapezoidal">Метод трапеций</option>
+                                <option value="rectangles">Метод прямоугольников</option>
+                                <option value="monte-carlo">Метод Монте-Карло</option>
+                                <option value="neural">Нейросеть</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button class="calculate-btn" id="calculate-integration">
+                                <i class="fas fa-play"></i> Рассчитать
+                            </button>
+                            <button class="compare-btn" id="compare-integration-methods">
+                                <i class="fas fa-chart-bar"></i> Сравнить все методы
+                            </button>
+                        </div>
+                    </div>
+                    <div class="results-section">
+                        <div class="visualization-container">
+                            <canvas id="integration-chart"></canvas>
+                        </div>
+                        <div class="methods-comparison">
+                            <h3>Результаты интегрирования</h3>
+                            <div class="results-grid" id="integration-results"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Вкладка: Дифф. уравнения -->
                 <div id="differential-tab" class="tab-pane">
-                    <!-- Структура для диффуров -->
+                    <div class="tab-header">
+                        <h2><i class="fas fa-project-diagram"></i> Решение ОДУ</h2>
+                        <p>Численное решение обыкновенных дифференциальных уравнений</p>
+                    </div>
+                    <div class="input-section">
+                        <div class="input-group">
+                            <label for="diff-equation">Уравнение y' = f(x, y):</label>
+                            <input type="text" id="diff-equation" placeholder="Введите пример">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="diff-x0">Начальное x₀:</label>
+                                <input type="number" id="diff-x0" placeholder="Введите пример">
+                            </div>
+                            <div class="input-group">
+                                <label for="diff-y0">Начальное y₀:</label>
+                                <input type="number" id="diff-y0" placeholder="Введите пример">
+                            </div>
+                            <div class="input-group">
+                                <label for="diff-end">Конечная точка:</label>
+                                <input type="number" id="diff-end" placeholder="Введите пример">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="diff-method">Метод решения:</label>
+                            <select id="diff-method">
+                                <option value="euler">Метод Эйлера</option>
+                                <option value="runge-kutta">Метод Рунге-Кутты 4 порядка</option>
+                                <option value="neural">Нейросеть</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button class="calculate-btn" id="calculate-differential">
+                                <i class="fas fa-play"></i> Рассчитать
+                            </button>
+                            <button class="compare-btn" id="compare-diff-methods">
+                                <i class="fas fa-chart-bar"></i> Сравнить методы
+                            </button>
+                        </div>
+                    </div>
+                    <div class="results-section">
+                        <div class="visualization-container">
+                            <canvas id="differential-chart"></canvas>
+                        </div>
+                        <div class="methods-comparison">
+                            <h3>Решение ОДУ</h3>
+                            <div class="results-grid" id="differential-results"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Вкладка: Системы уравнений -->
                 <div id="systems-tab" class="tab-pane">
-                    <!-- Структура для систем -->
+                    <div class="tab-header">
+                        <h2><i class="fas fa-cogs"></i> Решение систем уравнений</h2>
+                        <p>Решение систем линейных алгебраических уравнений</p>
+                    </div>
+                    <div class="input-section">
+                        <div class="input-group">
+                            <label>Система уравнений:</label>
+                            <div class="system-inputs">
+                                <input type="text" class="system-eq" placeholder="Введите пример">
+                                <input type="text" class="system-eq" placeholder="Введите пример">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="system-method">Метод решения:</label>
+                            <select id="system-method">
+                                <option value="gauss">Метод Гаусса</option>
+                                <option value="jacobi">Метод Якоби</option>
+                                <option value="zeidel">Метод Зейделя</option>
+                                <option value="neural">Нейросеть</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button class="calculate-btn" id="calculate-system">
+                                <i class="fas fa-play"></i> Рассчитать
+                            </button>
+                            <button class="compare-btn" id="compare-system-methods">
+                                <i class="fas fa-chart-bar"></i> Сравнить методы
+                            </button>
+                        </div>
+                    </div>
+                    <div class="results-section">
+                        <div class="visualization-container">
+                            <canvas id="system-chart"></canvas>
+                        </div>
+                        <div class="methods-comparison">
+                            <h3>Решение системы</h3>
+                            <div class="results-grid" id="system-results"></div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Вкладка: Поиск площадей -->
-                <div id="area-tab" class="tab-pane">
-                    <!-- Структура для площадей -->
-                </div>
-
-                <!-- Вкладка: AI-Сравнение -->
+                <!-- Вкладка: AI-Помощник -->
                 <div id="ai-tab" class="tab-pane">
                     <div class="tab-header">
-                        <h2><i class="fas fa-robot"></i> AI-Сравнение методов</h2>
-                        <p>Опишите задачу текстом - система подберет лучшие методы</p>
+                        <h2><i class="fas fa-robot"></i> AI-Помощник</h2>
+                        <p>Опишите задачу текстом - система подберет оптимальные методы решения</p>
                     </div>
                     
                     <div class="ai-input-section">
                         <div class="input-group">
                             <label for="ai-task-input">Опишите математическую задачу:</label>
-                            <textarea id="ai-task-input" placeholder="Например: Найди интеграл от sin(x^2) от 0 до 3, Реши уравнение x^3 = cos(x), Найди площадь между y=x^2 и y=2-x"></textarea>
+                            <textarea id="ai-task-input" placeholder="Введите пример"></textarea>
                         </div>
                         <button class="calculate-btn ai-btn" id="analyze-ai-task">
                             <i class="fas fa-brain"></i> Проанализировать
@@ -150,7 +284,7 @@
 
         <footer class="app-footer">
             <div class="footer-content">
-                <p>&copy; 2025 Numerical Explorer. Курсовая работа по численным методам</p>
+                <p>&copy; 2024 Numerical Explorer. Курсовая работа по численным методам</p>
             </div>
         </footer>
     </div>
