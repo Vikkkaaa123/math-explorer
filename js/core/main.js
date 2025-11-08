@@ -13,13 +13,13 @@ class NumericalExplorer {
     }
 
     initialize() {
-    this.findDOMElements();
+    this.findElements();
     this.eventManager.initialize(this);
     this.mathParser.initialize();
     this.setupInitialState();
 }
 
-    findElements() {
+findElements() {
     this.elements.tabButtons = document.querySelectorAll('.tab-button');
     this.elements.tabPanes = document.querySelectorAll('.tab-pane');
     this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
