@@ -12,28 +12,19 @@ class NumericalExplorer {
         this.elements = {};
     }
 
-    async initialize() {
-        try {
-            this.findDOMElements();
-            this.eventManager.initialize(this);
-            await this.mathParser.initialize();
-            this.setupInitialState();
-            
-        } catch (error) {
-            this.showError('Ошибка запуска: ' + error.message);
-        }
-    }
+    initialize() {
+    this.findDOMElements();
+    this.eventManager.initialize(this);
+    this.mathParser.initialize();
+    this.setupInitialState();
+}
 
-    findDOMElements() {
-        this.elements.tabButtons = document.querySelectorAll('.tab-button');
-        this.elements.tabPanes = document.querySelectorAll('.tab-pane');
-        this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
-        
-        if (this.elements.tabButtons.length === 0) {
-            throw new Error('Не найдены кнопки вкладок');
-        }
-    }
-
+    findElements() {
+    this.elements.tabButtons = document.querySelectorAll('.tab-button');
+    this.elements.tabPanes = document.querySelectorAll('.tab-pane');
+    this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
+}
+    
     setupInitialState() {
         this.switchToTab(this.currentTab);
         this.setDefaultValues();
