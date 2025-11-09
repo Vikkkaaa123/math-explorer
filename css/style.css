@@ -90,7 +90,8 @@ body {
 }
 
 .tabs-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 0.5rem;
     overflow-x: auto;
     padding: 0.25rem;
@@ -100,7 +101,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 0.5rem;
     background: transparent;
     border: 2px solid transparent;
     border-radius: var(--border-radius);
@@ -109,7 +110,9 @@ body {
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
-    flex-shrink: 0;
+    justify-content: center;
+    text-align: center;
+    flex: 1;
 }
 
 .tab-button:hover {
@@ -229,17 +232,22 @@ body {
 
 .input-row.three-columns {
     grid-template-columns: 2fr 1fr;
-    align-items: start;
+    align-items: end;
+    gap: 1rem;
 }
+
 
 /* ===== INTERVAL INPUTS ===== */
 .interval-inputs {
     display: flex;
     gap: 1rem;
+    align-items: end;
 }
 
 .interval-group {
     flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .interval-label {
@@ -247,6 +255,11 @@ body {
     font-size: 0.85em;
     margin-bottom: 0.25rem;
     color: var(--text-secondary);
+}
+
+.input-group input {
+    height: 48px; 
+    box-sizing: border-box;
 }
 
 /* ===== SYSTEM INPUTS ===== */
