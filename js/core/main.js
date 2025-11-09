@@ -13,21 +13,20 @@ class NumericalExplorer {
     }
 
     initialize() {
-    this.findElements();
-    this.eventManager.initialize(this);
-    this.mathParser.initialize();
-    this.setupInitialState();
-}
+        this.findElements();
+        this.eventManager.initialize(this);
+        this.mathParser.initialize();
+        this.setupInitialState();
+    }
 
-findElements() {
-    this.elements.tabButtons = document.querySelectorAll('.tab-button');
-    this.elements.tabPanes = document.querySelectorAll('.tab-pane');
-    this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
-}
+    findElements() {
+        this.elements.tabButtons = document.querySelectorAll('.tab-button');
+        this.elements.tabPanes = document.querySelectorAll('.tab-pane');
+        this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
+    }
     
     setupInitialState() {
         this.switchToTab(this.currentTab);
-        this.setDefaultValues();
     }
 
     switchToTab(tabName) {
@@ -41,47 +40,6 @@ findElements() {
         this.elements.tabPanes.forEach(pane => {
             const isActive = pane.id === `${tabName}-tab`;
             pane.classList.toggle('active', isActive);
-        });
-        
-        this.setupTab(tabName);
-    }
-
-    setupTab(tabName) {
-        switch(tabName) {
-            case 'equations':
-                this.setupEquationsTab();
-                break;
-            case 'ai':
-                this.setupAITab();
-                break;
-        }
-    }
-
-    setupEquationsTab() {
-        const functionInput = document.getElementById('equation-function');
-        if (functionInput && !functionInput.value) {
-            functionInput.value = 'Введите пример';
-        }
-        
-        const precisionInput = document.getElementById('equation-precision');
-        if (precisionInput && !precisionInput.value) {
-            precisionInput.value = '0.0001';
-        }
-    }
-
-    setupAITab() {
-        const taskInput = document.getElementById('ai-task-input');
-        if (taskInput && !taskInput.placeholder) {
-            taskInput.placeholder = 'Например: найди корень уравнения x^2 - 4 = 0';
-        }
-    }
-
-    setDefaultValues() {
-        const precisionInputs = document.querySelectorAll('input[type="number"]');
-        precisionInputs.forEach(input => {
-            if (input.id.includes('precision') && !input.value) {
-                input.value = '0.0001';
-            }
         });
     }
 
