@@ -229,6 +229,29 @@ body {
     width: 100%;
 }
 
+.method-hint {
+    font-style: italic;
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.interval-inputs {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.interval-group {
+    flex: 1;
+}
+
+.interval-label {
+    display: block;
+    font-size: 0.9em;
+    margin-bottom: 0.25rem;
+    color: var(--text-secondary);
+}
+
 /* ===== BUTTON GROUPS ===== */
 .button-group {
     display: flex;
