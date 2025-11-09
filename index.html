@@ -59,20 +59,25 @@
                     <div class="input-section">
                         <div class="input-group">
                             <label for="equation-function">Функция f(x):</label>
-                            <input type="text" id="equation-function" placeholder="Введите пример">
+                            <input type="text" id="equation-function" placeholder="Введите пример функции">
                         </div>
                         <div class="input-row">
                             <div class="input-group">
-                                <label for="equation-interval-a">Интервал a:</label>
-                                <input type="number" id="equation-interval-a" placeholder="Введите пример">
-                            </div>
-                            <div class="input-group">
-                                <label for="equation-interval-b">Интервал b:</label>
-                                <input type="number" id="equation-interval-b" placeholder="Введите пример">
+                                <label>Интервал [a, b] <span class="method-hint">(*для методов поиска корней)</span></label>
+                                <div class="interval-inputs">
+                                    <div class="interval-group">
+                                        <span class="interval-label">a (нижняя граница):</span>
+                                        <input type="number" id="equation-interval-a" placeholder="Введите число">
+                                    </div>
+                                    <div class="interval-group">
+                                        <span class="interval-label">b (верхняя граница):</span>
+                                        <input type="number" id="equation-interval-b" placeholder="Введите число">
+                                    </div>
+                                </div>
                             </div>
                             <div class="input-group">
                                 <label for="equation-precision">Точность:</label>
-                                <input type="number" id="equation-precision" placeholder="Введите пример">
+                                <input type="number" id="equation-precision" value="0.0001" step="0.0001" placeholder="Введите число">
                             </div>
                         </div>
                         <div class="input-group">
@@ -116,20 +121,20 @@
                     <div class="input-section">
                         <div class="input-group">
                             <label for="integration-function">Функция f(x):</label>
-                            <input type="text" id="integration-function" placeholder="Введите пример">
+                            <input type="text" id="integration-function" placeholder="Введите пример функции">
                         </div>
                         <div class="input-row">
                             <div class="input-group">
                                 <label for="integration-a">Нижний предел a:</label>
-                                <input type="number" id="integration-a" placeholder="Введите пример">
+                                <input type="number" id="integration-a" placeholder="Введите число">
                             </div>
                             <div class="input-group">
                                 <label for="integration-b">Верхний предел b:</label>
-                                <input type="number" id="integration-b" placeholder="Введите пример">
+                                <input type="number" id="integration-b" placeholder="Введите число">
                             </div>
                             <div class="input-group">
                                 <label for="integration-precision">Точность:</label>
-                                <input type="number" id="integration-precision" placeholder="Введите пример">
+                                <input type="number" id="integration-precision" value="0.0001" step="0.0001" placeholder="Введите число">
                             </div>
                         </div>
                         <div class="input-group">
@@ -171,20 +176,20 @@
                     <div class="input-section">
                         <div class="input-group">
                             <label for="diff-equation">Уравнение y' = f(x, y):</label>
-                            <input type="text" id="diff-equation" placeholder="Введите пример">
+                            <input type="text" id="diff-equation" placeholder="Введите пример функции">
                         </div>
                         <div class="input-row">
                             <div class="input-group">
                                 <label for="diff-x0">Начальное x₀:</label>
-                                <input type="number" id="diff-x0" placeholder="Введите пример">
+                                <input type="number" id="diff-x0" placeholder="Введите число">
                             </div>
                             <div class="input-group">
                                 <label for="diff-y0">Начальное y₀:</label>
-                                <input type="number" id="diff-y0" placeholder="Введите пример">
+                                <input type="number" id="diff-y0" placeholder="Введите число">
                             </div>
                             <div class="input-group">
                                 <label for="diff-end">Конечная точка:</label>
-                                <input type="number" id="diff-end" placeholder="Введите пример">
+                                <input type="number" id="diff-end" placeholder="Введите число">
                             </div>
                         </div>
                         <div class="input-group">
@@ -216,48 +221,51 @@
                 </div>
 
                 <!-- Вкладка: Системы уравнений -->
-                <div id="systems-tab" class="tab-pane">
-                    <div class="tab-header">
-                        <h2><i class="fas fa-cogs"></i> Решение систем уравнений</h2>
-                        <p>Решение систем линейных алгебраических уравнений</p>
-                    </div>
-                    <div class="input-section">
-                        <div class="input-group">
-                            <label>Система уравнений:</label>
-                            <div class="system-inputs">
-                                <input type="text" class="system-eq" placeholder="Введите пример">
-                                <input type="text" class="system-eq" placeholder="Введите пример">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="system-method">Метод решения:</label>
-                            <select id="system-method">
-                                <option value="gauss">Метод Гаусса</option>
-                                <option value="jacobi">Метод Якоби</option>
-                                <option value="zeidel">Метод Зейделя</option>
-                                <option value="neural">Нейросеть</option>
-                            </select>
-                        </div>
-                        <div class="button-group">
-                            <button class="calculate-btn" id="calculate-system">
-                                <i class="fas fa-play"></i> Рассчитать
-                            </button>
-                            <button class="compare-btn" id="compare-system-methods">
-                                <i class="fas fa-chart-bar"></i> Сравнить методы
-                            </button>
-                        </div>
-                    </div>
-                    <div class="results-section">
-                        <div class="visualization-container">
-                            <canvas id="system-chart"></canvas>
-                        </div>
-                        <div class="methods-comparison">
-                            <h3>Решение системы</h3>
-                            <div class="results-grid" id="system-results"></div>
-                        </div>
-                    </div>
-                </div>
-
+<div id="systems-tab" class="tab-pane">
+    <div class="tab-header">
+        <h2><i class="fas fa-cogs"></i> Решение систем уравнений</h2>
+        <p>Решение систем линейных алгебраических уравнений</p>
+    </div>
+    <div class="input-section">
+        <div class="input-group">
+            <label for="system-count">Количество уравнений в системе:</label>
+            <input type="number" id="system-count" value="2" min="2" max="10" placeholder="Введите число">
+        </div>
+        <div class="input-group">
+            <label>Система уравнений:</label>
+            <div class="system-inputs" id="system-equations">
+                <input type="text" class="system-eq" placeholder="Введите пример уравнения">
+                <input type="text" class="system-eq" placeholder="Введите пример уравнения">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="system-method">Метод решения:</label>
+            <select id="system-method">
+                <option value="gauss">Метод Гаусса</option>
+                <option value="jacobi">Метод Якоби</option>
+                <option value="zeidel">Метод Зейделя</option>
+                <option value="neural">Нейросеть</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button class="calculate-btn" id="calculate-system">
+                <i class="fas fa-play"></i> Рассчитать
+            </button>
+            <button class="compare-btn" id="compare-system-methods">
+                <i class="fas fa-chart-bar"></i> Сравнить методы
+            </button>
+        </div>
+    </div>
+    <div class="results-section">
+        <div class="visualization-container">
+            <canvas id="system-chart"></canvas>
+        </div>
+        <div class="methods-comparison">
+            <h3>Решение системы</h3>
+            <div class="results-grid" id="system-results"></div>
+        </div>
+    </div>
+</div>
                 <!-- Вкладка: AI-Помощник -->
                 <div id="ai-tab" class="tab-pane">
                     <div class="tab-header">
@@ -268,7 +276,7 @@
                     <div class="ai-input-section">
                         <div class="input-group">
                             <label for="ai-task-input">Опишите математическую задачу:</label>
-                            <textarea id="ai-task-input" placeholder="Введите пример"></textarea>
+                            <textarea id="ai-task-input" placeholder="Введите пример задачи"></textarea>
                         </div>
                         <button class="calculate-btn ai-btn" id="analyze-ai-task">
                             <i class="fas fa-brain"></i> Проанализировать
@@ -284,7 +292,8 @@
 
         <footer class="app-footer">
             <div class="footer-content">
-                <p>&copy; 2024 Numerical Explorer. Курсовая работа по численным методам</p>
+                <p>Россия, Краснодар, КубГУ, ФКТиПМ, кафедра прикладной математики</p>
+                <p>&copy; 2025 Numerical Explorer. Курсовая работа по численным методам</p>
             </div>
         </footer>
     </div>
