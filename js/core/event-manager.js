@@ -40,12 +40,6 @@ class EventManager {
             });
         });
     }
-
-    addHandler(element, event, handler) {
-        element.addEventListener(event, handler);
-        const key = `${event}-${Math.random().toString(36).substr(2, 9)}`;
-        this.handlers.set(key, { element, event, handler });
-    }
 }
 
 export default EventManager;
