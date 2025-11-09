@@ -56,9 +56,10 @@ body {
 }
 
 .app-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 700;
     color: var(--primary-color);
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -186,6 +187,13 @@ body {
     color: var(--text-primary);
 }
 
+.method-hint {
+    font-size: 0.8em;
+    font-weight: 400;
+    opacity: 0.7;
+    font-style: italic;
+}
+
 .input-group input,
 .input-group textarea,
 .input-group select {
@@ -212,33 +220,22 @@ body {
     font-family: inherit;
 }
 
+/* ===== INPUT ROWS ===== */
 .input-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
 }
 
-/* ===== SYSTEM INPUTS ===== */
-.system-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+.input-row.three-columns {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
 }
 
-.system-eq {
-    width: 100%;
-}
-
-.method-hint {
-    font-style: italic;
-    opacity: 0.7;
-    font-size: 0.9em;
-}
-
+/* ===== INTERVAL INPUTS ===== */
 .interval-inputs {
     display: flex;
     gap: 1rem;
-    margin-top: 0.5rem;
 }
 
 .interval-group {
@@ -247,16 +244,27 @@ body {
 
 .interval-label {
     display: block;
-    font-size: 0.9em;
+    font-size: 0.85em;
     margin-bottom: 0.25rem;
     color: var(--text-secondary);
 }
 
-/* ===== BUTTON GROUPS ===== */
+/* ===== SYSTEM INPUTS ===== */
+.system-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.system-eq {
+    width: 100%;
+}
+
+/* ===== BUTTONS ===== */
 .button-group {
     display: flex;
     gap: 1rem;
-    flex-wrap: wrap;
+    margin-top: 1.5rem;
 }
 
 .calculate-btn {
@@ -272,6 +280,8 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+    flex: 1;
+    justify-content: center;
 }
 
 .calculate-btn:hover {
@@ -284,12 +294,21 @@ body {
     transform: translateY(0);
 }
 
+.calculate-btn.ai-btn {
+    background: var(--secondary-color);
+    flex: none;
+}
+
+.calculate-btn.ai-btn:hover {
+    background: #6d28d9;
+}
+
 .compare-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 2rem;
-    background: var(--secondary-color);
+    background: var(--accent-color);
     color: white;
     border: none;
     border-radius: var(--border-radius);
@@ -297,24 +316,14 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+    flex: 1;
+    justify-content: center;
 }
 
 .compare-btn:hover {
-    background: #6d28d9;
+    background: #0891b2;
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
-}
-
-.compare-btn:active {
-    transform: translateY(0);
-}
-
-.calculate-btn.ai-btn {
-    background: var(--secondary-color);
-}
-
-.calculate-btn.ai-btn:hover {
-    background: #6d28d9;
 }
 
 /* ===== RESULTS SECTIONS ===== */
@@ -330,14 +339,6 @@ body {
     border-radius: var(--border-radius);
     padding: 1.5rem;
     min-height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.visualization-container canvas {
-    max-width: 100%;
-    max-height: 100%;
 }
 
 .methods-comparison {
@@ -392,6 +393,12 @@ body {
 
 .footer-content p {
     color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.footer-content p:first-child {
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -401,7 +408,7 @@ body {
     }
     
     .app-title {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
     
     .tabs-container {
@@ -422,38 +429,34 @@ body {
         grid-template-columns: 1fr;
     }
     
-    .tab-pane {
-        padding: 1rem;
+    .input-row.three-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .interval-inputs {
+        flex-direction: column;
     }
     
     .button-group {
         flex-direction: column;
     }
     
-    .calculate-btn,
-    .compare-btn {
-        width: 100%;
-        justify-content: center;
+    .tab-pane {
+        padding: 1rem;
     }
 }
 
 @media (max-width: 480px) {
     .app-title {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
     }
     
     .tab-header h2 {
         font-size: 1.5rem;
-        flex-direction: column;
-        gap: 0.5rem;
     }
     
     .input-section {
         padding: 1rem;
-    }
-    
-    .system-inputs {
-        gap: 0.5rem;
     }
 }
 
@@ -461,7 +464,6 @@ body {
 .loading {
     opacity: 0.7;
     pointer-events: none;
-    position: relative;
 }
 
 .loading::after {
@@ -481,56 +483,4 @@ body {
 @keyframes spin {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* ===== UTILITY CLASSES ===== */
-.text-center { text-align: center; }
-.mb-1 { margin-bottom: 1rem; }
-.mb-2 { margin-bottom: 2rem; }
-.mt-1 { margin-top: 1rem; }
-.mt-2 { margin-top: 2rem; }
-.hidden { display: none !important; }
-.visible { display: block; }
-
-/* ===== PLACEHOLDER STYLING ===== */
-::placeholder {
-    color: #9ca3af;
-    opacity: 1;
-}
-
-:-ms-input-placeholder {
-    color: #9ca3af;
-}
-
-::-ms-input-placeholder {
-    color: #9ca3af;
-}
-
-/* ===== SELECT DROPDOWN STYLING ===== */
-select {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
-    padding-right: 2.5rem;
-}
-
-/* ===== SCROLLBAR STYLING ===== */
-.tabs-container::-webkit-scrollbar {
-    height: 6px;
-}
-
-.tabs-container::-webkit-scrollbar-track {
-    background: var(--bg-tertiary);
-    border-radius: 3px;
-}
-
-.tabs-container::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-.tabs-container::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
 }
