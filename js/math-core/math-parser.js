@@ -1,7 +1,7 @@
 class MathParser {
     constructor() {
         this.parser = null;
-        this.isInitialized = false;
+        this.ready = false;
         
         this.supportedFunctions = [
             'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
@@ -18,19 +18,19 @@ class MathParser {
         };
     }
 
-    async initialize() {
-        if (this.isInitialized) return;
+    initialize() {
+        if (this.ready) return;
 
         if (typeof math === 'undefined') {
             throw new Error('Библиотека math.js не загружена');
         }
         
         this.parser = math;
-        this.extendParser();
-        this.isInitialized = true;
+        this.addCustomFunctions();
+        this.ready = true;
     }
 
-    extendParser() {
+    addCustomFunctions() {
         this.parser.import({
             cot: x => 1 / Math.tan(x),
             sec: x => 1 / Math.cos(x),
@@ -43,95 +43,94 @@ class MathParser {
     }
 
     parseFunction(expression) {
-        if (!this.isInitialized) {
-            throw new Error('Парсер не инициализирован');
+        if (!this.ready) {
+            throw new Error('Парсер не готов');
         }
 
         if (!expression || typeof expression !== 'string') {
-            throw new Error('Выражение должно быть непустой строкой');
+            throw new Error('Введите функцию');
         }
 
         try {
-            const processedExpr = this.preprocessExpression(expression);
-            const compiledExpr = this.parser.compile(processedExpr);
+            const cleanExpression = this.cleanExpression(expression);
+            const compiled = this.parser.compile(cleanExpression);
             
             const parsedFunction = (x, variables = {}) => {
                 const scope = { x, ...variables, ...this.supportedConstants };
-                return compiledExpr.evaluate(scope);
+                return compiled.evaluate(scope);
             };
             
-            parsedFunction.expression = expression;
             return parsedFunction;
             
         } catch (error) {
-            throw new Error(`Неверное математическое выражение: ${this.getUserFriendlyError(error, expression)}`);
+            throw new Error(this.getSimpleError(error, expression));
         }
     }
 
-    preprocessExpression(expression) {
-        let processed = expression
+    cleanExpression(expression) {
+        let clean = expression
             .trim()
             .toLowerCase()
             .replace(/\s+/g, '')
             .replace(/\^/g, '**')
             .replace(/ln\(/g, 'log(')
-            .replace(/arc(sin|cos|tan)/g, 'a$1')
-            .replace(/\.{2,}/g, '.');
+            .replace(/arc(sin|cos|tan)/g, 'a$1');
 
-        this.validateBrackets(processed);
-        this.validateCharacters(processed);
+        this.checkBrackets(clean);
+        this.checkSymbols(clean);
         
-        return processed;
+        return clean;
     }
 
-    validateBrackets(expression) {
-        let balance = 0;
+    checkBrackets(expression) {
+        let count = 0;
         
         for (let char of expression) {
-            if (char === '(') balance++;
-            if (char === ')') balance--;
-            if (balance < 0) throw new Error('Несбалансированные скобки');
+            if (char === '(') count++;
+            if (char === ')') count--;
+            if (count < 0) throw new Error('Ошибка в скобках');
         }
         
-        if (balance !== 0) throw new Error('Несбалансированные скобки');
+        if (count !== 0) throw new Error('Ошибка в скобках');
     }
 
-    validateCharacters(expression) {
-        const validChars = /^[0-9a-z+\-*/\^().,]+$/;
-        const invalidChars = expression.split('').filter(char => !validChars.test(char));
+    checkSymbols(expression) {
+        const allowed = /^[0-9a-z+\-*/\^().,]+$/;
+        const badChars = expression.split('').filter(char => !allowed.test(char));
         
-        if (invalidChars.length > 0) {
-            throw new Error(`Недопустимые символы: ${invalidChars.join(', ')}`);
+        if (badChars.length > 0) {
+            throw new Error(`Недопустимые символы: ${badChars.join(', ')}`);
         }
     }
 
-    getUserFriendlyError(error, originalExpression) {
-        const errorMsg = error.message.toLowerCase();
+    getSimpleError(error, expression) {
+        const message = error.message.toLowerCase();
         
-        if (errorMsg.includes('undefined function')) {
-            const functionName = errorMsg.match(/undefined function (\w+)/)?.[1];
-            return `Неизвестная функция "${functionName}"`;
+        if (message.includes('undefined function')) {
+            const name = message.match(/undefined function (\w+)/)?.[1];
+            return `Неизвестная функция "${name}"`;
         }
         
-        if (errorMsg.includes('undefined symbol')) {
-            const symbol = errorMsg.match(/undefined symbol (\w+)/)?.[1];
+        if (message.includes('undefined symbol')) {
+            const symbol = message.match(/undefined symbol (\w+)/)?.[1];
             return `Неизвестный символ "${symbol}"`;
         }
         
-        return 'Синтаксическая ошибка';
+        return 'Ошибка в выражении';
     }
 
-    derivative(func, x, h = 1e-5) {
+    getDerivative(func, x) {
+        const h = 0.0001;
         return (func(x + h) - func(x - h)) / (2 * h);
     }
 
-    generatePlotPoints(func, a, b, points = 200) {
+    getPlotPoints(func, start, end, points = 200) {
         const xValues = [];
         const yValues = [];
-        const step = (b - a) / points;
+        const step = (end - start) / points;
         
         for (let i = 0; i <= points; i++) {
-            const x = a + i * step;
+            const x = start + i * step;
             
             try {
                 const y = func(x);
@@ -148,4 +147,4 @@ class MathParser {
 }
 
 const mathParser = new MathParser();
-export { MathParser, mathParser };
+export default mathParser;
