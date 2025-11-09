@@ -119,11 +119,6 @@ class MathParser {
         return 'Ошибка в выражении';
     }
 
-    getDerivative(func, x) {
-        const h = 0.0001;
-        return (func(x + h) - func(x - h)) / (2 * h);
-    }
-
     getPlotPoints(func, start, end, points = 200) {
         const xValues = [];
         const yValues = [];
