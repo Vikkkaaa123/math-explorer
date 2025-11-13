@@ -37,83 +37,41 @@ class EventManager {
         });
     }
 
-   setupCalculationHandlers() {
-    console.log('🔧 Настройка обработчиков расчета...');
-    
-    const equationBtn = document.getElementById('calculate-equation');
-    console.log('Кнопка calculate-equation:', equationBtn);
-    
-    if (equationBtn) {
-        equationBtn.addEventListener('click', () => {
-            console.log('🎯 Кнопка уравнений нажата!');
-            this.solveEquation();
-        });
-    }
+    setupCalculationHandlers() {
+        // Обработчик для уравнений
+        const equationBtn = document.getElementById('calculate-equation');
+        if (equationBtn) {
+            equationBtn.addEventListener('click', () => this.solveEquation());
+        }
 
-    // Обработчик для сравнения методов уравнений
-    const compareEquationBtn = document.getElementById('compare-equation-methods');
-    console.log('Кнопка compare-equation-methods:', compareEquationBtn);
-    
-    if (compareEquationBtn) {
-        compareEquationBtn.addEventListener('click', () => {
-            console.log('📊 Кнопка сравнения нажата!');
-            this.compareEquationMethods();
-        });
-    }
+        // Обработчик для сравнения методов уравнений
+        const compareEquationBtn = document.getElementById('compare-equation-methods');
+        if (compareEquationBtn) {
+            compareEquationBtn.addEventListener('click', () => this.compareEquationMethods());
+        }
 
-    // Заглушки для других вкладок
-    const integrationBtn = document.getElementById('calculate-integration');
-    console.log('Кнопка calculate-integration:', integrationBtn);
-    
-    if (integrationBtn) {
-        integrationBtn.addEventListener('click', () => {
-            console.log('∫ Кнопка интегрирования нажата!');
+        // Заглушки для других вкладок
+        document.getElementById('calculate-integration')?.addEventListener('click', () => {
             this.app.showError('Интегрирование в разработке');
         });
-    }
-
-    const differentialBtn = document.getElementById('calculate-differential');
-    console.log('Кнопка calculate-differential:', differentialBtn);
-    
-    if (differentialBtn) {
-        differentialBtn.addEventListener('click', () => {
-            console.log('📈 Кнопка диффуров нажата!');
+        document.getElementById('calculate-differential')?.addEventListener('click', () => {
             this.app.showError('Диффуры в разработке');
         });
-    }
-
-    const systemBtn = document.getElementById('calculate-system');
-    console.log('Кнопка calculate-system:', systemBtn);
-    
-    if (systemBtn) {
-        systemBtn.addEventListener('click', () => {
-            console.log('⚙️ Кнопка систем нажата!');
+        document.getElementById('calculate-system')?.addEventListener('click', () => {
             this.app.showError('Системы в разработке');
         });
-    }
 
-    // Добавить обработчики для кнопок сравнения других вкладок
-    const compareIntegrationBtn = document.getElementById('compare-integration-methods');
-    if (compareIntegrationBtn) {
-        compareIntegrationBtn.addEventListener('click', () => {
+        // Заглушки для кнопок сравнения других вкладок
+        document.getElementById('compare-integration-methods')?.addEventListener('click', () => {
             this.app.showError('Сравнение методов интегрирования в разработке');
         });
-    }
-
-    const compareDiffBtn = document.getElementById('compare-diff-methods');
-    if (compareDiffBtn) {
-        compareDiffBtn.addEventListener('click', () => {
+        document.getElementById('compare-diff-methods')?.addEventListener('click', () => {
             this.app.showError('Сравнение методов диффуров в разработке');
         });
-    }
-
-    const compareSystemBtn = document.getElementById('compare-system-methods');
-    if (compareSystemBtn) {
-        compareSystemBtn.addEventListener('click', () => {
+        document.getElementById('compare-system-methods')?.addEventListener('click', () => {
             this.app.showError('Сравнение методов систем в разработке');
         });
     }
-}
 
     solveEquation() {
         try {
