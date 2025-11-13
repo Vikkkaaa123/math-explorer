@@ -13,55 +13,54 @@ class NumericalExplorer {
     }
 
     initialize() {
-        this.findElements();
-        this.eventManager.initialize(this);
-        this.mathParser.initialize();
-        this.setupInitialState();
-
-
         console.log('🚀 Инициализация приложения...');
-    
-    try {
-        this.mathParser.initialize();
-        console.log('✅ MathParser инициализирован');
         
-        this.eventManager.initialize(this);
-        console.log('✅ EventManager инициализирован');
+        // СНАЧАЛА находим элементы, потом всё остальное
+        this.findElements();
         
-        this.setupInitialState();
-        console.log('✅ Начальное состояние установлено');
-        
-        this.testEventHandlers();
-        
-    } catch (error) {
-        console.error('❌ Ошибка инициализации:', error);
+        try {
+            this.mathParser.initialize();
+            console.log('✅ MathParser инициализирован');
+            
+            this.eventManager.initialize(this);
+            console.log('✅ EventManager инициализирован');
+            
+            this.setupInitialState();
+            console.log('✅ Начальное состояние установлено');
+            
+            this.testEventHandlers();
+            
+        } catch (error) {
+            console.error('❌ Ошибка инициализации:', error);
+        }
     }
+
+    testEventHandlers() {
+        console.log('🧪 Тест обработчиков:');
+        console.log('Вкладки:', document.querySelectorAll('.tab-button').length);
+        console.log('Кнопки расчета:', document.querySelectorAll('.calculate-btn').length);
+        console.log('Кнопки сравнения:', document.querySelectorAll('.compare-btn').length);
+        
+        const elements = [
+            'equation-function', 'equation-method', 'calculate-equation'
+        ];
+        
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            console.log(`Элемент ${id}:`, element ? 'НАЙДЕН' : 'НЕ НАЙДЕН');
+        });
     }
-
-
-
-testEventHandlers() {
-    console.log('🧪 Тест обработчиков:');
-    console.log('Вкладки:', document.querySelectorAll('.tab-button').length);
-    console.log('Кнопки расчета:', document.querySelectorAll('.calculate-btn').length);
-    console.log('Кнопки сравнения:', document.querySelectorAll('.compare-btn').length);
-    
-    // Проверяем, есть ли элементы на странице
-    const elements = [
-        'equation-function', 'equation-method', 'calculate-equation'
-    ];
-    
-    elements.forEach(id => {
-        const element = document.getElementById(id);
-        console.log(`Элемент ${id}:`, element ? 'НАЙДЕН' : 'НЕ НАЙДЕН');
-    });
-}
-
 
     findElements() {
         this.elements.tabButtons = document.querySelectorAll('.tab-button');
         this.elements.tabPanes = document.querySelectorAll('.tab-pane');
         this.elements.calculateButtons = document.querySelectorAll('.calculate-btn');
+        
+        console.log('📋 Найдены элементы:', {
+            tabButtons: this.elements.tabButtons.length,
+            tabPanes: this.elements.tabPanes.length,
+            calculateButtons: this.elements.calculateButtons.length
+        });
     }
     
     setupInitialState() {
@@ -69,6 +68,7 @@ testEventHandlers() {
     }
 
     switchToTab(tabName) {
+        console.log('🔄 Переключение на вкладку:', tabName);
         this.currentTab = tabName;
         
         this.elements.tabButtons.forEach(button => {
@@ -83,6 +83,7 @@ testEventHandlers() {
     }
 
     showError(message) {
+        console.error('❌ Ошибка:', message);
         alert('Ошибка: ' + message);
     }
 
@@ -108,5 +109,11 @@ testEventHandlers() {
     }
 }
 
-const app = new NumericalExplorer();
-export default app;
+// Ждем полной загрузки DOM перед инициализацией
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM загружен, запускаем приложение...');
+    const app = new NumericalExplorer();
+    app.initialize();
+});
+
+export default NumericalExplorer;
