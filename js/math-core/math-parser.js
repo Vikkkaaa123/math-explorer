@@ -141,5 +141,4 @@ class MathParser {
     }
 }
 
-const mathParser = new MathParser();
-export default mathParser;
+export default MathParser;
