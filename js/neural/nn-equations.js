@@ -13,7 +13,7 @@ class NNEquations {
         return this.initialized;
     }
 
-    async solve(func, range = { min: -10, max: 10 }) {
+    async solve(func, range = { min: -1000, max: 1000 }) {
         if (!await this.initialize()) {
             return this._errorResult('Не удалось инициализировать нейросеть');
         }
@@ -45,7 +45,7 @@ class NNEquations {
 
         const model = this.tfWrapper.createModel({
             inputSize: 1,
-            hiddenLayers: [32, 16], // Было [64, 32, 16]
+            hiddenLayers: [32, 16],
             outputSize: 1 
         });
 
@@ -103,7 +103,7 @@ class NNEquations {
 
     _findRootsClassical(func, range) {
         const roots = [];
-        const step = (range.max - range.min) / 100;
+        const step = (range.max - range.min) / 1000;
         
         let prevX = range.min;
         let prevY = func(prevX);
