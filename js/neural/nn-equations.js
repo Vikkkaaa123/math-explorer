@@ -1,10 +1,21 @@
 import TFWrapper from './tf-wrapper.js';
+import NewtonMethod from '../numerical-methods/equations/newton.js';
+import BisectionMethod from '../numerical-methods/equations/bisection.js';
+import SecantMethod from '../numerical-methods/equations/secant.js';
+import IterationMethod from '../numerical-methods/equations/iteration.js';
 
 class NNEquations {
     constructor(mathParser) {
         this.mathParser = mathParser;
         this.tfWrapper = new TFWrapper();
         this.initialized = false;
+        
+        this.methods = {
+            newton: new NewtonMethod(mathParser),
+            bisection: new BisectionMethod(mathParser),
+            secant: new SecantMethod(mathParser),
+            iteration: new IterationMethod(mathParser)
+        };
     }
 
     async initialize() {
@@ -15,146 +26,121 @@ class NNEquations {
 
     async solve(func, range = { min: -1000, max: 1000 }) {
         if (!await this.initialize()) {
-            return this._errorResult('Не удалось инициализировать нейросеть');
+            return { roots: [], converged: false, message: 'Не удалось инициализировать нейросеть' };
         }
 
         try {
             const f = this.mathParser.parseFunction(func);
-            const roots = await this._trainRootFinder(f, range);
+            const roots = await this._trainAndFindRoots(f, range);
             
             return {
                 roots: roots,
                 converged: roots.length > 0,
-                message: `Нейросеть нашла ${roots.length} корней`,
+                message: `Найдено ${roots.length} корней`,
                 method: 'Нейросеть'
             };
 
         } catch (error) {
-            return this._errorResult('Ошибка решения: ' + error.message);
+            return { roots: [], converged: false, message: 'Ошибка: ' + error.message };
         }
     }
 
-    async _trainRootFinder(func, range) {
-        const trainingRoots = this._findRootsClassical(func, range);
+    async _trainAndFindRoots(func, range) {
+        // 1. Собираем корни от всех методов
+        const classicalRoots = this._getAllRoots(func, range);
+        if (classicalRoots.length === 0) return [];
+
+        // 2. Создаем данные для обучения
+        const trainingData = this._createTrainingData(func, range, classicalRoots);
         
-        if (trainingRoots.length === 0) {
-            return [];
-        }
-
-        const trainingData = this._createRootTrainingData(func, range, trainingRoots);
-
+        // 3. Обучаем нейросеть
         const model = this.tfWrapper.createModel({
             inputSize: 1,
             hiddenLayers: [32, 16],
-            outputSize: 1 
+            outputSize: 1
         });
 
         this.tfWrapper.compileModel(model, 0.001);
+        await this.tfWrapper.trainModel(model, trainingData.inputs, trainingData.outputs, 100);
 
-        await this.tfWrapper.trainModel(
-            model, 
-            trainingData.inputs, 
-            trainingData.outputs, 
-            100
-        );
-
-        return this._findRootsNeural(model, func, range);
+        // 4. Нейросеть ищет корни
+        return this._findWithNeural(model, func, range);
     }
 
-    _createRootTrainingData(func, range, knownRoots) {
+    _getAllRoots(func, range) {
+        const roots = new Set();
+        const mid = (range.min + range.max) / 2;
+
+        try {
+            const newton = this.methods.newton.solve(func, mid);
+            if (newton.converged) roots.add(newton.root);
+        } catch (e) {}
+
+        try {
+            const bisection = this.methods.bisection.solve(func, range.min, range.max);
+            if (bisection.converged) roots.add(bisection.root);
+        } catch (e) {}
+
+        try {
+            const secant = this.methods.secant.solve(func, range.min, mid);
+            if (secant.converged) roots.add(secant.root);
+        } catch (e) {}
+
+        try {
+            const iteration = this.methods.iteration.solve(func, mid);
+            if (iteration.converged) roots.add(iteration.root);
+        } catch (e) {}
+
+        return Array.from(roots).filter(root => 
+            typeof root === 'number' && isFinite(root)
+        );
+    }
+
+    _createTrainingData(func, range, knownRoots) {
         const inputs = [];
         const outputs = [];
-
+        
         for (let i = 0; i < 1000; i++) {
-            const x = range.min + (range.max - range.min) * Math.random();
+            let x;
+            if (knownRoots.length > 0 && Math.random() < 0.5) {
+                const root = knownRoots[Math.floor(Math.random() * knownRoots.length)];
+                x = root + (Math.random() - 0.5) * 2;
+            } else {
+                x = range.min + Math.random() * (range.max - range.min);
+            }
             
-            const isRoot = knownRoots.some(root => Math.abs(root - x) < 0.1);
-            const actualY = func(x);
-            const isActuallyRoot = Math.abs(actualY) < 0.01;
-            
-            inputs.push([x]);
-            outputs.push([isRoot || isActuallyRoot ? 1 : 0]);
+            try {
+                const y = func(x);
+                const isRoot = knownRoots.some(r => Math.abs(r - x) < 0.1) || Math.abs(y) < 0.01;
+                inputs.push([x]);
+                outputs.push([isRoot ? 1 : 0]);
+            } catch (e) {}
         }
 
         return { inputs, outputs };
     }
 
-    _findRootsNeural(model, func, range) {
+    _findWithNeural(model, func, range) {
         const roots = [];
         
-        for (let i = 0; i < 50; i++) {
-            const x = range.min + (range.max - range.min) * Math.random();
-            const prediction = this.tfWrapper.predict(model, [[x]])[0];
+        for (let i = 0; i < 100; i++) {
+            const x = range.min + Math.random() * (range.max - range.min);
+            const confidence = this.tfWrapper.predict(model, [[x]])[0];
             
-            if (prediction > 0.8) {
-                const actualY = func(x);
-                if (Math.abs(actualY) < 0.01) {
-                    roots.push({ 
-                        x: x, 
-                        fx: actualY,
-                        confidence: prediction
-                    });
-                }
+            if (confidence > 0.7) {
+                try {
+                    const y = func(x);
+                    if (Math.abs(y) < 0.01) {
+                        const isNew = !roots.some(r => Math.abs(r.x - x) < 0.01);
+                        if (isNew) {
+                            roots.push({ x, fx: y, confidence });
+                        }
+                    }
+                } catch (e) {}
             }
         }
 
-        return this._removeDuplicateRoots(roots);
-    }
-
-    _findRootsClassical(func, range) {
-        const roots = [];
-        const step = (range.max - range.min) / 1000;
-        
-        let prevX = range.min;
-        let prevY = func(prevX);
-        
-        for (let x = range.min + step; x <= range.max; x += step) {
-            const currentY = func(x);
-            
-            if (prevY * currentY <= 0) {
-                const root = this._refineRootClassical(func, prevX, x);
-                if (root !== null) {
-                    roots.push(root);
-                }
-            }
-            
-            prevX = x;
-            prevY = currentY;
-        }
-        
-        return roots;
-    }
-
-    _refineRootClassical(func, a, b) {
-        let left = a, right = b;
-        
-        for (let i = 0; i < 10; i++) {
-            const mid = (left + right) / 2;
-            const midY = func(mid);
-            
-            if (Math.abs(midY) < 1e-6) return mid;
-            if (func(left) * midY < 0) right = mid;
-            else left = mid;
-        }
-        
-        return (left + right) / 2;
-    }
-
-    _removeDuplicateRoots(roots) {
-        const unique = [];
-        for (const root of roots) {
-            const isDuplicate = unique.some(r => Math.abs(r.x - root.x) < 0.1);
-            if (!isDuplicate) unique.push(root);
-        }
-        return unique;
-    }
-
-    _errorResult(message) {
-        return {
-            roots: [],
-            converged: false,
-            message: message
-        };
+        return roots.sort((a, b) => b.confidence - a.confidence);
     }
 }
 
