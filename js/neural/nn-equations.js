@@ -31,13 +31,14 @@ class NNEquations {
 
         try {
             const f = this.mathParser.parseFunction(func);
-            const roots = await this._trainAndFindRoots(f, range);
+            const result = await this._trainAndFindRoots(f, range);
             
             return {
-                roots: roots,
-                converged: roots.length > 0,
-                message: `Найдено ${roots.length} корней`,
-                method: 'Нейросеть'
+                roots: result.roots,
+                converged: result.roots.length > 0,
+                message: `Уравнение решено нейросетью (вероятность точности: ${result.probability}%)`,
+                method: 'Нейросеть',
+                probability: result.probability
             };
 
         } catch (error) {
@@ -48,7 +49,7 @@ class NNEquations {
     async _trainAndFindRoots(func, range) {
         // 1. Находим корни классическими методами
         const classicalRoots = this._findRootsClassical(func, range);
-        if (classicalRoots.length === 0) return [];
+        if (classicalRoots.length === 0) return { roots: [], probability: 0 };
 
         // 2. Создаем обучающие данные на основе классических методов
         const trainingData = this._createTrainingData(func, range, classicalRoots);
@@ -63,8 +64,8 @@ class NNEquations {
         this.tfWrapper.compileModel(model, 0.001);
         await this.tfWrapper.trainModel(model, trainingData.inputs, trainingData.outputs, 100);
 
-        // 4. Нейросеть ищет корни самостоятельно
-        return this._findRootsWithNeural(model, func, range);
+        // 4. Нейросеть ищет корни и вычисляем вероятность
+        return this._findRootsWithNeural(model, func, range, classicalRoots);
     }
 
     _findRootsClassical(func, range) {
@@ -113,8 +114,10 @@ class NNEquations {
         return { inputs, outputs };
     }
 
-    _findRootsWithNeural(model, func, range) {
+    _findRootsWithNeural(model, func, range, classicalRoots) {
         const roots = [];
+        let totalConfidence = 0;
+        let foundRootsCount = 0;
         
         for (let i = 0; i < 200; i++) {
             const x = range.min + Math.random() * (range.max - range.min);
@@ -131,13 +134,21 @@ class NNEquations {
                                 fx: y,
                                 confidence: confidence 
                             });
+                            totalConfidence += confidence;
+                            foundRootsCount++;
                         }
                     }
                 } catch (e) {}
             }
         }
 
-        return roots.sort((a, b) => b.confidence - a.confidence);
+        const averageConfidence = foundRootsCount > 0 ? totalConfidence / foundRootsCount : 0;
+        const probability = Math.min(99, Math.round(averageConfidence * 100));
+
+        return {
+            roots: roots.sort((a, b) => b.confidence - a.confidence),
+            probability: probability
+        };
     }
 }
 
