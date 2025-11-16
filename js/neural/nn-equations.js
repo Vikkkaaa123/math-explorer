@@ -46,11 +46,11 @@ class NNEquations {
     }
 
     async _trainAndFindRoots(func, range) {
-        // 1. Собираем корни от всех методов
-        const classicalRoots = this._getAllRoots(func, range);
+        // 1. Находим корни классическими методами
+        const classicalRoots = this._findRootsClassical(func, range);
         if (classicalRoots.length === 0) return [];
 
-        // 2. Создаем данные для обучения
+        // 2. Создаем обучающие данные на основе классических методов
         const trainingData = this._createTrainingData(func, range, classicalRoots);
         
         // 3. Обучаем нейросеть
@@ -63,32 +63,32 @@ class NNEquations {
         this.tfWrapper.compileModel(model, 0.001);
         await this.tfWrapper.trainModel(model, trainingData.inputs, trainingData.outputs, 100);
 
-        // 4. Нейросеть ищет корни
-        return this._findWithNeural(model, func, range);
+        // 4. Нейросеть ищет корни самостоятельно
+        return this._findRootsWithNeural(model, func, range);
     }
 
-    _getAllRoots(func, range) {
+    _findRootsClassical(func, range) {
         const roots = new Set();
         const mid = (range.min + range.max) / 2;
 
         try {
             const newton = this.methods.newton.solve(func, mid);
-            if (newton.converged) roots.add(newton.root);
+            if (newton.converged && newton.root !== null) roots.add(newton.root);
         } catch (e) {}
 
         try {
             const bisection = this.methods.bisection.solve(func, range.min, range.max);
-            if (bisection.converged) roots.add(bisection.root);
+            if (bisection.converged && bisection.root !== null) roots.add(bisection.root);
         } catch (e) {}
 
         try {
             const secant = this.methods.secant.solve(func, range.min, mid);
-            if (secant.converged) roots.add(secant.root);
+            if (secant.converged && secant.root !== null) roots.add(secant.root);
         } catch (e) {}
 
         try {
             const iteration = this.methods.iteration.solve(func, mid);
-            if (iteration.converged) roots.add(iteration.root);
+            if (iteration.converged && iteration.root !== null) roots.add(iteration.root);
         } catch (e) {}
 
         return Array.from(roots).filter(root => 
@@ -96,22 +96,15 @@ class NNEquations {
         );
     }
 
-    _createTrainingData(func, range, knownRoots) {
+    _createTrainingData(func, range, classicalRoots) {
         const inputs = [];
         const outputs = [];
         
         for (let i = 0; i < 1000; i++) {
-            let x;
-            if (knownRoots.length > 0 && Math.random() < 0.5) {
-                const root = knownRoots[Math.floor(Math.random() * knownRoots.length)];
-                x = root + (Math.random() - 0.5) * 2;
-            } else {
-                x = range.min + Math.random() * (range.max - range.min);
-            }
+            const x = range.min + Math.random() * (range.max - range.min);
             
             try {
-                const y = func(x);
-                const isRoot = knownRoots.some(r => Math.abs(r - x) < 0.1) || Math.abs(y) < 0.01;
+                const isRoot = classicalRoots.some(root => Math.abs(root - x) < 0.1);
                 inputs.push([x]);
                 outputs.push([isRoot ? 1 : 0]);
             } catch (e) {}
@@ -120,10 +113,10 @@ class NNEquations {
         return { inputs, outputs };
     }
 
-    _findWithNeural(model, func, range) {
+    _findRootsWithNeural(model, func, range) {
         const roots = [];
         
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 200; i++) {
             const x = range.min + Math.random() * (range.max - range.min);
             const confidence = this.tfWrapper.predict(model, [[x]])[0];
             
@@ -133,7 +126,11 @@ class NNEquations {
                     if (Math.abs(y) < 0.01) {
                         const isNew = !roots.some(r => Math.abs(r.x - x) < 0.01);
                         if (isNew) {
-                            roots.push({ x, fx: y, confidence });
+                            roots.push({ 
+                                x: x, 
+                                fx: y,
+                                confidence: confidence 
+                            });
                         }
                     }
                 } catch (e) {}
