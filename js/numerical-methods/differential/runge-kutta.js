@@ -69,3 +69,4 @@ class RungeKuttaMethod {
         return typeof num === 'number' && isFinite(num);
     }
 }
+export default RungeKuttaMethod;
