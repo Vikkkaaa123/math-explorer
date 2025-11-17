@@ -1,4 +1,3 @@
-import app from './main.js';
 import NewtonMethod from '../numerical-methods/equations/newton.js';
 import BisectionMethod from '../numerical-methods/equations/bisection.js';
 import IterationMethod from '../numerical-methods/equations/iteration.js';
