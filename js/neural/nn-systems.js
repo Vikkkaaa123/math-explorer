@@ -45,14 +45,10 @@ class NNSystems {
     }
 
     async _trainAndSolve(targetMatrix, targetVector) {
-        // 1. Решаем классическими методами
-        const classicalSolution = this._solveClassical(targetMatrix, targetVector);
-        if (!classicalSolution) return { solution: null, probability: 0 };
-
-        // 2. Создаем обучающие данные
-        const trainingData = this._createTrainingData(targetMatrix, targetVector, classicalSolution);
+        // 1. Создаем обучающие данные
+        const trainingData = this._createTrainingData(targetMatrix, targetVector);
         
-        // 3. Обучаем нейросеть
+        // 2. Обучаем нейросеть
         const n = targetVector.length;
         const model = this.tfWrapper.createModel({
             inputSize: n * n + n,
@@ -63,30 +59,11 @@ class NNSystems {
         this.tfWrapper.compileModel(model, 0.001);
         await this.tfWrapper.trainModel(model, trainingData.inputs, trainingData.outputs, 100);
 
-        // 4. Нейросеть предсказывает решение
-        return this._solveWithNeural(model, targetMatrix, targetVector, classicalSolution);
+        // 3. Нейросеть предсказывает решение
+        return this._solveWithNeural(model, targetMatrix, targetVector);
     }
 
-    _solveClassical(matrix, vector) {
-        try {
-            const gauss = this.methods.gauss.solve(matrix, vector);
-            if (gauss.converged) return gauss.solution;
-        } catch (e) {}
-
-        try {
-            const zeidel = this.methods.zeidel.solve(matrix, vector);
-            if (zeidel.converged) return zeidel.solution;
-        } catch (e) {}
-
-        try {
-            const jacobi = this.methods.jacobi.solve(matrix, vector);
-            if (jacobi.converged) return jacobi.solution;
-        } catch (e) {}
-
-        return null;
-    }
-
-    _createTrainingData(targetMatrix, targetVector, classicalSolution) {
+    _createTrainingData(targetMatrix, targetVector) {
         const inputs = [];
         const outputs = [];
         const n = targetVector.length;
@@ -94,11 +71,40 @@ class NNSystems {
         for (let i = 0; i < 1000; i++) {
             const { matrix, vector } = this._generateRandomSystem(targetMatrix, targetVector);
             
-            inputs.push([...matrix.flat(), ...vector]);
-            outputs.push(classicalSolution);
+            // Получаем все решения
+            const allSolutions = this._getAllSolutions(matrix, vector);
+            
+            // Обучаем
+            for (const solution of allSolutions) {
+                if (solution && solution.length === n) {
+                    inputs.push([...matrix.flat(), ...vector]);
+                    outputs.push(solution);
+                }
+            }
         }
 
         return { inputs, outputs };
+    }
+
+    _getAllSolutions(matrix, vector) {
+        const solutions = [];
+
+        try {
+            const gauss = this.methods.gauss.solve(matrix, vector);
+            if (gauss.converged) solutions.push(gauss.solution);
+        } catch (e) {}
+
+        try {
+            const zeidel = this.methods.zeidel.solve(matrix, vector);
+            if (zeidel.converged) solutions.push(zeidel.solution);
+        } catch (e) {}
+
+        try {
+            const jacobi = this.methods.jacobi.solve(matrix, vector);
+            if (jacobi.converged) solutions.push(jacobi.solution);
+        } catch (e) {}
+
+        return solutions;
     }
 
     _generateRandomSystem(targetMatrix, targetVector) {
@@ -119,13 +125,22 @@ class NNSystems {
         return { matrix, vector };
     }
 
-    _solveWithNeural(model, matrix, vector, classicalSolution) {
+    _solveWithNeural(model, matrix, vector) {
         const input = [...matrix.flat(), ...vector];
         const neuralSolution = this.tfWrapper.predict(model, [input]);
         
+        const classicalSolutions = this._getAllSolutions(matrix, vector);
+        let classicalValue = neuralSolution;
+        
+        if (classicalSolutions.length > 0) {
+            classicalValue = classicalSolutions[0].map((_, i) =>
+                classicalSolutions.reduce((sum, sol) => sum + sol[i], 0) / classicalSolutions.length
+            );
+        }
+        
         const error = this._calculateError(matrix, vector, neuralSolution);
-        const classicalError = this._calculateError(matrix, vector, classicalSolution);
-      
+        const classicalError = this._calculateError(matrix, vector, classicalValue);
+        
         const relativeError = Math.abs(error - classicalError) / (Math.abs(classicalError) + 1e-10);
         const probability = Math.max(0, 100 - relativeError * 100);
         
