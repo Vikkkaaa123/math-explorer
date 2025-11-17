@@ -77,21 +77,25 @@ class NNIntegration {
             
             if (trainA >= trainB) continue;
 
-            const integral = this._computeIntegralClassical(func, trainA, trainB);
+            // Получаем все интегралы
+            const allIntegrals = this._getAllIntegrals(func, trainA, trainB);
             
-            if (Math.abs(integral) < 1e10) {
-                inputs.push([trainA, trainB]);
-                outputs.push([integral]);
+            // Обучаем
+            for (const integral of allIntegrals) {
+                if (typeof integral === 'number' && isFinite(integral) && Math.abs(integral) < 1e10) {
+                    inputs.push([trainA, trainB]);
+                    outputs.push([integral]); // Конкретный интеграл метода, а не среднее
+                }
             }
         }
 
         return { inputs, outputs };
     }
 
-    _computeIntegralClassical(func, a, b) {
-        const results = this._getAllIntegrals(func, a, b);
-        return results.length > 0? results.reduce((sum, val) => sum + val, 0) / results.length: 0;
-    }
+    // _computeIntegralClassical(func, a, b) {
+    //     const results = this._getAllIntegrals(func, a, b);
+    //     return results.length > 0? results.reduce((sum, val) => sum + val, 0) / results.length: 0;
+    // }
 
     _integrateWithNeural(model, func, a, b) {
         const neuralValue = this.tfWrapper.predict(model, [[a, b]])[0];
