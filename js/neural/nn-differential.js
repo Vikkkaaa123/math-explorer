@@ -7,7 +7,6 @@ class NNDifferential {
         this.mathParser = mathParser;
         this.tfWrapper = new TFWrapper();
         this.initialized = false;
-        
         this.methods = {
             euler: new EulerMethod(mathParser),
             rungeKutta: new RungeKuttaMethod(mathParser)
@@ -27,14 +26,17 @@ class NNDifferential {
 
         try {
             const f = this.mathParser.parseFunction(func);
-            const result = await this._trainAndSolve(f, x0, y0, xEnd);
+            const classical = this._getClassicalSolution(f, x0, y0, xEnd);
+            const neural = await this._trainAndPredict(f, x0, y0, xEnd);
             
             return {
-                solution: result.solution,
+                solution: classical.solution,
+                iterations: classical.iterations,
                 converged: true,
-                message: `Дифф. уравнение решено нейросетью (вероятность точности: ${result.probability}%)`,
-                method: 'Нейросеть',
-                probability: result.probability
+                message: `Решено нейросетью (точность: ${neural.probability}%)`,
+                method: 'Нейросеть + Классические методы',
+                probability: neural.probability,
+                neuralPrediction: neural.finalY
             };
 
         } catch (error) {
@@ -42,13 +44,10 @@ class NNDifferential {
         }
     }
 
-    async _trainAndSolve(func, targetX0, targetY0, targetXEnd) {
-        // 1. Создаем обучающие данные на разных начальных условиях
-        const trainingData = this._createTrainingData(func, targetX0, targetY0, targetXEnd);
-        
-        // 2. Обучаем нейросеть
+    async _trainAndPredict(func, x0, y0, xEnd) {
+        const trainingData = this._createTrainingData(func, x0, y0, xEnd);
         const model = this.tfWrapper.createModel({
-            inputSize: 3,  // [x0, y0, xEnd]
+            inputSize: 3,
             hiddenLayers: [32, 16],
             outputSize: 1
         });
@@ -56,31 +55,26 @@ class NNDifferential {
         this.tfWrapper.compileModel(model, 0.001);
         await this.tfWrapper.trainModel(model, trainingData.inputs, trainingData.outputs, 100);
 
-        // 3. Нейросеть предсказывает решение и вычисляем вероятность
-        return this._solveWithNeural(model, func, targetX0, targetY0, targetXEnd);
+        return this._predictFinalY(model, func, x0, y0, xEnd);
     }
 
     _createTrainingData(func, targetX0, targetY0, targetXEnd) {
         const inputs = [];
         const outputs = [];
-        
         const range = 5;
         
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 500; i++) {
             const trainX0 = targetX0 + (Math.random() - 0.5) * range;
             const trainY0 = targetY0 + (Math.random() - 0.5) * range;
             const trainXEnd = targetXEnd + (Math.random() - 0.5) * range;
             
             if (trainX0 >= trainXEnd) continue;
 
-            // Получаем все решения
-            const allSolutions = this._getAllSolutions(func, trainX0, trainY0, trainXEnd);
-            
-            // Обучаем
-            for (const solution of allSolutions) {
-                if (typeof solution === 'number' && isFinite(solution)) {
+            const finalYs = this._getFinalYValues(func, trainX0, trainY0, trainXEnd);
+            for (const y of finalYs) {
+                if (typeof y === 'number' && isFinite(y)) {
                     inputs.push([trainX0, trainY0, trainXEnd]);
-                    outputs.push([solution]);
+                    outputs.push([y]);
                 }
             }
         }
@@ -88,48 +82,49 @@ class NNDifferential {
         return { inputs, outputs };
     }
 
-    // _solveClassical(func, x0, y0, xEnd) {
-    //     const results = this._getAllSolutions(func, x0, y0, xEnd);
-    //     return results.length > 0? results.reduce((sum, val) => sum + val, 0) / results.length: 0;
-    // }
+    _getFinalYValues(func, x0, y0, xEnd) {
+        const results = [];
+        
+        const methods = [this.methods.rungeKutta, this.methods.euler];
+        for (const method of methods) {
+            try {
+                const solution = method.solve(func, x0, y0, xEnd);
+                if (solution.converged && solution.solution.y.length > 0) {
+                    results.push(solution.solution.y[solution.solution.y.length - 1]);
+                }
+            } catch (e) {}
+        }
+        
+        return results;
+    }
 
-    _solveWithNeural(model, func, x0, y0, xEnd) {
-        const neuralValue = this.tfWrapper.predict(model, [[x0, y0, xEnd]])[0];
+    _getClassicalSolution(func, x0, y0, xEnd) {
+        try {
+            const rk = this.methods.rungeKutta.solve(func, x0, y0, xEnd);
+            if (rk.converged) return rk;
+        } catch (e) {}
         
-        const classicalResults = this._getAllSolutions(func, x0, y0, xEnd);
-        const classicalValue = classicalResults.length > 0? classicalResults.reduce((sum, val) => sum + val, 0) / classicalResults.length: neuralValue;
+        try {
+            const euler = this.methods.euler.solve(func, x0, y0, xEnd);
+            if (euler.converged) return euler;
+        } catch (e) {}
         
-        const error = Math.abs(neuralValue - classicalValue);
-        const relativeError = error / (Math.abs(classicalValue) + 1e-10);
+        throw new Error('Классические методы не сработали');
+    }
+
+    _predictFinalY(model, func, x0, y0, xEnd) {
+        const neuralY = this.tfWrapper.predict(model, [[x0, y0, xEnd]])[0];
+        const classical = this._getClassicalSolution(func, x0, y0, xEnd);
+        const classicalY = classical.solution.y[classical.solution.y.length - 1];
+        
+        const error = Math.abs(neuralY - classicalY);
+        const relativeError = error / (Math.abs(classicalY) + 1e-10);
         const probability = Math.max(0, 100 - relativeError * 100);
         
         return {
-            solution: {
-                x: [x0, xEnd],
-                y: [y0, neuralValue]
-            },
+            finalY: neuralY,
             probability: Math.min(99, Math.round(probability))
         };
-    }
-
-    _getAllSolutions(func, x0, y0, xEnd) {
-        const results = [];
-
-        try {
-            const euler = this.methods.euler.solve(func, x0, y0, xEnd);
-            if (euler.converged && euler.solution && euler.solution.y.length > 0) {
-                results.push(euler.solution.y[euler.solution.y.length - 1]);
-            }
-        } catch (e) {}
-
-        try {
-            const rungeKutta = this.methods.rungeKutta.solve(func, x0, y0, xEnd);
-            if (rungeKutta.converged && rungeKutta.solution && rungeKutta.solution.y.length > 0) {
-                results.push(rungeKutta.solution.y[rungeKutta.solution.y.length - 1]);
-            }
-        } catch (e) {}
-
-        return results.filter(val => typeof val === 'number' && isFinite(val) && Math.abs(val) < 1e10);
     }
 }
 
