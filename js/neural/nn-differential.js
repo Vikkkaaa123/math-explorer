@@ -50,7 +50,7 @@ class NNDifferential {
         const model = this.tfWrapper.createModel({
             inputSize: 3,  // [x0, y0, xEnd]
             hiddenLayers: [32, 16],
-            outputSize: 1  // значение y в конечной точке
+            outputSize: 1
         });
 
         this.tfWrapper.compileModel(model, 0.001);
@@ -61,33 +61,37 @@ class NNDifferential {
     }
 
     _createTrainingData(func, targetX0, targetY0, targetXEnd) {
-    const inputs = [];
-    const outputs = [];
-    
-    const range = 5;
-    
-    for (let i = 0; i < 1000; i++) {
-        const trainX0 = targetX0 + (Math.random() - 0.5) * range;
-        const trainY0 = targetY0 + (Math.random() - 0.5) * range;
-        const trainXEnd = targetXEnd + (Math.random() - 0.5) * range;
+        const inputs = [];
+        const outputs = [];
         
-        if (trainX0 >= trainXEnd) continue;
+        const range = 5;
+        
+        for (let i = 0; i < 1000; i++) {
+            const trainX0 = targetX0 + (Math.random() - 0.5) * range;
+            const trainY0 = targetY0 + (Math.random() - 0.5) * range;
+            const trainXEnd = targetXEnd + (Math.random() - 0.5) * range;
+            
+            if (trainX0 >= trainXEnd) continue;
 
-        const finalY = this._solveClassical(func, trainX0, trainY0, trainXEnd);
-        
-        if (typeof finalY === 'number' && isFinite(finalY)) {
-            inputs.push([trainX0, trainY0, trainXEnd]);
-            outputs.push([finalY]);
+            // Получаем все решения
+            const allSolutions = this._getAllSolutions(func, trainX0, trainY0, trainXEnd);
+            
+            // Обучаем
+            for (const solution of allSolutions) {
+                if (typeof solution === 'number' && isFinite(solution)) {
+                    inputs.push([trainX0, trainY0, trainXEnd]);
+                    outputs.push([solution]);
+                }
+            }
         }
+
+        return { inputs, outputs };
     }
 
-    return { inputs, outputs };
-}
-
-    _solveClassical(func, x0, y0, xEnd) {
-        const results = this._getAllSolutions(func, x0, y0, xEnd);
-        return results.length > 0? results.reduce((sum, val) => sum + val, 0) / results.length: 0;
-    }
+    // _solveClassical(func, x0, y0, xEnd) {
+    //     const results = this._getAllSolutions(func, x0, y0, xEnd);
+    //     return results.length > 0? results.reduce((sum, val) => sum + val, 0) / results.length: 0;
+    // }
 
     _solveWithNeural(model, func, x0, y0, xEnd) {
         const neuralValue = this.tfWrapper.predict(model, [[x0, y0, xEnd]])[0];
