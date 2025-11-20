@@ -42,6 +42,78 @@ class MathParser {
         }, { override: true });
     }
 
+    cleanExpression(expression) {
+        console.log('Исходное выражение:', expression);
+        
+        let clean = expression
+            .trim()
+            .toLowerCase()
+            
+            // Убираем ВСЕ пробелы
+            .replace(/\s+/g, '')
+            
+            // ВАЖНО: сначала заменяем функции на защищенные метки
+            .replace(/sin/g, '§SIN§')
+            .replace(/cos/g, '§COS§')
+            .replace(/tan/g, '§TAN§')
+            .replace(/cot/g, '§COT§')
+            .replace(/sec/g, '§SEC§')
+            .replace(/csc/g, '§CSC§')
+            .replace(/asin/g, '§ASIN§')
+            .replace(/acos/g, '§ACOS§')
+            .replace(/atan/g, '§ATAN§')
+            .replace(/acot/g, '§ACOT§')
+            .replace(/sinh/g, '§SINH§')
+            .replace(/cosh/g, '§COSH§')
+            .replace(/tanh/g, '§TANH§')
+            .replace(/coth/g, '§COTH§')
+            .replace(/log/g, '§LOG§')
+            .replace(/ln/g, '§LN§')
+            .replace(/exp/g, '§EXP§')
+            .replace(/sqrt/g, '§SQRT§')
+            .replace(/abs/g, '§ABS§')
+            
+            // Теперь заменяем ЛЮБУЮ оставшуюся букву на 'x'
+            .replace(/[a-zа-яё]/g, 'x')
+            
+            // Возвращаем функции обратно
+            .replace(/§SIN§/g, 'sin')
+            .replace(/§COS§/g, 'cos')
+            .replace(/§TAN§/g, 'tan')
+            .replace(/§COT§/g, 'cot')
+            .replace(/§SEC§/g, 'sec')
+            .replace(/§CSC§/g, 'csc')
+            .replace(/§ASIN§/g, 'asin')
+            .replace(/§ACOS§/g, 'acos')
+            .replace(/§ATAN§/g, 'atan')
+            .replace(/§ACOT§/g, 'acot')
+            .replace(/§SINH§/g, 'sinh')
+            .replace(/§COSH§/g, 'cosh')
+            .replace(/§TANH§/g, 'tanh')
+            .replace(/§COTH§/g, 'coth')
+            .replace(/§LOG§/g, 'log')
+            .replace(/§LN§/g, 'ln')
+            .replace(/§EXP§/g, 'exp')
+            .replace(/§SQRT§/g, 'sqrt')
+            .replace(/§ABS§/g, 'abs')
+            
+            // Степень
+            .replace(/\^/g, '**')
+            
+            // Автоматическое умножение
+            .replace(/(\d)(x)/g, '$1*$2')     // 3x → 3*x
+            .replace(/(\d)(\()/g, '$1*$2')    // 2( → 2*(
+            .replace(/(\))(x)/g, '$1*$2')     // )x → )*x
+            .replace(/(\))(\()/g, '$1*$2')    // )( → )*(
+            .replace(/(x)(\()/g, '$1*$2');    // x( → x*(
+
+        console.log('Унифицированное выражение:', clean);
+        
+        this.checkBrackets(clean);
+        
+        return clean;
+    }
+
     parseFunction(expression) {
         if (!this.ready) {
             throw new Error('Парсер не готов');
@@ -53,6 +125,8 @@ class MathParser {
 
         try {
             const cleanExpression = this.cleanExpression(expression);
+            console.log('Выражение для math.js:', cleanExpression);
+            
             const compiled = this.parser.compile(cleanExpression);
             
             const parsedFunction = (x, variables = {}) => {
@@ -63,47 +137,10 @@ class MathParser {
             return parsedFunction;
             
         } catch (error) {
+            console.error('Ошибка парсера:', error);
             throw new Error(this.getSimpleError(error, expression));
         }
     }
-
-   cleanExpression(expression) {
-    let clean = expression
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '')  // Убираем все пробелы
-        .replace(/\^/g, '**') // Степень: ^ → **
-        
-        // Автоматическое умножение:
-        .replace(/(\d)([a-z])/g, '$1*$2')           // 3x → 3*x
-        .replace(/(\d)(\()/g, '$1*$2')              // 2( → 2*(
-        .replace(/([a-z])(\d)/g, '$1*$2')           // x2 → x*2  
-        .replace(/([a-z])([a-z])/g, '$1*$2')        // xy → x*y
-        .replace(/(\))([a-z])/g, '$1*$2')           // )x → )*x
-        .replace(/(\))(\()/g, '$1*$2')              // )( → )*(
-        .replace(/([a-z])(\()/g, '$1*$2')           // x( → x*(
-        
-        // Функции и константы:
-        .replace(/ln\(/g, 'log(')                   // ln → log
-        .replace(/arc(sin|cos|tan)/g, 'a$1')        // arcsin → asin
-        .replace(/pi/g, 'pi')                       // π оставляем как есть
-        .replace(/e(?![a-z])/g, 'e');               // e (но не ex, esin и т.д.
-
-    // Проверяем скобки и символы
-    this.checkBrackets(clean);
-    this.checkSymbols(clean);
-    return clean;
-}
-
-checkSymbols(expression) {
-    // Разрешаем буквы, цифры, операторы и скобки
-    const allowed = /^[0-9a-z+\-*/\^().,]+$/;
-    const badChars = expression.split('').filter(char => !allowed.test(char));
-    
-    if (badChars.length > 0) {
-        throw new Error(`Недопустимые символы: ${badChars.join(', ')}`);
-    }
-}
 
     checkBrackets(expression) {
         let count = 0;
@@ -118,6 +155,7 @@ checkSymbols(expression) {
     }
 
     checkSymbols(expression) {
+        // Разрешаем буквы, цифры, операторы и скобки
         const allowed = /^[0-9a-z+\-*/\^().,]+$/;
         const badChars = expression.split('').filter(char => !allowed.test(char));
         
@@ -140,27 +178,6 @@ checkSymbols(expression) {
         }
         
         return 'Ошибка в выражении';
-    }
-
-    getPlotPoints(func, start, end, points = 200) {
-        const xValues = [];
-        const yValues = [];
-        const step = (end - start) / points;
-        
-        for (let i = 0; i <= points; i++) {
-            const x = start + i * step;
-            
-            try {
-                const y = func(x);
-                xValues.push(x);
-                yValues.push(isFinite(y) ? y : null);
-            } catch (error) {
-                xValues.push(x);
-                yValues.push(null);
-            }
-        }
-        
-        return { x: xValues, y: yValues };
     }
 }
 
