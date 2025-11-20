@@ -55,6 +55,9 @@ cleanExpression(expression) {
         .replace(/([a-zа-яё])\*\*(\d+)/g, 'pow($1, $2)')   // x**2 → pow(x, 2)
         .replace(/(\))\^(\d+)/g, 'pow($1, $2)')            // (x+1)^2 → pow((x+1), 2)
         .replace(/(\))\*\*(\d+)/g, 'pow($1, $2)')          // (x+1)**2 → pow((x+1), 2)
+
+        // 1.2. ЗАЩИТА POW от замены букв
+        .replace(/pow/g, '§POW§')
         
         // 2. ЗАЩИТА функций и констант
         .replace(/pi/g, '§PI§')
@@ -83,6 +86,7 @@ cleanExpression(expression) {
         .replace(/[a-zа-яё]/g, 'x')
         
         // 4. Возвращаем функции и константы
+        .replace(/§POW§/g, 'pow')
         .replace(/§PI§/g, 'pi')
         .replace(/§E§/g, 'e')
         .replace(/§SIN§/g, 'sin')
