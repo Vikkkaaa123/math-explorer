@@ -67,20 +67,43 @@ class MathParser {
         }
     }
 
-    cleanExpression(expression) {
-        let clean = expression
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, '')
-            .replace(/\^/g, '**')
-            .replace(/ln\(/g, 'log(')
-            .replace(/arc(sin|cos|tan)/g, 'a$1');
-
-        this.checkBrackets(clean);
-        this.checkSymbols(clean);
+   cleanExpression(expression) {
+    let clean = expression
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')  // Убираем все пробелы
+        .replace(/\^/g, '**') // Степень: ^ → **
         
-        return clean;
+        // Автоматическое умножение:
+        .replace(/(\d)([a-z])/g, '$1*$2')           // 3x → 3*x
+        .replace(/(\d)(\()/g, '$1*$2')              // 2( → 2*(
+        .replace(/([a-z])(\d)/g, '$1*$2')           // x2 → x*2  
+        .replace(/([a-z])([a-z])/g, '$1*$2')        // xy → x*y
+        .replace(/(\))([a-z])/g, '$1*$2')           // )x → )*x
+        .replace(/(\))(\()/g, '$1*$2')              // )( → )*(
+        .replace(/([a-z])(\()/g, '$1*$2')           // x( → x*(
+        
+        // Функции и константы:
+        .replace(/ln\(/g, 'log(')                   // ln → log
+        .replace(/arc(sin|cos|tan)/g, 'a$1')        // arcsin → asin
+        .replace(/pi/g, 'pi')                       // π оставляем как есть
+        .replace(/e(?![a-z])/g, 'e');               // e (но не ex, esin и т.д.
+
+    // Проверяем скобки и символы
+    this.checkBrackets(clean);
+    this.checkSymbols(clean);
+    return clean;
+}
+
+checkSymbols(expression) {
+    // Разрешаем буквы, цифры, операторы и скобки
+    const allowed = /^[0-9a-z+\-*/\^().,]+$/;
+    const badChars = expression.split('').filter(char => !allowed.test(char));
+    
+    if (badChars.length > 0) {
+        throw new Error(`Недопустимые символы: ${badChars.join(', ')}`);
     }
+}
 
     checkBrackets(expression) {
         let count = 0;
