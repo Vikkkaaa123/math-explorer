@@ -50,11 +50,15 @@ cleanExpression(expression) {
         .toLowerCase()
         .replace(/\s+/g, '')
         
-        // ЗАЩИТА: сначала заменяем КОНСТАНТЫ и ФУНКЦИИ
-        .replace(/pi/g, '§PI§')
-        .replace(/e(?![a-z])/g, '§E§')  // e, но не ex, esin и т.д.
+        // 1. СНАЧАЛА степени, ПОТОМ умножение
+        .replace(/([a-zа-яё])\^(\d+)/g, 'pow($1, $2)')     // x^2 → pow(x, 2)
+        .replace(/([a-zа-яё])\*\*(\d+)/g, 'pow($1, $2)')   // x**2 → pow(x, 2)
+        .replace(/(\))\^(\d+)/g, 'pow($1, $2)')            // (x+1)^2 → pow((x+1), 2)
+        .replace(/(\))\*\*(\d+)/g, 'pow($1, $2)')          // (x+1)**2 → pow((x+1), 2)
         
-        // Защищаем функции
+        // 2. ЗАЩИТА функций и констант
+        .replace(/pi/g, '§PI§')
+        .replace(/e(?![a-z])/g, '§E§')
         .replace(/sin/g, '§SIN§')
         .replace(/cos/g, '§COS§')
         .replace(/tan/g, '§TAN§')
@@ -75,10 +79,10 @@ cleanExpression(expression) {
         .replace(/sqrt/g, '§SQRT§')
         .replace(/abs/g, '§ABS§')
         
-        // Теперь заменяем ЛЮБУЮ оставшуюся букву на 'x'
+        // 3. Замена оставшихся букв на x
         .replace(/[a-zа-яё]/g, 'x')
         
-        // Возвращаем константы и функции обратно
+        // 4. Возвращаем функции и константы
         .replace(/§PI§/g, 'pi')
         .replace(/§E§/g, 'e')
         .replace(/§SIN§/g, 'sin')
@@ -101,11 +105,7 @@ cleanExpression(expression) {
         .replace(/§SQRT§/g, 'sqrt')
         .replace(/§ABS§/g, 'abs')
         
-        // УЛУЧШЕННЫЕ СТЕПЕНИ - более гибкие регулярки
-        .replace(/(\w+|\))\^(\w+|\()/g, 'pow($1, $2)')     // x^2, (x+1)^2, x^y
-        .replace(/(\w+|\))\*\*(\w+|\()/g, 'pow($1, $2)')   // x**2, (x+1)**2
-        
-        // Автоматическое умножение
+        // 5. Автоматическое умножение (ПОСЛЕ степеней!)
         .replace(/(\d)(x)/g, '$1*$2')     // 3x → 3*x
         .replace(/(\d)(\()/g, '$1*$2')    // 2( → 2*(
         .replace(/(\))(x)/g, '$1*$2')     // )x → )*x
