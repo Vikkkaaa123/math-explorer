@@ -42,77 +42,82 @@ class MathParser {
         }, { override: true });
     }
 
-    cleanExpression(expression) {
-        console.log('Исходное выражение:', expression);
+cleanExpression(expression) {
+    console.log('Исходное выражение:', expression);
+    
+    let clean = expression
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')
         
-        let clean = expression
-            .trim()
-            .toLowerCase()
-            
-            // Убираем ВСЕ пробелы
-            .replace(/\s+/g, '')
-            
-            // ВАЖНО: сначала заменяем функции на защищенные метки
-            .replace(/sin/g, '§SIN§')
-            .replace(/cos/g, '§COS§')
-            .replace(/tan/g, '§TAN§')
-            .replace(/cot/g, '§COT§')
-            .replace(/sec/g, '§SEC§')
-            .replace(/csc/g, '§CSC§')
-            .replace(/asin/g, '§ASIN§')
-            .replace(/acos/g, '§ACOS§')
-            .replace(/atan/g, '§ATAN§')
-            .replace(/acot/g, '§ACOT§')
-            .replace(/sinh/g, '§SINH§')
-            .replace(/cosh/g, '§COSH§')
-            .replace(/tanh/g, '§TANH§')
-            .replace(/coth/g, '§COTH§')
-            .replace(/log/g, '§LOG§')
-            .replace(/ln/g, '§LN§')
-            .replace(/exp/g, '§EXP§')
-            .replace(/sqrt/g, '§SQRT§')
-            .replace(/abs/g, '§ABS§')
-            
-            // Теперь заменяем ЛЮБУЮ оставшуюся букву на 'x'
-            .replace(/[a-zа-яё]/g, 'x')
-            
-            // Возвращаем функции обратно
-            .replace(/§SIN§/g, 'sin')
-            .replace(/§COS§/g, 'cos')
-            .replace(/§TAN§/g, 'tan')
-            .replace(/§COT§/g, 'cot')
-            .replace(/§SEC§/g, 'sec')
-            .replace(/§CSC§/g, 'csc')
-            .replace(/§ASIN§/g, 'asin')
-            .replace(/§ACOS§/g, 'acos')
-            .replace(/§ATAN§/g, 'atan')
-            .replace(/§ACOT§/g, 'acot')
-            .replace(/§SINH§/g, 'sinh')
-            .replace(/§COSH§/g, 'cosh')
-            .replace(/§TANH§/g, 'tanh')
-            .replace(/§COTH§/g, 'coth')
-            .replace(/§LOG§/g, 'log')
-            .replace(/§LN§/g, 'ln')
-            .replace(/§EXP§/g, 'exp')
-            .replace(/§SQRT§/g, 'sqrt')
-            .replace(/§ABS§/g, 'abs')
-            
-            // Степень
-            .replace(/\^/g, '**')
-            
-            // Автоматическое умножение
-            .replace(/(\d)(x)/g, '$1*$2')     // 3x → 3*x
-            .replace(/(\d)(\()/g, '$1*$2')    // 2( → 2*(
-            .replace(/(\))(x)/g, '$1*$2')     // )x → )*x
-            .replace(/(\))(\()/g, '$1*$2')    // )( → )*(
-            .replace(/(x)(\()/g, '$1*$2');    // x( → x*(
+        // ЗАЩИТА: сначала заменяем КОНСТАНТЫ и ФУНКЦИИ
+        .replace(/pi/g, '§PI§')
+        .replace(/e(?![a-z])/g, '§E§')  // e, но не ex, esin и т.д.
+        
+        // Защищаем функции
+        .replace(/sin/g, '§SIN§')
+        .replace(/cos/g, '§COS§')
+        .replace(/tan/g, '§TAN§')
+        .replace(/cot/g, '§COT§')
+        .replace(/sec/g, '§SEC§')
+        .replace(/csc/g, '§CSC§')
+        .replace(/asin/g, '§ASIN§')
+        .replace(/acos/g, '§ACOS§')
+        .replace(/atan/g, '§ATAN§')
+        .replace(/acot/g, '§ACOT§')
+        .replace(/sinh/g, '§SINH§')
+        .replace(/cosh/g, '§COSH§')
+        .replace(/tanh/g, '§TANH§')
+        .replace(/coth/g, '§COTH§')
+        .replace(/log/g, '§LOG§')
+        .replace(/ln/g, '§LN§')
+        .replace(/exp/g, '§EXP§')
+        .replace(/sqrt/g, '§SQRT§')
+        .replace(/abs/g, '§ABS§')
+        
+        // Теперь заменяем ЛЮБУЮ оставшуюся букву на 'x'
+        .replace(/[a-zа-яё]/g, 'x')
+        
+        // Возвращаем константы и функции обратно
+        .replace(/§PI§/g, 'pi')
+        .replace(/§E§/g, 'e')
+        .replace(/§SIN§/g, 'sin')
+        .replace(/§COS§/g, 'cos')
+        .replace(/§TAN§/g, 'tan')
+        .replace(/§COT§/g, 'cot')
+        .replace(/§SEC§/g, 'sec')
+        .replace(/§CSC§/g, 'csc')
+        .replace(/§ASIN§/g, 'asin')
+        .replace(/§ACOS§/g, 'acos')
+        .replace(/§ATAN§/g, 'atan')
+        .replace(/§ACOT§/g, 'acot')
+        .replace(/§SINH§/g, 'sinh')
+        .replace(/§COSH§/g, 'cosh')
+        .replace(/§TANH§/g, 'tanh')
+        .replace(/§COTH§/g, 'coth')
+        .replace(/§LOG§/g, 'log')
+        .replace(/§LN§/g, 'ln')
+        .replace(/§EXP§/g, 'exp')
+        .replace(/§SQRT§/g, 'sqrt')
+        .replace(/§ABS§/g, 'abs')
+        
+        // УЛУЧШЕННЫЕ СТЕПЕНИ - более гибкие регулярки
+        .replace(/(\w+|\))\^(\w+|\()/g, 'pow($1, $2)')     // x^2, (x+1)^2, x^y
+        .replace(/(\w+|\))\*\*(\w+|\()/g, 'pow($1, $2)')   // x**2, (x+1)**2
+        
+        // Автоматическое умножение
+        .replace(/(\d)(x)/g, '$1*$2')     // 3x → 3*x
+        .replace(/(\d)(\()/g, '$1*$2')    // 2( → 2*(
+        .replace(/(\))(x)/g, '$1*$2')     // )x → )*x
+        .replace(/(\))(\()/g, '$1*$2')    // )( → )*(
+        .replace(/(x)(\()/g, '$1*$2');    // x( → x*(
 
-        console.log('Унифицированное выражение:', clean);
-        
-        this.checkBrackets(clean);
-        
-        return clean;
-    }
+    console.log('Унифицированное выражение:', clean);
+    
+    this.checkBrackets(clean);
+    
+    return clean;
+}
 
     parseFunction(expression) {
         if (!this.ready) {
