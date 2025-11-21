@@ -1,10 +1,22 @@
 class NewtonMethod {
     constructor(mathParser) {
         this.parser = mathParser;
+        this.method = 'Метод Ньютона';
     }
 
     solve(func, x0, precision = 1e-6, maxIterations = 100) {
         try {
+            //проверка начального приближения
+            if (typeof x0 !== 'number' || !isFinite(x0)) {
+                return {
+                    root: null,
+                    iterations: [],
+                    converged: false,
+                    message: 'Некорректное начальное приближение',
+                    method: this.method
+                };
+            }
+
             const f = this.parser.parseFunction(func);
             let x = x0;
             const iterations = [];
@@ -18,11 +30,24 @@ class NewtonMethod {
                         root: null,
                         iterations: iterations,
                         converged: false,
-                        message: 'Производная близка к нулю'
+                        message: 'Производная близка к нулю',
+                        method: this.method
                     };
                 }
                 
                 const xNew = x - fx / dfx;
+                
+                //проверка на расходимость
+                if (Math.abs(xNew) > 1e10 || !isFinite(xNew)) {
+                    return {
+                        root: null,
+                        iterations: iterations,
+                        converged: false,
+                        message: 'Метод расходится (значение стало слишком большим)',
+                        method: this.method
+                    };
+                }
+                
                 const error = Math.abs(xNew - x);
                 
                 iterations.push({
@@ -34,12 +59,32 @@ class NewtonMethod {
                     error: error
                 });
                 
-                if (error < precision || Math.abs(fx) < precision) {
+                //проверка на зацикивание (после минимум 3 итераций)
+                if (iterations.length > 3) {
+                    const lastErrors = iterations.slice(-3).map(it => it.error);
+                    const errorChange = Math.abs(lastErrors[2] - lastErrors[0]);
+                    if (errorChange < 1e-15) {
+                        return {
+                            root: xNew,
+                            iterations: iterations,
+                            converged: false,
+                            message: 'Зацикливание - ошибка перестала уменьшаться',
+                            method: this.method,
+                            iterationsCount: i + 1
+                        };
+                    }
+                }
+                
+                //критерий остановки
+                const tolerance = Math.max(precision, 1e-12);
+                if (error < tolerance || Math.abs(fx) < tolerance) {
                     return {
                         root: xNew,
                         iterations: iterations,
                         converged: true,
-                        message: `Сошлось за ${i + 1} итераций`
+                        message: `Сошлось за ${i + 1} итераций`,
+                        method: this.method,
+                        iterationsCount: i + 1
                     };
                 }
                 
@@ -50,7 +95,9 @@ class NewtonMethod {
                 root: x,
                 iterations: iterations,
                 converged: false,
-                message: `Достигнут предел ${maxIterations} итераций`
+                message: `Достигнут предел ${maxIterations} итераций`,
+                method: this.method,
+                iterationsCount: maxIterations
             };
             
         } catch (error) {
@@ -58,13 +105,16 @@ class NewtonMethod {
                 root: null,
                 iterations: [],
                 converged: false,
-                message: 'Ошибка: ' + error.message
+                message: 'Ошибка: ' + error.message,
+                method: this.method
             };
         }
     }
 
     _derivative(func, x, h = 1e-7) {
-        return (func(x + h) - func(x - h)) / (2 * h);
+        //адаптивный шаг для производной
+        const h0 = Math.max(1e-10, 1e-7 * Math.abs(x || 1));
+        return (func(x + h0) - func(x - h0)) / (2 * h0);
     }
 }
 
