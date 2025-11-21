@@ -476,34 +476,56 @@ getSuccessMessage(type) {
     return messages[type] || 'Задача';
 }
 
-displayIterationsTable(container, iterations) {
-    const tableHTML = `
-        <div class="iterations-table-container">
-            <h4>Процесс итераций:</h4>
-            <table class="iterations-table">
-                <thead>
-                    <tr>
-                        <th>Итерация</th>
-                        <th>x</th>
-                        <th>f(x)</th>
-                        <th>Ошибка</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${iterations.map(iter => `
+    displayIterationsTable(container, iterations) {
+        const tableHTML = `
+            <div class="iterations-table-container">
+                <h4>Процесс итераций:</h4>
+                <table class="iterations-table">
+                    <thead>
                         <tr>
-                            <td>${iter.iteration}</td>
-                            <td>${iter.x?.toFixed(6) || iter.mid?.toFixed(6) || '-'}</td>
-                            <td>${iter.fx?.toFixed(6) || iter.fMid?.toFixed(6) || iter.fCurrent?.toFixed(6) || '-'}</td>
-                            <td>${iter.error?.toFixed(6) || '-'}</td>
+                            <th>Итерация</th>
+                            <th>x</th>
+                            <th>f(x)</th>
+                            <th>Ошибка</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    container.insertAdjacentHTML('beforeend', tableHTML);
+                    </thead>
+                    <tbody>
+                        ${iterations.map(iter => `
+                            <tr>
+                                <td>${iter.iteration}</td>
+                                <td>${iter.x?.toFixed(6) || iter.mid?.toFixed(6) || '-'}</td>
+                                <td>${iter.fx?.toFixed(6) || iter.fMid?.toFixed(6) || iter.fCurrent?.toFixed(6) || '-'}</td>
+                                <td>${iter.error?.toFixed(6) || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', tableHTML);
+    }
+
+    displayComparison(results, containerId, title) {
+        const container = document.getElementById(containerId);
+        let html = `<div class="comparison-results"><h3>Сравнение методов: ${title}</h3>`;
+        for (const [method, result] of Object.entries(results)) {
+            const methodClass = result.converged ? 'method-success' : 'method-error';
+            html += `<div class="method-result ${methodClass}"><h4>${method}</h4>`;
+            if (result.converged) {
+                html += `<p>${result.message}</p>`;
+                if (result.probability) html += `<p>Вероятность: ${result.probability}%</p>`;
+                if (result.roots) html += `<p>Корни: ${result.roots.map(r => r.x.toFixed(6)).join(', ')}</p>`;
+                if (result.result !== undefined) html += `<p>Результат: ${result.result.toFixed(6)}</p>`;
+                if (result.solution && Array.isArray(result.solution)) html += `<p>Решение: [${result.solution.map(x => x.toFixed(6)).join(', ')}]</p>`;
+            } else {
+                html += `<p>${result.message}</p>`;
+            }
+            html += `</div>`;
+        }
+        html += `</div>`;
+        container.innerHTML = html;
+    }
 }
 
 export default EventManager;
