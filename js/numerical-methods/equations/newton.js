@@ -13,7 +13,8 @@ class NewtonMethod {
                     iterations: [],
                     converged: false,
                     message: 'Некорректное начальное приближение',
-                    method: this.method
+                    method: this.method,
+                    residual: null
                 };
             }
 
@@ -31,7 +32,8 @@ class NewtonMethod {
                         iterations: iterations,
                         converged: false,
                         message: 'Производная близка к нулю',
-                        method: this.method
+                        method: this.method,
+                        residual: Math.abs(fx)
                     };
                 }
                 
@@ -44,7 +46,8 @@ class NewtonMethod {
                         iterations: iterations,
                         converged: false,
                         message: 'Метод расходится (значение стало слишком большим)',
-                        method: this.method
+                        method: this.method,
+                        residual: Math.abs(fx)
                     };
                 }
                 
@@ -59,18 +62,20 @@ class NewtonMethod {
                     error: error
                 });
                 
-                //проверка на зацикивание (после минимум 3 итераций)
+                //проверка на зацикливание (после минимум 3 итераций)
                 if (iterations.length > 3) {
                     const lastErrors = iterations.slice(-3).map(it => it.error);
                     const errorChange = Math.abs(lastErrors[2] - lastErrors[0]);
                     if (errorChange < 1e-15) {
+                        const finalResidual = Math.abs(f(xNew));
                         return {
                             root: xNew,
                             iterations: iterations,
                             converged: false,
                             message: 'Зацикливание - ошибка перестала уменьшаться',
                             method: this.method,
-                            iterationsCount: i + 1
+                            iterationsCount: i + 1,
+                            residual: finalResidual
                         };
                     }
                 }
@@ -78,26 +83,31 @@ class NewtonMethod {
                 //критерий остановки
                 const tolerance = Math.max(precision, 1e-12);
                 if (error < tolerance || Math.abs(fx) < tolerance) {
+                    const finalResidual = Math.abs(f(xNew));
                     return {
                         root: xNew,
                         iterations: iterations,
                         converged: true,
                         message: `Сошлось за ${i + 1} итераций`,
                         method: this.method,
-                        iterationsCount: i + 1
+                        iterationsCount: i + 1,
+                        residual: finalResidual
                     };
                 }
                 
                 x = xNew;
             }
             
+            //если вышли по количеству итераций
+            const finalResidual = Math.abs(f(x));
             return {
                 root: x,
                 iterations: iterations,
                 converged: false,
                 message: `Достигнут предел ${maxIterations} итераций`,
                 method: this.method,
-                iterationsCount: maxIterations
+                iterationsCount: maxIterations,
+                residual: finalResidual
             };
             
         } catch (error) {
@@ -106,7 +116,8 @@ class NewtonMethod {
                 iterations: [],
                 converged: false,
                 message: 'Ошибка: ' + error.message,
-                method: this.method
+                method: this.method,
+                residual: null
             };
         }
     }
