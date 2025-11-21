@@ -379,7 +379,6 @@ displaySingleResult(container, result, type) {
         return;
     }
     
-    // УНИВЕРСАЛЬНЫЙ ВЫВОД ДЛЯ ВСЕХ ТИПОВ ЗАДАЧ
     let content = `
         <div class="result-success">
             <h3>Результаты расчета</h3>
@@ -394,7 +393,6 @@ displaySingleResult(container, result, type) {
                 </div>
     `;
     
-    // Количество итераций (если есть)
     if (result.iterationsCount !== undefined) {
         content += `
                 <div class="detail-row">
@@ -404,7 +402,6 @@ displaySingleResult(container, result, type) {
         `;
     }
     
-    // Невязка (только для уравнений)
     if (type === 'уравнение' && result.residual !== undefined) {
         content += `
                 <div class="detail-row">
@@ -414,7 +411,6 @@ displaySingleResult(container, result, type) {
         `;
     }
     
-    // Погрешность (для интегралов и других методов)
     if (result.error !== undefined && result.error !== null && type !== 'уравнение') {
         content += `
                 <div class="detail-row">
@@ -424,7 +420,6 @@ displaySingleResult(container, result, type) {
         `;
     }
     
-    // РЕЗУЛЬТАТ - разный для разных типов задач
     if (result.root !== undefined && result.root !== null) {
         content += `
                 <div class="detail-row">
@@ -449,17 +444,12 @@ displaySingleResult(container, result, type) {
     }
     
     content += `
-                <div class="detail-row">
-                    <span class="detail-label">Сообщение:</span>
-                    <span class="detail-value">${result.message}</span>
-                </div>
             </div>
         </div>
     `;
     
     container.innerHTML = content;
     
-    // ТАБЛИЦА ИТЕРАЦИЙ (только если есть итерации)
     if (result.iterations && result.iterations.length > 0) {
         this.displayIterationsTable(container, result.iterations);
     }
