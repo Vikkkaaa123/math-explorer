@@ -353,84 +353,157 @@ class EventManager {
         return { matrix, vector };
     }
 
-    //ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ
     displayEquationResult(result) {
-        const container = document.getElementById('equation-results');
-        this.displaySingleResult(container, result, 'Уравнение');
-        if (result.iterations && result.iterations.length > 0) {
-            this.displayIterationsTable(container, result.iterations);
-        }
-    }
+    const container = document.getElementById('equation-results');
+    this.displaySingleResult(container, result, 'уравнение');
+}
 
-    displayIntegrationResult(result) {
-        const container = document.getElementById('integration-results');
-        this.displaySingleResult(container, result, 'Интеграл');
-    }
+displayIntegrationResult(result) {
+    const container = document.getElementById('integration-results');
+    this.displaySingleResult(container, result, 'интеграл');
+}
 
-    displayDifferentialResult(result) {
-        const container = document.getElementById('differential-results');
-        this.displaySingleResult(container, result, 'Дифф. уравнение');
-    }
+displayDifferentialResult(result) {
+    const container = document.getElementById('differential-results');
+    this.displaySingleResult(container, result, 'дифференциальное уравнение');
+}
 
-    displaySystemResult(result) {
-        const container = document.getElementById('system-results');
-        this.displaySingleResult(container, result, 'Система');
-    }
+displaySystemResult(result) {
+    const container = document.getElementById('system-results');
+    this.displaySingleResult(container, result, 'система уравнений');
+}
 
-    displaySingleResult(container, result, type) {
-        if (!result.converged) {
-            container.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i>${result.message}</div>`;
-            return;
-        }
-        let content = `<div class="result-success"><h4><i class="fas fa-check-circle"></i> ${type} решено!</h4>`;
-        content += `<p><strong>Метод:</strong> ${result.method}</p>`;
-        content += `<p><strong>Сообщение:</strong> ${result.message}</p>`;
-        if (result.probability) content += `<p><strong>Вероятность точности:</strong> ${result.probability}%</p>`;
-        if (result.roots && result.roots.length > 0) content += `<p><strong>Корни:</strong> ${result.roots.map(r => r.x.toFixed(6)).join(', ')}</p>`;
-        if (result.result !== undefined) content += `<p><strong>Результат:</strong> ${result.result.toFixed(6)}</p>`;
-        if (result.solution && Array.isArray(result.solution)) content += `<p><strong>Решение:</strong> [${result.solution.map(x => x.toFixed(6)).join(', ')}]</p>`;
-        if (result.iterations && result.iterations.length > 0) content += `<p><strong>Итераций:</strong> ${result.iterations.length}</p>`;
-        content += `</div>`;
-        container.innerHTML = content;
+displaySingleResult(container, result, type) {
+    if (!result.converged) {
+        container.innerHTML = `<div class="error-message">${result.message}</div>`;
+        return;
     }
-
-    displayIterationsTable(container, iterations) {
-        const table = document.createElement('table');
-        table.className = 'iterations-table';
-        table.innerHTML = `
-            <thead><tr><th>Итерация</th><th>x</th><th>f(x)</th><th>Ошибка</th></tr></thead>
-            <tbody>${iterations.map(iter => `
-                <tr>
-                    <td>${iter.iteration}</td>
-                    <td>${iter.x?.toFixed(6) || iter.mid?.toFixed(6) || '-'}</td>
-                    <td>${iter.fx?.toFixed(6) || iter.fMid?.toFixed(6) || iter.fCurrent?.toFixed(6) || '-'}</td>
-                    <td>${iter.error?.toFixed(6) || '-'}</td>
-                </tr>
-            `).join('')}</tbody>
+    
+    // УНИВЕРСАЛЬНЫЙ ВЫВОД ДЛЯ ВСЕХ ТИПОВ ЗАДАЧ
+    let content = `
+        <div class="result-success">
+            <h3>Результаты расчета</h3>
+            <div class="result-main">
+                <div class="result-icon">✅</div>
+                <div class="result-text">${this.getSuccessMessage(type)} решено!</div>
+            </div>
+            <div class="result-details">
+                <div class="detail-row">
+                    <span class="detail-label">Метод:</span>
+                    <span class="detail-value">${result.method || 'Не указан'}</span>
+                </div>
+    `;
+    
+    // Количество итераций (если есть)
+    if (result.iterationsCount !== undefined) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Количество итераций:</span>
+                    <span class="detail-value">${result.iterationsCount}</span>
+                </div>
         `;
-        container.appendChild(table);
     }
+    
+    // Невязка (только для уравнений)
+    if (type === 'уравнение' && result.residual !== undefined) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Невязка:</span>
+                    <span class="detail-value">${result.residual.toFixed(10)}</span>
+                </div>
+        `;
+    }
+    
+    // Погрешность (для интегралов и других методов)
+    if (result.error !== undefined && result.error !== null && type !== 'уравнение') {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Погрешность:</span>
+                    <span class="detail-value">${result.error.toFixed(10)}</span>
+                </div>
+        `;
+    }
+    
+    // РЕЗУЛЬТАТ - разный для разных типов задач
+    if (result.root !== undefined && result.root !== null) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Результат:</span>
+                    <span class="detail-value">x ≈ ${result.root.toFixed(6)}</span>
+                </div>
+        `;
+    } else if (result.result !== undefined && result.result !== null) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Результат:</span>
+                    <span class="detail-value">${result.result.toFixed(6)}</span>
+                </div>
+        `;
+    } else if (result.solution && Array.isArray(result.solution)) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Решение:</span>
+                    <span class="detail-value">[${result.solution.map(x => x.toFixed(6)).join(', ')}]</span>
+                </div>
+        `;
+    }
+    
+    content += `
+                <div class="detail-row">
+                    <span class="detail-label">Сообщение:</span>
+                    <span class="detail-value">${result.message}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = content;
+    
+    // ТАБЛИЦА ИТЕРАЦИЙ (только если есть итерации)
+    if (result.iterations && result.iterations.length > 0) {
+        this.displayIterationsTable(container, result.iterations);
+    }
+}
 
-    displayComparison(results, containerId, title) {
-        const container = document.getElementById(containerId);
-        let html = `<div class="comparison-results"><h3>Сравнение методов: ${title}</h3>`;
-        for (const [method, result] of Object.entries(results)) {
-            const methodClass = result.converged ? 'method-success' : 'method-error';
-            html += `<div class="method-result ${methodClass}"><h4>${method}</h4>`;
-            if (result.converged) {
-                html += `<p>${result.message}</p>`;
-                if (result.probability) html += `<p>Вероятность: ${result.probability}%</p>`;
-                if (result.roots) html += `<p>Корни: ${result.roots.map(r => r.x.toFixed(6)).join(', ')}</p>`;
-                if (result.result !== undefined) html += `<p>Результат: ${result.result.toFixed(6)}</p>`;
-                if (result.solution && Array.isArray(result.solution)) html += `<p>Решение: [${result.solution.map(x => x.toFixed(6)).join(', ')}]</p>`;
-            } else {
-                html += `<p>${result.message}</p>`;
-            }
-            html += `</div>`;
-        }
-        html += `</div>`;
-        container.innerHTML = html;
-    }
+// Вспомогательный метод для правильных сообщений
+getSuccessMessage(type) {
+    const messages = {
+        'уравнение': 'Уравнение',
+        'интеграл': 'Интеграл', 
+        'дифференциальное уравнение': 'Дифференциальное уравнение',
+        'система уравнений': 'Система уравнений'
+    };
+    return messages[type] || 'Задача';
+}
+
+displayIterationsTable(container, iterations) {
+    const tableHTML = `
+        <div class="iterations-table-container">
+            <h4>Процесс итераций:</h4>
+            <table class="iterations-table">
+                <thead>
+                    <tr>
+                        <th>Итерация</th>
+                        <th>x</th>
+                        <th>f(x)</th>
+                        <th>Ошибка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${iterations.map(iter => `
+                        <tr>
+                            <td>${iter.iteration}</td>
+                            <td>${iter.x?.toFixed(6) || iter.mid?.toFixed(6) || '-'}</td>
+                            <td>${iter.fx?.toFixed(6) || iter.fMid?.toFixed(6) || iter.fCurrent?.toFixed(6) || '-'}</td>
+                            <td>${iter.error?.toFixed(6) || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', tableHTML);
 }
 
 export default EventManager;
