@@ -353,7 +353,7 @@ class EventManager {
         return { matrix, vector };
     }
 
-   /* displayEquationResult(result) {
+ displayEquationResult(result) {
     const container = document.getElementById('equation-results');
     this.displaySingleResult(container, result, 'уравнение');
 }
@@ -372,7 +372,7 @@ displaySystemResult(result) {
     const container = document.getElementById('system-results');
     this.displaySingleResult(container, result, 'система уравнений');
 }
-*/
+
 displaySingleResult(container, result, type) {
     if (!result.converged) {
         container.innerHTML = `<div class="error-message">${result.message}</div>`;
