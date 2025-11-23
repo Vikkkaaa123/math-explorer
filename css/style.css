@@ -592,3 +592,38 @@ body {
 .iterations-table tr:nth-child(even) {
     background: #f8f9fa;
 }
+
+/* Стили для адаптивного интерфейса */
+.method-input {
+    display: none;
+}
+
+.method-input.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.info-box {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.info-box i {
+    color: #2196f3;
+    margin-right: 10px;
+}
+
+.input-hint {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 5px;
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
