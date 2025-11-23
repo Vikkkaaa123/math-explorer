@@ -49,69 +49,112 @@
             </nav>
 
             <div class="tabs-content">
-                <!-- Вкладка: Нелинейные уравнения -->
-                <div id="equations-tab" class="tab-pane active">
-                    <div class="tab-header">
-                        <h2><i class="fas fa-chart-line"></i> Решение уравнений</h2>
-                        <p>Найти корни уравнения f(x) = 0</p>
-                    </div>
-                    
-                    <div class="input-section">
-                        <div class="input-group">
-                            <label for="equation-function">Функция f(x):</label>
-                            <input type="text" id="equation-function" placeholder="Введите пример">
-                        </div>
-                        <div class="input-row three-columns">
-                            <div class="input-group">
-                                <label for="equation-interval-a">Интервал [a, b] <span class="method-hint">(*для метода половинного деления)</span></label>
-                                <div class="interval-inputs">
-                                    <div class="interval-group">
-                                        <span class="interval-label">a (нижняя граница):</span>
-                                        <input type="number" id="equation-interval-a" placeholder="Введите число">
-                                    </div>
-                                    <div class="interval-group">
-                                        <span class="interval-label">b (верхняя граница):</span>
-                                        <input type="number" id="equation-interval-b" placeholder="Введите число">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="input-group">
-                                <label for="equation-precision">Точность:</label>
-                                <input type="number" id="equation-precision" value="0.0001" step="0.0001" placeholder="Введите число">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="equation-method">Метод решения:</label>
-                            <select id="equation-method">
-                                <option value="newton">Метод Ньютона</option>
-                                <option value="bisection">Метод половинного деления</option>
-                                <option value="iteration">Метод простой итерации</option>
-                                <option value="secant">Метод секущих</option>
-                                <option value="neural">Нейросеть</option>
-                            </select>
-                        </div>
-                        <div class="button-group">
-                            <button class="calculate-btn" id="calculate-equation">
-                                <i class="fas fa-play"></i> Рассчитать
-                            </button>
-                            <button class="compare-btn" id="compare-equation-methods">
-                                <i class="fas fa-chart-bar"></i> Сравнить все методы
-                            </button>
-                        </div>
-                    </div>
+                <!-- Вкладка: уравнения -->
+<div id="equations-tab" class="tab-pane active">
+    <div class="tab-header">
+        <h2><i class="fas fa-chart-line"></i> Решение уравнений</h2>
+        <p>Найти корни уравнения f(x) = 0</p>
+    </div>
+    
+    <div class="input-section">
+        <div class="input-group">
+            <label for="equation-function">Функция f(x):</label>
+            <input type="text" id="equation-function" placeholder="Например: x^2 - 4, sin(x), 3x^3+2x-1">
+            <small class="input-hint">Можно использовать: x, y, z, любые буквы, степени: x^2 или x**2</small>
+        </div>
 
-                    <div class="results-section">
-                        <div class="visualization-container">
-                            <canvas id="equation-chart"></canvas>
-                        </div>
-                        <div class="methods-comparison">
-                            <h3>Результаты расчета</h3>
-                            <div class="results-grid" id="equation-results">
-                                <!-- Результаты будут здесь -->
-                            </div>
-                        </div>
+        <!-- АДАПТИВНЫЕ ПОЛЯ ВВОДА ДЛЯ КАЖДОГО МЕТОДА -->
+        <div id="equation-method-inputs">
+            <!-- Для метода Ньютона -->
+            <div class="input-group method-input" data-method="newton">
+                <label for="newton-x0">Начальное приближение x₀:</label>
+                <input type="number" id="newton-x0" value="1.0" step="0.1" placeholder="Например: 1.0">
+            </div>
+
+            <!-- Для метода половинного деления -->
+            <div class="input-group method-input" data-method="bisection">
+                <label>Интервал [a, b] (где f(a)·f(b) < 0):</label>
+                <div class="interval-inputs">
+                    <div class="interval-group">
+                        <span class="interval-label">a:</span>
+                        <input type="number" id="bisection-a" value="0" step="0.1" placeholder="Например: 0">
+                    </div>
+                    <div class="interval-group">
+                        <span class="interval-label">b:</span>
+                        <input type="number" id="bisection-b" value="1" step="0.1" placeholder="Например: 1">
                     </div>
                 </div>
+            </div>
+
+            <!-- Для метода простой итерации -->
+            <div class="input-group method-input" data-method="iteration">
+                <label for="iteration-x0">Начальное приближение x₀:</label>
+                <input type="number" id="iteration-x0" value="1.0" step="0.1" placeholder="Например: 1.0">
+            </div>
+
+            <!-- Для метода секущих -->
+            <div class="input-group method-input" data-method="secant">
+                <label>Начальные приближения:</label>
+                <div class="interval-inputs">
+                    <div class="interval-group">
+                        <span class="interval-label">x₀:</span>
+                        <input type="number" id="secant-x0" value="0.5" step="0.1" placeholder="Например: 0.5">
+                    </div>
+                    <div class="interval-group">
+                        <span class="interval-label">x₁:</span>
+                        <input type="number" id="secant-x1" value="1.0" step="0.1" placeholder="Например: 1.0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label for="equation-precision">Точность:</label>
+                <input type="number" id="equation-precision" value="0.0001" step="0.0001" min="0.000001">
+                <small class="input-hint">Чем меньше значение, тем точнее результат</small>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="equation-method">Метод решения:</label>
+            <select id="equation-method">
+                <option value="newton">Метод Ньютона</option>
+                <option value="bisection">Метод половинного деления</option>
+                <option value="iteration">Метод простой итерации</option>
+                <option value="secant">Метод секущих</option>
+                <option value="neural">Нейросеть</option>
+            </select>
+        </div>
+
+        <div class="button-group">
+            <button class="calculate-btn" id="calculate-equation">
+                <i class="fas fa-play"></i> Рассчитать
+            </button>
+            <button class="compare-btn" id="compare-equation-methods">
+                <i class="fas fa-chart-bar"></i> Сравнить все методы
+            </button>
+        </div>
+    </div>
+
+    <div class="results-section">
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <p><strong>Итерационные методы находят один корень, ближайший к начальному приближению.</strong> Для поиска других корней измените начальные параметры.</p>
+        </div>
+        
+        <div class="visualization-container">
+            <canvas id="equation-chart"></canvas>
+        </div>
+        
+        <div class="methods-comparison">
+            <h3>Результаты расчета</h3>
+            <div class="results-grid" id="equation-results">
+                <!-- Результаты будут здесь -->
+            </div>
+        </div>
+    </div>
+</div>
 
                 <!-- Вкладка: Интегрирование -->
                 <div id="integration-tab" class="tab-pane">
