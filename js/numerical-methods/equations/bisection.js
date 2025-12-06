@@ -6,7 +6,6 @@ class BisectionMethod {
 
     solve(func, a, b, precision = 1e-6, maxIterations = 100) {
         try {
-            // ПРОСТАЯ ПЕРЕСТАНОВКА
             let left = a;
             let right = b;
             
@@ -18,7 +17,6 @@ class BisectionMethod {
             const fa = f(left);
             const fb = f(right);
             
-            // ПРОВЕРКА ОПРЕДЕЛЕННОСТИ ФУНКЦИИ НА ГРАНИЦАХ
             if (!this._isNumber(fa) || !this._isNumber(fb)) {
                 return {
                     root: null,
