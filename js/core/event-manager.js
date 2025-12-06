@@ -29,7 +29,7 @@ class EventManager {
         this.setupTabHandlers();
         this.setupCalculationHandlers();
         this.setupSystemInputs();
-        //this.setupDynamicEquationInterface();
+        this.setupDynamicEquationInterface();
     }
 
     initMethods() {
