@@ -27,8 +27,6 @@ class SecantMethod {
                     };
                 }
                 
-                // ФОРМУЛА КОТОРУЮ ТЫ ПРОСИЛА:
-                // x_{n+1} = x_n - ((x_n - x_{n-1}) * f(x_n)) / (f(x_n) - f(x_{n-1}))
                 const xNew = xCurr - ((xCurr - xPrev) * fCurr) / (fCurr - fPrev);
                 
                 if (Math.abs(xNew) > 1e10 || !isFinite(xNew)) {
