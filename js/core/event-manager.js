@@ -29,7 +29,11 @@ class EventManager {
         this.setupTabHandlers();
         this.setupCalculationHandlers();
         this.setupSystemInputs();
-        this.setupEquationDynamicInterface();
+        
+        // Отложенная инициализация динамического интерфейса
+        setTimeout(() => {
+            this.setupEquationDynamicInterface();
+        }, 100);
     }
 
     initMethods() {
@@ -55,34 +59,76 @@ class EventManager {
         this.neuralMethods.systems = new NNSystems(parser);
     }
 
+    // ДИНАМИЧЕСКИЙ ИНТЕРФЕЙС ДЛЯ УРАВНЕНИЙ С ЗАЩИТОЙ
     setupEquationDynamicInterface() {
-        const methodSelect = document.getElementById('equation-method');
+        console.log('Настройка динамического интерфейса уравнений...');
         
-        if (methodSelect) {
-            methodSelect.addEventListener('change', (e) => {
-                this.updateEquationInputs(e.target.value);
-            });
-            
-            this.updateEquationInputs(methodSelect.value);
-        }
-    }
-
-    updateEquationInputs(method) {
+        const methodSelect = document.getElementById('equation-method');
         const container = document.getElementById('method-inputs-container');
         
-        if (!container) {
-            console.warn('Контейнер method-inputs-container не найден');
+        console.log('Найден equation-method:', methodSelect);
+        console.log('Найден method-inputs-container:', container);
+        
+        if (!methodSelect) {
+            console.error('Элемент equation-method не найден!');
             return;
         }
         
-        container.innerHTML = '';
+        if (!container) {
+            console.error('Элемент method-inputs-container не найден!');
+            return;
+        }
         
-        if (!method) return;
+        methodSelect.addEventListener('change', (e) => {
+            console.log('Метод изменен на:', e.target.value);
+            this.updateEquationInputs(e.target.value);
+        });
         
+        // Инициализация при загрузке
+        this.updateEquationInputs(methodSelect.value);
+    }
+
+    updateEquationInputs(method) {
+        console.log('Обновление полей для метода:', method);
+        
+        const container = document.getElementById('method-inputs-container');
+        
+        if (!container) {
+            console.error('ОШИБКА: Контейнер method-inputs-container не найден в updateEquationInputs!');
+            return;
+        }
+        
+        // Безопасная очистка
+        try {
+            container.innerHTML = '';
+        } catch (error) {
+            console.error('Ошибка при очистке контейнера:', error);
+            return;
+        }
+        
+        // Если метод не выбран - ничего не показываем
+        if (!method) {
+            console.log('Метод не выбран, очищаем контейнер');
+            return;
+        }
+        
+        // Находим шаблон
         const template = document.getElementById(`${method}-template`);
-        if (template) {
+        
+        if (!template) {
+            console.warn(`Шаблон ${method}-template не найден`);
+            return;
+        }
+        
+        console.log(`Найден шаблон ${method}-template`);
+        
+        // Клонируем и добавляем контент
+        try {
             const content = template.content.cloneNode(true);
             container.appendChild(content);
+            console.log(`Поля для метода ${method} успешно добавлены`);
+        } catch (error) {
+            console.error('Ошибка при добавлении полей:', error);
         }
     }
 
@@ -129,10 +175,11 @@ class EventManager {
         document.getElementById('compare-system-methods')?.addEventListener('click', () => this.compareSystemMethods());
     }
 
+    //УРАВНЕНИЯ С БЕЗОПАСНЫМ ДОСТУПОМ К ПОЛЯМ
     async solveEquation() {
         try {
-            const func = document.getElementById('equation-function').value;
-            const method = document.getElementById('equation-method').value;
+            const func = document.getElementById('equation-function')?.value;
+            const method = document.getElementById('equation-method')?.value;
             
             if (!func) {
                 this.app.showError('Введите функцию');
@@ -162,7 +209,7 @@ class EventManager {
                     case 'bisection': 
                         const a = parseFloat(document.getElementById('bisection-a')?.value) || 0;
                         const b = parseFloat(document.getElementById('bisection-b')?.value) || 1;
-                        const bisectionPrecision = parseFloat(document.getElementById('bisection-precision')?.value) || 0.0001;
+                        const bisectionPrecision = parseFloat(document.getElementById('bisection-pcision')?.value) || 0.0001;
                         result = this.methods.bisection.solve(func, a, b, bisectionPrecision); 
                         break;
                         
@@ -193,6 +240,7 @@ class EventManager {
         }
     }
 
+    
     async compareEquationMethods() {
         try {
             const func = document.getElementById('equation-function').value;
@@ -203,7 +251,6 @@ class EventManager {
             
             this.app.setLoadingState(true);
             
-            // Используем значения из динамических полей или значения по умолчанию
             const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
             const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
             const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
@@ -420,7 +467,8 @@ class EventManager {
         return { matrix, vector };
     }
 
-    displayEquationResult(result) {
+
+     displayEquationResult(result) {
         const container = document.getElementById('equation-results');
         this.displaySingleResult(container, result, 'уравнение');
     }
@@ -441,10 +489,16 @@ class EventManager {
     }
 
     displaySingleResult(container, result, type) {
+        if (!container) {
+            console.error(`Контейнер для ${type} не найден`);
+            return;
+        }
+        
         if (!result.converged) {
             container.innerHTML = `<div class="error-message">${result.message}</div>`;
             return;
         }
+
         
         let content = `
             <div class="result-success">
