@@ -29,6 +29,7 @@ class EventManager {
         this.setupTabHandlers();
         this.setupCalculationHandlers();
         this.setupSystemInputs();
+        this.setupDynamicEquationInterface();
     }
 
     initMethods() {
@@ -86,6 +87,33 @@ class EventManager {
         }
     }
 
+    setupDynamicEquationInterface() {
+        const methodSelect = document.getElementById('equation-method');
+        
+        if (methodSelect) {
+            methodSelect.addEventListener('change', (e) => {
+                this.updateEquationMethodInputs(e.target.value);
+            });
+            
+            this.updateEquationMethodInputs(methodSelect.value);
+        }
+    }
+
+    updateEquationMethodInputs(method) {
+        const container = document.getElementById('method-inputs-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (!method) return;
+        
+        const template = document.getElementById(`${method}-template`);
+        if (template) {
+            const content = template.content.cloneNode(true);
+            container.appendChild(content);
+        }
+    }
+
     setupCalculationHandlers() {
         document.getElementById('calculate-equation')?.addEventListener('click', () => this.solveEquation());
         document.getElementById('compare-equation-methods')?.addEventListener('click', () => this.compareEquationMethods());
@@ -97,7 +125,7 @@ class EventManager {
         document.getElementById('compare-system-methods')?.addEventListener('click', () => this.compareSystemMethods());
     }
 
-    //УРАВНЕНИЯ
+    
     async solveEquation() {
         try {
             const func = document.getElementById('equation-function').value;
@@ -109,20 +137,36 @@ class EventManager {
             this.app.setLoadingState(true);
             let result;
             if (method === 'neural') {
-                const a = parseFloat(document.getElementById('equation-interval-a').value) || -10;
-                const b = parseFloat(document.getElementById('equation-interval-b').value) || 10;
+                const a = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
+                const b = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
                 result = await this.neuralMethods.equations.solve(func, { min: a, max: b });
             } else {
                 switch (method) {
-                    case 'newton': result = this.methods.newton.solve(func, 1.0); break;
-                    case 'bisection': 
-                        const a = parseFloat(document.getElementById('equation-interval-a').value) || 0;
-                        const b = parseFloat(document.getElementById('equation-interval-b').value) || 1;
-                        result = this.methods.bisection.solve(func, a, b); 
+                    case 'newton': 
+                        const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
+                        const newtonPrecision = parseFloat(document.getElementById('newton-precision')?.value) || 0.0001;
+                        result = this.methods.newton.solve(func, newtonX0, newtonPrecision); 
                         break;
-                    case 'iteration': result = this.methods.iteration.solve(func, 1.0); break;
-                    case 'secant': result = this.methods.secant.solve(func, 0.5, 1.0); break;
-                    default: this.app.showError('Неизвестный метод'); return;
+                    case 'bisection': 
+                        const a = parseFloat(document.getElementById('bisection-a')?.value) || 0;
+                        const b = parseFloat(document.getElementById('bisection-b')?.value) || 1;
+                        const bisectionPrecision = parseFloat(document.getElementById('bisection-precision')?.value) || 0.0001;
+                        result = this.methods.bisection.solve(func, a, b, bisectionPrecision); 
+                        break;
+                    case 'iteration': 
+                        const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+                        result = this.methods.iteration.solve(func, iterationX0); 
+                        break;
+                    case 'secant': 
+                        const x1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
+                        const x2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
+                        const secantPrecision = parseFloat(document.getElementById('secant-precision')?.value) || 0.0001;
+                        result = this.methods.secant.solve(func, x1, x2, secantPrecision); 
+                        break;
+                    default: 
+                        this.app.showError('Неизвестный метод'); 
+                        this.app.setLoadingState(false);
+                        return;
                 }
             }
             this.displayEquationResult(result);
@@ -141,14 +185,23 @@ class EventManager {
                 return;
             }
             this.app.setLoadingState(true);
-            const a = parseFloat(document.getElementById('equation-interval-a').value) || -10;
-            const b = parseFloat(document.getElementById('equation-interval-b').value) || 10;
+            
+            
+            const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
+            const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
+            const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
+            const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+            const secantX1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
+            const secantX2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
+            const neuralA = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
+            const neuralB = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
+            
             const results = {
-                newton: this.methods.newton.solve(func, (a + b) / 2),
-                bisection: this.methods.bisection.solve(func, a, b),
-                iteration: this.methods.iteration.solve(func, (a + b) / 2),
-                secant: this.methods.secant.solve(func, a, (a + b) / 2),
-                neural: await this.neuralMethods.equations.solve(func, { min: a, max: b })
+                newton: this.methods.newton.solve(func, newtonX0),
+                bisection: this.methods.bisection.solve(func, bisectionA, bisectionB),
+                iteration: this.methods.iteration.solve(func, iterationX0),
+                secant: this.methods.secant.solve(func, secantX1, secantX2),
+                neural: await this.neuralMethods.equations.solve(func, { min: neuralA, max: neuralB })
             };
             this.displayComparison(results, 'equation-results', 'Уравнения');
             this.app.setLoadingState(false);
@@ -158,7 +211,7 @@ class EventManager {
         }
     }
 
-    // ИНТЕГРАЛЫ
+
     async solveIntegration() {
         try {
             const func = document.getElementById('integration-function').value;
@@ -215,7 +268,7 @@ class EventManager {
         }
     }
 
-    //ДИФФУРЫ
+    
     async solveDifferential() {
         try {
             const func = document.getElementById('diff-equation').value;
@@ -270,7 +323,7 @@ class EventManager {
         }
     }
 
-    //СИСТЕМЫ
+    
     async solveSystem() {
         try {
             const equationInputs = document.querySelectorAll('.system-eq');
@@ -325,7 +378,7 @@ class EventManager {
         }
     }
 
-    //ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+    
     parseEquations(equations) {
         const n = equations.length;
         const matrix = Array(n).fill().map(() => Array(n).fill(0));
@@ -353,118 +406,117 @@ class EventManager {
         return { matrix, vector };
     }
 
- displayEquationResult(result) {
-    const container = document.getElementById('equation-results');
-    this.displaySingleResult(container, result, 'уравнение');
-}
-
-displayIntegrationResult(result) {
-    const container = document.getElementById('integration-results');
-    this.displaySingleResult(container, result, 'интеграл');
-}
-
-displayDifferentialResult(result) {
-    const container = document.getElementById('differential-results');
-    this.displaySingleResult(container, result, 'дифференциальное уравнение');
-}
-
-displaySystemResult(result) {
-    const container = document.getElementById('system-results');
-    this.displaySingleResult(container, result, 'система уравнений');
-}
-
-displaySingleResult(container, result, type) {
-    if (!result.converged) {
-        container.innerHTML = `<div class="error-message">${result.message}</div>`;
-        return;
+    displayEquationResult(result) {
+        const container = document.getElementById('equation-results');
+        this.displaySingleResult(container, result, 'уравнение');
     }
-    
-    let content = `
-        <div class="result-success">
-            <h3>Результаты расчета</h3>
-            <div class="result-main">
-                <div class="result-icon">✅</div>
-                <div class="result-text">${this.getSuccessMessage(type)} решено!</div>
+
+    displayIntegrationResult(result) {
+        const container = document.getElementById('integration-results');
+        this.displaySingleResult(container, result, 'интеграл');
+    }
+
+    displayDifferentialResult(result) {
+        const container = document.getElementById('differential-results');
+        this.displaySingleResult(container, result, 'дифференциальное уравнение');
+    }
+
+    displaySystemResult(result) {
+        const container = document.getElementById('system-results');
+        this.displaySingleResult(container, result, 'система уравнений');
+    }
+
+    displaySingleResult(container, result, type) {
+        if (!result.converged) {
+            container.innerHTML = `<div class="error-message">${result.message}</div>`;
+            return;
+        }
+        
+        let content = `
+            <div class="result-success">
+                <h3>Результаты расчета</h3>
+                <div class="result-main">
+                    <div class="result-icon">✅</div>
+                    <div class="result-text">${this.getSuccessMessage(type)} решено!</div>
+                </div>
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Метод:</span>
+                        <span class="detail-value">${result.method || 'Не указан'}</span>
+                    </div>
+        `;
+        
+        if (result.iterationsCount !== undefined) {
+            content += `
+                    <div class="detail-row">
+                        <span class="detail-label">Количество итераций:</span>
+                        <span class="detail-value">${result.iterationsCount}</span>
+                    </div>
+            `;
+        }
+        
+        if (type === 'уравнение' && result.residual !== undefined) {
+            content += `
+                    <div class="detail-row">
+                        <span class="detail-label">Невязка:</span>
+                        <span class="detail-value">${result.residual.toFixed(10)}</span>
+                    </div>
+            `;
+        }
+        
+        if (result.error !== undefined && result.error !== null && type !== 'уравнение') {
+            content += `
+                    <div class="detail-row">
+                        <span class="detail-label">Погрешность:</span>
+                        <span class="detail-value">${result.error.toFixed(10)}</span>
+                    </div>
+            `;
+        }
+        
+        if (result.root !== undefined && result.root !== null) {
+            content += `
+                    <div class="detail-row">
+                        <span class="detail-label">Результат:</span>
+                        <span class="detail-value">x ≈ ${result.root.toFixed(6)}</span>
+                    </div>
+            `;
+        } else if (result.result !== undefined && result.result !== null) {
+            content += `
+                    <div class="detail-row">
+                        <span class="detail-label">Результат:</span>
+                        <span class="detail-value">${result.result.toFixed(6)}</span>
+                    </div>
+            `;
+        } else if (result.solution && Array.isArray(result.solution)) {
+            content += `
+                    <div class="detail-row">
+                        <span class="detail-label">Решение:</span>
+                        <span class="detail-value">[${result.solution.map(x => x.toFixed(6)).join(', ')}]</span>
+                    </div>
+            `;
+        }
+        
+        content += `
+                </div>
             </div>
-            <div class="result-details">
-                <div class="detail-row">
-                    <span class="detail-label">Метод:</span>
-                    <span class="detail-value">${result.method || 'Не указан'}</span>
-                </div>
-    `;
-    
-    if (result.iterationsCount !== undefined) {
-        content += `
-                <div class="detail-row">
-                    <span class="detail-label">Количество итераций:</span>
-                    <span class="detail-value">${result.iterationsCount}</span>
-                </div>
         `;
+        
+        container.innerHTML = content;
+        
+        if (result.iterations && result.iterations.length > 0) {
+            this.displayIterationsTable(container, result.iterations);
+        }
     }
-    
-    if (type === 'уравнение' && result.residual !== undefined) {
-        content += `
-                <div class="detail-row">
-                    <span class="detail-label">Невязка:</span>
-                    <span class="detail-value">${result.residual.toFixed(10)}</span>
-                </div>
-        `;
-    }
-    
-    if (result.error !== undefined && result.error !== null && type !== 'уравнение') {
-        content += `
-                <div class="detail-row">
-                    <span class="detail-label">Погрешность:</span>
-                    <span class="detail-value">${result.error.toFixed(10)}</span>
-                </div>
-        `;
-    }
-    
-    if (result.root !== undefined && result.root !== null) {
-        content += `
-                <div class="detail-row">
-                    <span class="detail-label">Результат:</span>
-                    <span class="detail-value">x ≈ ${result.root.toFixed(6)}</span>
-                </div>
-        `;
-    } else if (result.result !== undefined && result.result !== null) {
-        content += `
-                <div class="detail-row">
-                    <span class="detail-label">Результат:</span>
-                    <span class="detail-value">${result.result.toFixed(6)}</span>
-                </div>
-        `;
-    } else if (result.solution && Array.isArray(result.solution)) {
-        content += `
-                <div class="detail-row">
-                    <span class="detail-label">Решение:</span>
-                    <span class="detail-value">[${result.solution.map(x => x.toFixed(6)).join(', ')}]</span>
-                </div>
-        `;
-    }
-    
-    content += `
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = content;
-    
-    if (result.iterations && result.iterations.length > 0) {
-        this.displayIterationsTable(container, result.iterations);
-    }
-}
 
-// Вспомогательный метод для правильных сообщений
-getSuccessMessage(type) {
-    const messages = {
-        'уравнение': 'Уравнение',
-        'интеграл': 'Интеграл', 
-        'дифференциальное уравнение': 'Дифференциальное уравнение',
-        'система уравнений': 'Система уравнений'
-    };
-    return messages[type] || 'Задача';
-}
+    getSuccessMessage(type) {
+        const messages = {
+            'уравнение': 'Уравнение',
+            'интеграл': 'Интеграл', 
+            'дифференциальное уравнение': 'Дифференциальное уравнение',
+            'система уравнений': 'Система уравнений'
+        };
+        return messages[type] || 'Задача';
+    }
 
     displayIterationsTable(container, iterations) {
         const tableHTML = `
