@@ -29,11 +29,7 @@ class EventManager {
         this.setupTabHandlers();
         this.setupCalculationHandlers();
         this.setupSystemInputs();
-        
-        // Отложенная инициализация динамического интерфейса
-        setTimeout(() => {
-            this.setupEquationDynamicInterface();
-        }, 100);
+        this.setupEquationDynamicInterface(); 
     }
 
     initMethods() {
@@ -59,16 +55,10 @@ class EventManager {
         this.neuralMethods.systems = new NNSystems(parser);
     }
 
-    // ДИНАМИЧЕСКИЙ ИНТЕРФЕЙС ДЛЯ УРАВНЕНИЙ С ЗАЩИТОЙ
-    setupEquationDynamicInterface() {
-        console.log('Настройка динамического интерфейса уравнений...');
-        
+    setupEquationDynamicInterface() {        
         const methodSelect = document.getElementById('equation-method');
         const container = document.getElementById('method-inputs-container');
-        
-        console.log('Найден equation-method:', methodSelect);
-        console.log('Найден method-inputs-container:', container);
-        
+      
         if (!methodSelect) {
             console.error('Элемент equation-method не найден!');
             return;
@@ -80,11 +70,9 @@ class EventManager {
         }
         
         methodSelect.addEventListener('change', (e) => {
-            console.log('Метод изменен на:', e.target.value);
             this.updateEquationInputs(e.target.value);
         });
         
-        // Инициализация при загрузке
         this.updateEquationInputs(methodSelect.value);
     }
 
@@ -98,7 +86,6 @@ class EventManager {
             return;
         }
         
-        // Безопасная очистка
         try {
             container.innerHTML = '';
         } catch (error) {
@@ -106,13 +93,11 @@ class EventManager {
             return;
         }
         
-        // Если метод не выбран - ничего не показываем
         if (!method) {
             console.log('Метод не выбран, очищаем контейнер');
             return;
         }
         
-        // Находим шаблон
         const template = document.getElementById(`${method}-template`);
         
         if (!template) {
@@ -120,13 +105,9 @@ class EventManager {
             return;
         }
         
-        console.log(`Найден шаблон ${method}-template`);
-        
-        // Клонируем и добавляем контент
         try {
             const content = template.content.cloneNode(true);
             container.appendChild(content);
-            console.log(`Поля для метода ${method} успешно добавлены`);
         } catch (error) {
             console.error('Ошибка при добавлении полей:', error);
         }
@@ -175,7 +156,6 @@ class EventManager {
         document.getElementById('compare-system-methods')?.addEventListener('click', () => this.compareSystemMethods());
     }
 
-    //УРАВНЕНИЯ С БЕЗОПАСНЫМ ДОСТУПОМ К ПОЛЯМ
     async solveEquation() {
         try {
             const func = document.getElementById('equation-function')?.value;
