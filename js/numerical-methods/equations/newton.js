@@ -6,16 +6,6 @@ class NewtonMethod {
 
     solve(func, x0, precision = 1e-6, maxIterations = 100) {
         try {
-            if (typeof x0 !== 'number' || !isFinite(x0)) {
-                return {
-                    root: null,
-                    iterations: [],
-                    converged: false,
-                    message: 'Некорректное начальное приближение',
-                    method: this.method
-                };
-            }
-
             const f = this.parser.parseFunction(func);
             let x = x0;
             const iterations = [];
