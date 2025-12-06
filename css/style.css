@@ -573,43 +573,42 @@ body {
     font-family: 'Courier New', monospace;
 }
 
-/* Динамические поля ввода */
-#method-inputs-container {
-    margin-bottom: 1.5rem;
-    animation: fadeIn 0.3s ease-out;
+/* Стили для динамических полей */
+.input-row.three-columns {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    align-items: end;
 }
 
-.input-hint {
-    color: var(--text-secondary);
-    font-size: 0.85em;
-    font-weight: 400;
-    display: block;
-    margin-top: 0.25rem;
-    font-style: italic;
+.interval-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
-.info-box {
-    background: #e3f2fd;
-    border-left: 4px solid #2196f3;
-    padding: 12px 15px;
-    margin-bottom: 20px;
-    border-radius: 4px;
+.interval-group {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
 }
 
-.info-box i {
-    color: #2196f3;
-    font-size: 1.2rem;
+.interval-label {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
 }
 
-.info-box span {
-    color: #1565c0;
-    font-weight: 500;
+/* Все поля ввода одной высоты */
+.input-group input {
+    height: 48px;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    width: 100%;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Для метода секущих и нейросетей */
+.interval-group input {
+    height: 48px;
 }
