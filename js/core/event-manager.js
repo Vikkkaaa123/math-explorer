@@ -32,6 +32,43 @@ class EventManager {
         this.setupDynamicEquationInterface();
     }
 
+
+setupDynamicEquationInterface() {
+    const methodSelect = document.getElementById('equation-method');
+    const container = document.getElementById('method-inputs-container');
+    
+    if (!methodSelect || !container) {
+        console.warn('Не найдены элементы для динамического интерфейса уравнений');
+        return;
+    }
+    
+    // Обработчик изменения метода
+    methodSelect.addEventListener('change', (e) => {
+        this.updateEquationMethodInputs(e.target.value);
+    });
+    
+    // Инициализация
+    this.updateEquationMethodInputs(methodSelect.value);
+}
+
+updateEquationMethodInputs(method) {
+    const container = document.getElementById('method-inputs-container');
+    if (!container) return;
+    
+    // Очищаем контейнер
+    container.innerHTML = '';
+    
+    // Если метод не выбран - ничего не показываем
+    if (!method) return;
+    
+    // Находим шаблон и клонируем его
+    const template = document.getElementById(`${method}-template`);
+    if (template) {
+        const content = template.content.cloneNode(true);
+        container.appendChild(content);
+    }
+}
+    
     initMethods() {
         const parser = this.app.getMathParser();
         
@@ -98,66 +135,94 @@ class EventManager {
         document.getElementById('compare-system-methods')?.addEventListener('click', () => this.compareSystemMethods());
     }
 
-    async solveEquation() {
-        try {
-            const func = document.getElementById('equation-function').value;
-            const method = document.getElementById('equation-method').value;
-            if (!func) {
-                this.app.showError('Введите функцию');
-                return;
-            }
-            this.app.setLoadingState(true);
-            let result;
-            if (method === 'neural') {
-                const a = parseFloat(document.getElementById('equation-interval-a').value) || -10;
-                const b = parseFloat(document.getElementById('equation-interval-b').value) || 10;
-                result = await this.neuralMethods.equations.solve(func, { min: a, max: b });
-            } else {
-                switch (method) {
-                    case 'newton': result = this.methods.newton.solve(func, 1.0); break;
-                    case 'bisection': 
-                        const a = parseFloat(document.getElementById('equation-interval-a').value) || 0;
-                        const b = parseFloat(document.getElementById('equation-interval-b').value) || 1;
-                        result = this.methods.bisection.solve(func, a, b); 
-                        break;
-                    case 'iteration': result = this.methods.iteration.solve(func, 1.0); break;
-                    case 'secant': result = this.methods.secant.solve(func, 0.5, 1.0); break;
-                    default: this.app.showError('Неизвестный метод'); return;
-                }
-            }
-            this.displayEquationResult(result);
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка расчета: ' + error.message);
-            this.app.setLoadingState(false);
+    
+async solveEquation() {
+    try {
+        const func = document.getElementById('equation-function').value;
+        const method = document.getElementById('equation-method').value;
+        if (!func) {
+            this.app.showError('Введите функцию');
+            return;
         }
+        this.app.setLoadingState(true);
+        let result;
+        if (method === 'neural') {
+            const a = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
+            const b = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
+            result = await this.neuralMethods.equations.solve(func, { min: a, max: b });
+        } else {
+            switch (method) {
+                case 'newton': 
+                    const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
+                    const newtonPrecision = parseFloat(document.getElementById('newton-precision')?.value) || 0.0001;
+                    result = this.methods.newton.solve(func, newtonX0, newtonPrecision); 
+                    break;
+                case 'bisection': 
+                    const a = parseFloat(document.getElementById('bisection-a')?.value) || 0;
+                    const b = parseFloat(document.getElementById('bisection-b')?.value) || 1;
+                    const bisectionPrecision = parseFloat(document.getElementById('bisection-precision')?.value) || 0.0001;
+                    result = this.methods.bisection.solve(func, a, b, bisectionPrecision); 
+                    break;
+                case 'iteration': 
+                    const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+                    result = this.methods.iteration.solve(func, iterationX0); 
+                    break;
+                case 'secant': 
+                    const x1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
+                    const x2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
+                    const secantPrecision = parseFloat(document.getElementById('secant-precision')?.value) || 0.0001;
+                    result = this.methods.secant.solve(func, x1, x2, secantPrecision); 
+                    break;
+                default: 
+                    this.app.showError('Неизвестный метод'); 
+                    this.app.setLoadingState(false);
+                    return;
+            }
+        }
+        this.displayEquationResult(result);
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка расчета: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
 
     async compareEquationMethods() {
-        try {
-            const func = document.getElementById('equation-function').value;
-            if (!func) {
-                this.app.showError('Введите функцию');
-                return;
-            }
-            this.app.setLoadingState(true);
-            const a = parseFloat(document.getElementById('equation-interval-a').value) || -10;
-            const b = parseFloat(document.getElementById('equation-interval-b').value) || 10;
-            const results = {
-                newton: this.methods.newton.solve(func, (a + b) / 2),
-                bisection: this.methods.bisection.solve(func, a, b),
-                iteration: this.methods.iteration.solve(func, (a + b) / 2),
-                secant: this.methods.secant.solve(func, a, (a + b) / 2),
-                neural: await this.neuralMethods.equations.solve(func, { min: a, max: b })
-            };
-            this.displayComparison(results, 'equation-results', 'Уравнения');
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка сравнения: ' + error.message);
-            this.app.setLoadingState(false);
+    try {
+        const func = document.getElementById('equation-function').value;
+        if (!func) {
+            this.app.showError('Введите функцию');
+            return;
         }
+        this.app.setLoadingState(true);
+        
+        // Получаем параметры из динамических полей или используем значения по умолчанию
+        const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
+        const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
+        const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
+        const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+        const secantX1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
+        const secantX2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
+        const neuralA = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
+        const neuralB = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
+        
+        const results = {
+            newton: this.methods.newton.solve(func, newtonX0),
+            bisection: this.methods.bisection.solve(func, bisectionA, bisectionB),
+            iteration: this.methods.iteration.solve(func, iterationX0),
+            secant: this.methods.secant.solve(func, secantX1, secantX2),
+            neural: await this.neuralMethods.equations.solve(func, { min: neuralA, max: neuralB })
+        };
+        
+        this.displayComparison(results, 'equation-results', 'Уравнения');
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка сравнения: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
 
+    
     async solveIntegration() {
         try {
             const func = document.getElementById('integration-function').value;
