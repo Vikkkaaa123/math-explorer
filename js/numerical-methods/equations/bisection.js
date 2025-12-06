@@ -1,148 +1,141 @@
 class BisectionMethod {
     constructor(mathParser) {
         this.parser = mathParser;
+        this.method = 'Метод половинного деления';
     }
 
     solve(func, a, b, precision = 1e-6, maxIterations = 100) {
         try {
+            // ПРОСТАЯ ПЕРЕСТАНОВКА
+            let left = a;
+            let right = b;
+            
+            if (left >= right) {
+                [left, right] = [right, left];
+            }
+
             const f = this.parser.parseFunction(func);
+            const fa = f(left);
+            const fb = f(right);
             
-            if (a >= b) throw new Error('Интервал задан некорректно');
-            
-            const fa = f(a), fb = f(b);
+            // ПРОВЕРКА ОПРЕДЕЛЕННОСТИ ФУНКЦИИ НА ГРАНИЦАХ
             if (!this._isNumber(fa) || !this._isNumber(fb)) {
-                throw new Error('Функция не определена на границах');
+                return {
+                    root: null,
+                    iterations: [],
+                    converged: false,
+                    message: 'Функция не определена на границах интервала',
+                    method: this.method,
+                    iterationsCount: 0,
+                    residual: null
+                };
             }
             
-            if (Math.abs(fa) < precision) return this._result(a, [], true, 'Корень в точке a');
-            if (Math.abs(fb) < precision) return this._result(b, [], true, 'Корень в точке b');
-            if (fa * fb > 0) throw new Error('Нет смены знака на интервале');
+            if (Math.abs(fa) < precision) {
+                return {
+                    root: left,
+                    iterations: [],
+                    converged: true,
+                    message: 'Уравнение решено!',
+                    method: this.method,
+                    iterationsCount: 0,
+                    residual: Math.abs(fa)
+                };
+            }
             
-            return this._bisect(f, a, b, precision, maxIterations);
+            if (Math.abs(fb) < precision) {
+                return {
+                    root: right,
+                    iterations: [],
+                    converged: true,
+                    message: 'Уравнение решено!',
+                    method: this.method,
+                    iterationsCount: 0,
+                    residual: Math.abs(fb)
+                };
+            }
+            
+            if (fa * fb > 0) {
+                return {
+                    root: null,
+                    iterations: [],
+                    converged: false,
+                    message: 'Нет смены знака на интервале [a, b]',
+                    method: this.method,
+                    iterationsCount: 0,
+                    residual: null
+                };
+            }
+            
+            return this._bisect(f, left, right, fa, precision, maxIterations);
             
         } catch (error) {
-            return this._result(null, [], false, error.message);
+            return {
+                root: null,
+                iterations: [],
+                converged: false,
+                message: 'Ошибка: ' + error.message,
+                method: this.method,
+                iterationsCount: 0,
+                residual: null
+            };
         }
     }
 
-    _bisect(f, a, b, precision, maxIterations) {
-        let left = a, right = b, fLeft = f(a);
+    _bisect(f, left, right, fLeft, precision, maxIterations) {
+        let currentLeft = left;
+        let currentRight = right;
+        let currentFLeft = fLeft;
         const iterations = [];
         
         for (let i = 0; i < maxIterations; i++) {
-            const mid = (left + right) / 2;
+            const mid = (currentLeft + currentRight) / 2;
             const fMid = f(mid);
+            const error = (currentRight - currentLeft) / 2;
             
-            iterations.push({ 
-                iteration: i + 1, 
-                a: left, 
-                b: right, 
-                mid: mid, 
-                fMid: fMid,
-                intervalLength: right - left
+            iterations.push({
+                iteration: i + 1,
+                x: mid,
+                fx: fMid,
+                error: error
             });
             
-            // Проверка сходимости
-            if (Math.abs(fMid) < precision) {
-                return this._result(mid, iterations, true, `Сошлось за ${i + 1} итераций`);
+            if (Math.abs(fMid) < precision || error < precision) {
+                const residual = Math.abs(fMid);
+                return {
+                    root: mid,
+                    iterations: iterations,
+                    converged: true,
+                    message: 'Уравнение решено!',
+                    method: this.method,
+                    iterationsCount: i + 1,
+                    residual: residual
+                };
             }
             
-            // Выбор следующего интервала
-            if (fLeft * fMid < 0) {
-                right = mid;
+            if (currentFLeft * fMid < 0) {
+                currentRight = mid;
             } else {
-                left = mid;
-                fLeft = fMid;
-            }
-            
-            // Дополнительный критерий - длина интервала
-            if (right - left < precision) {
-                const finalMid = (left + right) / 2;
-                return this._result(finalMid, iterations, true, `Сошлось за ${i + 1} итераций (по длине интервала)`);
+                currentLeft = mid;
+                currentFLeft = fMid;
             }
         }
         
-        const finalRoot = (left + right) / 2;
-        return this._result(finalRoot, iterations, false, `Достигнут предел ${maxIterations} итераций`);
-    }
-
-    _result(root, iterations, converged, message) {
-        return { 
-            root: root, 
-            iterations: iterations, 
-            converged: converged, 
-            message: message 
+        const root = (currentLeft + currentRight) / 2;
+        const residual = Math.abs(f(root));
+        return {
+            root: root,
+            iterations: iterations,
+            converged: false,
+            message: `Достигнут предел ${maxIterations} итераций`,
+            method: this.method,
+            iterationsCount: maxIterations,
+            residual: residual
         };
     }
 
     _isNumber(num) {
         return typeof num === 'number' && isFinite(num);
-    }
-
-    checkApplicability(func, a, b) {
-        try {
-            if (a >= b) {
-                return { applicable: false, reason: 'Интервал задан некорректно' };
-            }
-            
-            const f = this.parser.parseFunction(func);
-            const fa = f(a);
-            const fb = f(b);
-            
-            if (!this._isNumber(fa) || !this._isNumber(fb)) {
-                return { applicable: false, reason: 'Функция не определена на границах' };
-            }
-            
-            if (Math.abs(fa) < 1e-10) {
-                return { applicable: true, reason: 'Корень в точке a', root: a };
-            }
-            if (Math.abs(fb) < 1e-10) {
-                return { applicable: true, reason: 'Корень в точке b', root: b };
-            }
-            
-            return {
-                applicable: fa * fb < 0,
-                reason: fa * fb < 0 ? 'Условие применимости выполнено' : 'Нет смены знака',
-                fa: fa,
-                fb: fb
-            };
-            
-        } catch (error) {
-            return { applicable: false, reason: 'Ошибка анализа функции' };
-        }
-    }
-
-    findSuitableInterval(func, start = -10, end = 10, step = 1) {
-        try {
-            const f = this.parser.parseFunction(func);
-            const intervals = [];
-            const maxPoints = 1000;
-            
-            for (let x = start, count = 0; x < end && count < maxPoints; x += step, count++) {
-                const x1 = x;
-                const x2 = x + step;
-                
-                try {
-                    const f1 = f(x1);
-                    const f2 = f(x2);
-                    
-                    if (this._isNumber(f1) && this._isNumber(f2)) {
-                        if (Math.abs(f1) < 1e-10) {
-                            intervals.push({ a: x1, b: x1, exactRoot: true, root: x1 });
-                        } else if (f1 * f2 < 0) {
-                            intervals.push({ a: x1, b: x2, exactRoot: false });
-                        }
-                    }
-                } catch (error) {
-                    // Пропускаем проблемные точки
-                }
-            }
-            
-            return intervals;
-            
-        } catch (error) {
-            return [];
-        }
     }
 }
 
