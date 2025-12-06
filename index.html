@@ -48,197 +48,137 @@
                 </div>
             </nav>
 
-            <div class="tabs-content">
-                <!-- Вкладка: Уравнения -->
-                <div id="equations-tab" class="tab-pane active">
-                    <div class="tab-header">
-                        <h2><i class="fas fa-chart-line"></i> Решение уравнений f(x) = 0</h2>
-                        <p>Найти корни уравнения различными численными методами</p>
-                    </div>
-                    
-                    <div class="input-section">
-                        <!-- Базовые поля (всегда видны) -->
-                        <div class="input-group">
-                            <label for="equation-function">
-                                Функция f(x):
-                                <span class="input-hint">Например: x^2 - 4, sin(x) - 0.5, exp(x) - 2</span>
-                            </label>
-                            <input type="text" id="equation-function" placeholder="Введите функцию f(x)">
-                        </div>
-                        
-                        <div class="input-group">
-                            <label for="equation-method">Метод решения:</label>
-                            <select id="equation-method">
-                                <option value="">-- Выберите метод --</option>
-                                <option value="newton">Метод Ньютона</option>
-                                <option value="bisection">Метод половинного деления</option>
-                                <option value="iteration">Метод простой итерации</option>
-                                <option value="secant">Метод секущих</option>
-                                <option value="neural">Нейросетевой метод</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Динамические поля для методов -->
-                        <div id="method-inputs-container">
-                            <!-- Здесь будут появляться поля для выбранного метода -->
-                        </div>
-                        
-                        <div class="info-box" id="method-info">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Выберите метод решения, чтобы увидеть дополнительные параметры</span>
-                        </div>
-                        
-                        <div class="button-group">
-                            <button class="calculate-btn" id="calculate-equation">
-                                <i class="fas fa-play"></i> Рассчитать
-                            </button>
-                            <button class="compare-btn" id="compare-equation-methods">
-                                <i class="fas fa-chart-bar"></i> Сравнить все методы
-                            </button>
-                        </div>
-                    </div>
+            <!-- Вкладка: Уравнения -->
+<div id="equations-tab" class="tab-pane active">
+    <div class="tab-header">
+        <h2><i class="fas fa-chart-line"></i> Решение уравнений f(x) = 0</h2>
+        <p>Найти корни уравнения различными численными методами</p>
+    </div>
+    
+    <div class="input-section">
+        <!-- Базовые поля (всегда видны) -->
+        <div class="input-group">
+            <label for="equation-function">
+                Функция f(x):
+                <span class="input-hint">Введите пример</span>
+            </label>
+            <input type="text" id="equation-function" placeholder="Введите пример">
+        </div>
+        
+        <div class="input-group">
+            <label for="equation-method">Метод решения:</label>
+            <select id="equation-method">
+                <option value="">-- Выберите метод --</option>
+                <option value="newton">Метод Ньютона</option>
+                <option value="bisection">Метод половинного деления</option>
+                <option value="iteration">Метод простой итерации</option>
+                <option value="secant">Метод секущих</option>
+                <option value="neural">Нейросетевой метод</option>
+            </select>
+        </div>
+        
+        <!-- Контейнер для динамических полей -->
+        <div id="method-inputs-container">
+            <!-- Здесь будут появляться поля -->
+        </div>
+        
+        <div class="button-group">
+            <button class="calculate-btn" id="calculate-equation">
+                <i class="fas fa-play"></i> Рассчитать
+            </button>
+            <button class="compare-btn" id="compare-equation-methods">
+                <i class="fas fa-chart-bar"></i> Сравнить все методы
+            </button>
+        </div>
+    </div>
 
-                    <div class="results-section">
-                        <div class="visualization-container">
-                            <canvas id="equation-chart"></canvas>
-                        </div>
-                        <div class="methods-comparison">
-                            <h3>Результаты расчета</h3>
-                            <div class="results-grid" id="equation-results">
-                                <div class="placeholder-message">
-                                    <i class="fas fa-calculator"></i>
-                                    <p>Введите функцию и выберите метод для расчета</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Скрытые шаблоны для динамических полей -->
-                    <template id="newton-template">
-                        <div class="input-row three-columns">
-                            <div class="input-group">
-                                <label for="newton-x0">
-                                    Начальное приближение x₀:
-                                    <span class="input-hint">Точка, с которой начинается поиск корня</span>
-                                </label>
-                                <input type="number" id="newton-x0" step="any" placeholder="Например: 1.5">
-                            </div>
-                            <div class="input-group">
-                                <label for="newton-precision">
-                                    Точность ε:
-                                    <span class="input-hint">Требуемая точность решения</span>
-                                </label>
-                                <input type="number" id="newton-precision" value="0.0001" step="0.0001" min="0.0000001" max="0.1">
-                            </div>
-                        </div>
-                    </template>
-                    
-                    <template id="bisection-template">
-                        <div class="input-row three-columns">
-                            <div class="input-group">
-                                <label for="bisection-a">
-                                    Интервал [a, b]:
-                                    <span class="input-hint">Обязательно: f(a) * f(b) < 0</span>
-                                </label>
-                                <div class="interval-inputs">
-                                    <div class="interval-group">
-                                        <span class="interval-label">a (нижняя граница):</span>
-                                        <input type="number" id="bisection-a" step="any" placeholder="Например: 0">
-                                    </div>
-                                    <div class="interval-group">
-                                        <span class="interval-label">b (верхняя граница):</span>
-                                        <input type="number" id="bisection-b" step="any" placeholder="Например: 3">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="input-group">
-                                <label for="bisection-precision">
-                                    Точность ε:
-                                    <span class="input-hint">Требуемая точность решения</span>
-                                </label>
-                                <input type="number" id="bisection-precision" value="0.0001" step="0.0001" min="0.0000001" max="0.1">
-                            </div>
-                        </div>
-                    </template>
-                    
-                    <template id="iteration-template">
-                        <div class="input-row three-columns">
-                            <div class="input-group">
-                                <label for="iteration-x0">
-                                    Начальное приближение x₀:
-                                    <span class="input-hint">Точка, с которой начинается итерационный процесс</span>
-                                </label>
-                                <input type="number" id="iteration-x0" step="any" placeholder="Например: 1.5">
-                            </div>
-                            <div class="input-group">
-                                <label for="iteration-precision">
-                                    Точность ε:
-                                    <span class="input-hint">Требуемая точность решения</span>
-                                </label>
-                                <input type="number" id="iteration-precision" value="0.0001" step="0.0001" min="0.0000001" max="0.1">
-                            </div>
-                        </div>
-                    </template>
-                    
-                    <template id="secant-template">
-                        <div class="input-row three-columns">
-                            <div class="input-group">
-                                <label>
-                                    Начальные приближения:
-                                    <span class="input-hint">Две начальные точки для построения секущей</span>
-                                </label>
-                                <div class="interval-inputs">
-                                    <div class="interval-group">
-                                        <span class="interval-label">x₁:</span>
-                                        <input type="number" id="secant-x1" step="any" placeholder="Например: 1">
-                                    </div>
-                                    <div class="interval-group">
-                                        <span class="interval-label">x₂:</span>
-                                        <input type="number" id="secant-x2" step="any" placeholder="Например: 2">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="input-group">
-                                <label for="secant-precision">
-                                    Точность ε:
-                                    <span class="input-hint">Требуемая точность решения</span>
-                                </label>
-                                <input type="number" id="secant-precision" value="0.0001" step="0.0001" min="0.0000001" max="0.1">
-                            </div>
-                        </div>
-                    </template>
-                    
-                    <template id="neural-template">
-                        <div class="input-row three-columns">
-                            <div class="input-group">
-                                <label for="neural-interval-a">
-                                    Интервал поиска:
-                                    <span class="input-hint">Область, в которой ищем корни</span>
-                                </label>
-                                <div class="interval-inputs">
-                                    <div class="interval-group">
-                                        <span class="interval-label">a (начало):</span>
-                                        <input type="number" id="neural-interval-a" step="any" placeholder="Например: -5">
-                                    </div>
-                                    <div class="interval-group">
-                                        <span class="interval-label">b (конец):</span>
-                                        <input type="number" id="neural-interval-b" step="any" placeholder="Например: 5">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="input-group">
-                                <label for="neural-epochs">
-                                    Количество эпох:
-                                    <span class="input-hint">Количество итераций обучения сети</span>
-                                </label>
-                                <input type="number" id="neural-epochs" value="1000" min="100" max="10000">
-                            </div>
-                        </div>
-                    </template>
+    <!-- ... результаты ... -->
+</div>
+
+<!-- Шаблоны для динамических полей -->
+<template id="newton-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <label for="newton-x0">Начальное приближение х_0:</label>
+            <input type="number" id="newton-x0" step="any" placeholder="Введите число">
+        </div>
+        <div class="input-group">
+            <label for="newton-precision">Точность:</label>
+            <input type="number" id="newton-precision" value="0.0001" step="0.0001" placeholder="Введите число">
+        </div>
+    </div>
+</template>
+
+<template id="bisection-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <label>Интервал [a, b]:</label>
+            <div class="interval-inputs">
+                <div class="interval-group">
+                    <span class="interval-label">a (нижняя граница):</span>
+                    <input type="number" id="bisection-a" step="any" placeholder="Введите число">
                 </div>
+                <div class="interval-group">
+                    <span class="interval-label">b (верхняя граница):</span>
+                    <input type="number" id="bisection-b" step="any" placeholder="Введите число">
+                </div>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="bisection-precision">Точность:</label>
+            <input type="number" id="bisection-precision" value="0.0001" step="0.0001" placeholder="Введите число">
+        </div>
+    </div>
+</template>
 
-                
-                <!-- Вкладка: Интегрирование -->
+<template id="secant-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <div class="interval-inputs">
+                <div class="interval-group">
+                    <label for="secant-x1">Начальное приближение х_1:</label>
+                    <input type="number" id="secant-x1" step="any" placeholder="Введите число">
+                </div>
+                <div class="interval-group">
+                    <label for="secant-x2">Начальное приближение х_2:</label>
+                    <input type="number" id="secant-x2" step="any" placeholder="Введите число">
+                </div>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="secant-precision">Точность:</label>
+            <input type="number" id="secant-precision" value="0.0001" step="0.0001" placeholder="Введите число">
+        </div>
+    </div>
+</template>
+
+<template id="iteration-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <label for="iteration-x0">Начальное приближение х_0:</label>
+            <input type="number" id="iteration-x0" step="any" placeholder="Введите число">
+        </div>
+    </div>
+</template>
+
+<template id="neural-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <div class="interval-inputs">
+                <div class="interval-group">
+                    <label for="neural-interval-a">a (начало):</label>
+                    <input type="number" id="neural-interval-a" step="any" placeholder="Введите число">
+                </div>
+                <div class="interval-group">
+                    <label for="neural-interval-b">b (конец):</label>
+                    <input type="number" id="neural-interval-b" step="any" placeholder="Введите число">
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+             <!-- Вкладка: Интегрирование -->
                 <div id="integration-tab" class="tab-pane">
                     <div class="tab-header">
                         <h2><i class="fas fa-integral"></i> Численное интегрирование</h2>
