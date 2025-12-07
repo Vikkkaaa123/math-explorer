@@ -4,24 +4,37 @@ class SimpleIterationMethod {
         this.method = 'Метод простой итерации';
     }
 
-    solve(func, x0, precision = 1e-6, maxIterations = 100) {
+    solve(func, x0, lambda = 0.1, precision = 1e-6, maxIterations = 100) {
         try {
-            const phi = this.parser.parseFunction(func); // φ(x)
+            if (lambda <= 0 || lambda > 2) {
+                return {
+                    root: null,
+                    iterations: [],
+                    converged: false,
+                    message: 'Параметр λ должен быть: 0 < λ ≤ 2',
+                    method: this.method,
+                    iterationsCount: 0,
+                    residual: null
+                };
+            }
+
+            const f = this.parser.parseFunction(func);
             let x = x0;
             const iterations = [];
             
             for (let i = 0; i < maxIterations; i++) {
-                const xNew = phi(x);
+                const fx = f(x);
+                const xNew = x - lambda * fx;
                 
                 if (Math.abs(xNew) > 1e10 || !isFinite(xNew)) {
                     return {
                         root: null,
                         iterations: iterations,
                         converged: false,
-                        message: 'Метод расходится',
+                        message: `Метод расходится. Попробуйте уменьшить λ (текущее: ${lambda})`,
                         method: this.method,
                         iterationsCount: i + 1,
-                        residual: null
+                        residual: Math.abs(fx)
                     };
                 }
                 
@@ -30,12 +43,13 @@ class SimpleIterationMethod {
                 iterations.push({
                     iteration: i + 1,
                     x: x,
-                    fx: xNew,
-                    error: error
+                    fx: fx,
+                    error: error,
+                    lambda: lambda  // показываем в таблице
                 });
-                
-                if (error < precision) {
-                    const residual = error;
+
+                if (error < precision || Math.abs(fx) < precision) {
+                    const residual = Math.abs(f(xNew));
                     return {
                         root: xNew,
                         iterations: iterations,
@@ -50,15 +64,15 @@ class SimpleIterationMethod {
                 x = xNew;
             }
             
-            const finalError = Math.abs(phi(x) - x);
+            const residual = Math.abs(f(x));
             return {
                 root: x,
                 iterations: iterations,
                 converged: false,
-                message: `Достигнут предел ${maxIterations} итераций`,
+                message: `Достигнут предел ${maxIterations} итераций. Попробуйте изменить λ (текущее: ${lambda})`,
                 method: this.method,
                 iterationsCount: maxIterations,
-                residual: finalError
+                residual: residual
             };
             
         } catch (error) {
