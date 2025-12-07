@@ -576,7 +576,14 @@ body {
 /* Стили для динамических полей */
 .input-row.three-columns {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    align-items: end;
+}
+
+.input-row.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
     gap: 1rem;
     align-items: end;
 }
