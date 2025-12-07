@@ -48,7 +48,8 @@
                 </div>
             </nav>
 
-            <!-- Вкладка: Уравнения -->
+            
+<!-- Вкладка: Уравнения -->
 <div id="equations-tab" class="tab-pane active">
     <div class="tab-header">
         <h2><i class="fas fa-chart-line"></i> Решение уравнений f(x) = 0</h2>
@@ -56,12 +57,9 @@
     </div>
     
     <div class="input-section">
-        <!-- Базовые поля (всегда видны) -->
+
         <div class="input-group">
-            <label for="equation-function">
-                Функция f(x):
-                <span class="input-hint">Введите пример</span>
-            </label>
+            <label for="equation-function">Функция f(x): </label>
             <input type="text" id="equation-function" placeholder="Введите пример">
         </div>
         
@@ -77,9 +75,8 @@
             </select>
         </div>
         
-        <!-- Контейнер для динамических полей -->
         <div id="method-inputs-container">
-            <!-- Здесь будут появляться поля -->
+
         </div>
         
         <div class="button-group">
@@ -105,11 +102,10 @@
     </div>
 </div>
 
-<!-- Шаблоны для динамических полей -->
 <template id="newton-template">
     <div class="input-row three-columns">
         <div class="input-group">
-            <label for="newton-x0">Начальное приближение х_0:</label>
+            <label for="newton-x0">Начальное приближение х₀:</label>
             <input type="number" id="newton-x0" step="any" placeholder="Введите число">
         </div>
         <div class="input-group">
@@ -146,11 +142,11 @@
         <div class="input-group">
             <div class="interval-inputs">
                 <div class="interval-group">
-                    <label for="secant-x1">Начальное приближение х_1:</label>
+                    <label for="secant-x1">Начальное приближение x₁:</label>
                     <input type="number" id="secant-x1" step="any" placeholder="Введите число">
                 </div>
                 <div class="interval-group">
-                    <label for="secant-x2">Начальное приближение х_2:</label>
+                    <label for="secant-x2">Начальное приближение x₂:</label>
                     <input type="number" id="secant-x2" step="any" placeholder="Введите число">
                 </div>
             </div>
@@ -165,8 +161,18 @@
 <template id="iteration-template">
     <div class="input-row three-columns">
         <div class="input-group">
-            <label for="iteration-x0">Начальное приближение х_0:</label>
-            <input type="number" id="iteration-x0" step="any" placeholder="Введите число">
+            <label for="iteration-x0">Начальное приближение х₀:</label>
+            <input type="number" id="iteration-x0" step="any" placeholder="Введите число" value="1">
+        </div>
+        <div class="input-group">
+            <label for="iteration-lambda">Параметр λ:</label>
+            <input type="number" id="iteration-lambda" step="0.01" placeholder="Введите число" 
+                   value="0.1" min="0.01" max="2">
+        </div>
+        <div class="input-group">
+            <label for="iteration-precision">Точность:</label>
+            <input type="number" id="iteration-precision" value="0.0001" step="0.0001" 
+                   placeholder="Введите число">
         </div>
     </div>
 </template>
