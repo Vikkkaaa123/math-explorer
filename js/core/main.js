@@ -1,5 +1,7 @@
 import MathParser from '../math-core/math-parser.js';
 import EventManager from './event-manager.js';
+import ChartManager from '../visualization/charts/chart-manager.js'
+import ChartBuilder from '../visualization/charts/chart-builder.js'
 
 class NumericalExplorer {
     constructor() {
