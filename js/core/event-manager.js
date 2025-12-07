@@ -16,11 +16,13 @@ import NNEquations from '../neural/nn-equations.js';
 import NNIntegration from '../neural/nn-integration.js';
 import NNDifferential from '../neural/nn-differential.js';
 import NNSystems from '../neural/nn-systems.js';
+import ChartBuilder from '../visualization/charts/chart-builder.js';
 
 class EventManager {
     constructor() {
         this.methods = {};
         this.neuralMethods = {};
+        this.chartBuilder = null;
     }
 
     initialize(appInstance) {
@@ -34,7 +36,7 @@ class EventManager {
 
     initMethods() {
         const parser = this.app.getMathParser();
-        
+
         this.methods.newton = new NewtonMethod(parser);
         this.methods.bisection = new BisectionMethod(parser);
         this.methods.iteration = new IterationMethod(parser);
@@ -53,6 +55,8 @@ class EventManager {
         this.neuralMethods.integration = new NNIntegration(parser);
         this.neuralMethods.differential = new NNDifferential(parser);
         this.neuralMethods.systems = new NNSystems(parser);
+
+        this.chartBuilder = new ChartBuilder(parser);
     }
 
     setupEquationDynamicInterface() {        
@@ -224,40 +228,49 @@ class EventManager {
 
     
     async compareEquationMethods() {
-        try {
-            const func = document.getElementById('equation-function').value;
-            if (!func) {
-                this.app.showError('Введите функцию');
-                return;
-            }
-            
-            this.app.setLoadingState(true);
-            
-            const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
-            const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
-            const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
-            const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
-            const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
-            const secantX1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
-            const secantX2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
-            const neuralA = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
-            const neuralB = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
-            
-            const results = {
-                newton: this.methods.newton.solve(func, newtonX0),
-                bisection: this.methods.bisection.solve(func, bisectionA, bisectionB),
-                iteration: this.methods.iteration.solve(func, iterationX0, iterationLambda),
-                secant: this.methods.secant.solve(func, secantX1, secantX2),
-                neural: await this.neuralMethods.equations.solve(func, { min: neuralA, max: neuralB })
-            };
-            
-            this.displayComparison(results, 'equation-results', 'Уравнения');
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка сравнения: ' + error.message);
-            this.app.setLoadingState(false);
+    try {
+        const func = document.getElementById('equation-function').value;
+        if (!func) {
+            this.app.showError('Введите функцию');
+            return;
         }
+        
+        this.app.setLoadingState(true);
+        
+        const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
+        const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
+        const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
+        const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+        const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
+        const secantX1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
+        const secantX2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
+        const neuralA = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
+        const neuralB = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
+        
+        const results = {
+            newton: this.methods.newton.solve(func, newtonX0),
+            bisection: this.methods.bisection.solve(func, bisectionA, bisectionB),
+            iteration: this.methods.iteration.solve(func, iterationX0, iterationLambda),
+            secant: this.methods.secant.solve(func, secantX1, secantX2),
+            neural: await this.neuralMethods.equations.solve(func, { min: neuralA, max: neuralB })
+        };
+        
+        if (results.newton.converged) {
+            this.chartBuilder.drawEquationChart(
+                func, 
+                results.newton.root, 
+                results.newton.iterations, 
+                'newton'
+            );
+        }
+        
+        this.displayComparison(results, 'equation-results', 'Уравнения');
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка сравнения: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
 
     async solveIntegration() {
         try {
@@ -452,10 +465,20 @@ class EventManager {
 
 
      displayEquationResult(result) {
-        const container = document.getElementById('equation-results');
-        this.displaySingleResult(container, result, 'уравнение');
+    const container = document.getElementById('equation-results');
+    this.displaySingleResult(container, result, 'уравнение');
+    
+    if (result.converged && result.root !== null) {
+        const method = document.getElementById('equation-method').value;
+        const func = document.getElementById('equation-function').value;
+        this.chartBuilder.drawEquationChart(
+            func, 
+            result.root, 
+            result.iterations, 
+            method
+        );
     }
-
+}
     displayIntegrationResult(result) {
         const container = document.getElementById('integration-results');
         this.displaySingleResult(container, result, 'интеграл');
