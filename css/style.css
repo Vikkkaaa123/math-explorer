@@ -588,24 +588,17 @@ body {
     align-items: end;
 }
 
-.interval-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.interval-group {
+.input-group {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
-.interval-label {
-    font-size: 0.85em;
-    color: var(--text-secondary);
-    margin-bottom: 0.25rem;
+.input-group label {
+    margin-bottom: 0.5rem;
+    width: 100%;
 }
 
-/* Все поля ввода одной высоты */
 .input-group input {
     height: 48px;
     padding: 0.75rem 1rem;
@@ -613,9 +606,32 @@ body {
     border-radius: var(--border-radius);
     font-size: 1rem;
     width: 100%;
+    box-sizing: border-box;
+}
+
+.interval-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+}
+
+.interval-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.interval-label {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    width: 100%;
 }
 
 /* Для метода секущих и нейросетей */
 .interval-group input {
     height: 48px;
+    width: 100%;
+    box-sizing: border-box;
 }
