@@ -1,3 +1,5 @@
+import ChartManager from './chart-manager.js';
+
 class ChartBuilder {
     constructor(mathParser) {
         this.parser = mathParser;
