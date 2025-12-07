@@ -189,14 +189,16 @@ class EventManager {
                     case 'bisection': 
                         const a = parseFloat(document.getElementById('bisection-a')?.value) || 0;
                         const b = parseFloat(document.getElementById('bisection-b')?.value) || 1;
-                        const bisectionPrecision = parseFloat(document.getElementById('bisection-pcision')?.value) || 0.0001;
+                        const bisectionPrecision = parseFloat(document.getElementById('bisection-precision')?.value) || 0.0001;
                         result = this.methods.bisection.solve(func, a, b, bisectionPrecision); 
                         break;
                         
-                    case 'iteration': 
-                        const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
-                        result = this.methods.iteration.solve(func, iterationX0); 
-                        break;
+                   case 'iteration': 
+                       const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+                       const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
+                       const iterationPrecision = parseFloat(document.getElementById('iteration-precision')?.value) || 0.0001;
+                       result = this.methods.iteration.solve(func, iterationX0, iterationLambda, iterationPrecision); 
+                       break;
                         
                     case 'secant': 
                         const x1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
@@ -235,6 +237,7 @@ class EventManager {
             const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
             const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
             const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+            const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
             const secantX1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
             const secantX2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
             const neuralA = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
@@ -243,7 +246,7 @@ class EventManager {
             const results = {
                 newton: this.methods.newton.solve(func, newtonX0),
                 bisection: this.methods.bisection.solve(func, bisectionA, bisectionB),
-                iteration: this.methods.iteration.solve(func, iterationX0),
+                iteration: this.methods.iteration.solve(func, iterationX0, iterationLambda),
                 secant: this.methods.secant.solve(func, secantX1, secantX2),
                 neural: await this.neuralMethods.equations.solve(func, { min: neuralA, max: neuralB })
             };
