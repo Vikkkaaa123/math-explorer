@@ -98,8 +98,8 @@ class ChartBuilder {
             const tangentSlope = df;
             const tangentIntercept = iter.fx - tangentSlope * iter.x;
             
-            const x1 = iter.x - 1;
-            const x2 = iter.x + 1;
+            const x1 = iter.x - 5;
+            const x2 = iter.x + 5;
             const y1 = tangentSlope * x1 + tangentIntercept;
             const y2 = tangentSlope * x2 + tangentIntercept;
             
