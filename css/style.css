@@ -654,3 +654,163 @@ body {
     height: 400px;
     margin: 1rem 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+/* Контейнер графика */
+.visualization-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    margin: 20px 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+}
+
+
+/* Кнопки управления в левом нижнем углу */
+.chart-controls {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    display: flex;
+    gap: 5px;
+    z-index: 100;
+}
+
+.chart-controls button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chart-controls button:hover {
+    background: #f3f4f6;
+}
+
+/* Курсор для перетаскивания */
+.visualization-container canvas {
+    cursor: grab;
+}
+
+.visualization-container canvas:active {
+    cursor: grabbing;
+}
+
+/* Для мобильных */
+@media (max-width: 768px) {
+    .visualization-container {
+        height: 350px;
+    }
+    
+    .chart-controls button {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+}
+/* Кнопки зума в левом нижнем углу */
+.zoom-buttons {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+    background: white;
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.zoom-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.zoom-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-btn.zoom-in {
+    color: #059669; /* Зеленый для + */
+}
+
+.zoom-btn.zoom-out {
+    color: #dc2626; /* Красный для - */
+}
+
+.zoom-btn.reset-btn {
+    color: #6b7280; /* Серый для сброса */
+}
+
+/* Курсор для перетаскивания */
+.visualization-container canvas {
+    cursor: grab;
+}
+
+.visualization-container canvas:active {
+    cursor: grabbing;
+}
+
+/* Для мобильных */
+@media (max-width: 768px) {
+    .zoom-buttons {
+        bottom: 10px;
+        left: 10px;
+        padding: 5px;
+    }
+    
+    .zoom-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+}
+
+/* График занимает всё пространство */
+.visualization-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 600px;
+    min-height: 400px;
+}
+
+@media (max-width: 768px) {
+    .visualization-container {
+        height: 450px;
+    }
+}

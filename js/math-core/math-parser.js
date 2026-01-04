@@ -42,88 +42,85 @@ class MathParser {
         }, { override: true });
     }
 
-cleanExpression(expression) {
-    console.log('Исходное выражение:', expression);
-    
+cleanExpression(expression) {    
     let clean = expression
         .trim()
         .toLowerCase()
         .replace(/\s+/g, '')
         
-        // 0. СНАЧАЛА обработаем ВСЕ случаи со скобками в степени
-        // Найдем все )^число и )**число
-        .replace(/(\))\^(\d+)/g, 'pow($1, $2)')
-        .replace(/(\))\*\*(\d+)/g, 'pow($1, $2)')
-        .replace(/(\))\^(\()/g, 'pow($1, $2)')  // )^( → pow()
-        .replace(/(\))\*\*(\()/g, 'pow($1, $2)')
-        
-        // 1. Остальные степени
-        .replace(/([a-zа-яё])\^(\d+)/g, 'pow($1, $2)')
-        .replace(/([a-zа-яё])\*\*(\d+)/g, 'pow($1, $2)')
-        .replace(/([a-zа-яё])\^(\()/g, 'pow($1, $2)')
-        .replace(/([a-zа-яё])\*\*(\()/g, 'pow($1, $2)')
-
-        // 1.2. Защита POW
-        .replace(/pow/g, '§POW§')
-        
-        // 2. Защита функций и констант
-        .replace(/pi/g, '§PI§')
-        .replace(/e(?![a-z])/g, '§E§')
-        .replace(/sin/g, '§SIN§')
-        .replace(/cos/g, '§COS§')
-        .replace(/tan/g, '§TAN§')
-        .replace(/cot/g, '§COT§')
-        .replace(/sec/g, '§SEC§')
-        .replace(/csc/g, '§CSC§')
-        .replace(/asin/g, '§ASIN§')
-        .replace(/acos/g, '§ACOS§')
-        .replace(/atan/g, '§ATAN§')
-        .replace(/acot/g, '§ACOT§')
-        .replace(/sinh/g, '§SINH§')
-        .replace(/cosh/g, '§COSH§')
-        .replace(/tanh/g, '§TANH§')
-        .replace(/coth/g, '§COTH§')
-        .replace(/log/g, '§LOG§')
-        .replace(/ln/g, '§LN§')
-        .replace(/exp/g, '§EXP§')
-        .replace(/sqrt/g, '§SQRT§')
-        .replace(/abs/g, '§ABS§')
-        
-        // 3. Замена оставшихся букв на x
-        .replace(/[a-zа-яё]/g, 'x')
-        
-        // 4. Автоматическое умножение для 2x, x(, )x и т.д.
-        .replace(/(\d)(x)/g, '$1*$2')     // 3x → 3*x
-        .replace(/(x)(\d)/g, '$1*$2')     // x2 → x*2
-        .replace(/(\d)(\()/g, '$1*$2')    // 2( → 2*(
-        .replace(/(\))(x)/g, '$1*$2')     // )x → )*x
-        .replace(/(\))(\()/g, '$1*$2')    // )( → )*(
-        .replace(/(x)(\()/g, '$1*$2')     // x( → x*(
-        
-        // 5. Возвращаем функции, константы и pow
-        .replace(/§POW§/g, 'pow')
-        .replace(/§PI§/g, 'pi')
-        .replace(/§E§/g, 'e')
-        .replace(/§SIN§/g, 'sin')
-        .replace(/§COS§/g, 'cos')
-        .replace(/§TAN§/g, 'tan')
-        .replace(/§COT§/g, 'cot')
-        .replace(/§SEC§/g, 'sec')
-        .replace(/§CSC§/g, 'csc')
-        .replace(/§ASIN§/g, 'asin')
-        .replace(/§ACOS§/g, 'acos')
-        .replace(/§ATAN§/g, 'atan')
-        .replace(/§ACOT§/g, 'acot')
-        .replace(/§SINH§/g, 'sinh')
-        .replace(/§COSH§/g, 'cosh')
-        .replace(/§TANH§/g, 'tanh')
-        .replace(/§COTH§/g, 'coth')
-        .replace(/§LOG§/g, 'log')
-        .replace(/§LN§/g, 'ln')
-        .replace(/§EXP§/g, 'exp')
-        .replace(/§SQRT§/g, 'sqrt')
-        .replace(/§ABS§/g, 'abs');
+        // заменяем русские функции
+        .replace(/tg/g, 'tan')
+        .replace(/ctg/g, 'cot')
+        .replace(/arctg/g, 'atan')
+        .replace(/arcctg/g, 'acot')
+        .replace(/arcsin/g, 'asin')
+        .replace(/arccos/g, 'acos');
     
+    
+    // ЗАЩИЩАЕМ ВСЕ функции ДО обработки степеней
+
+    const functions = [
+        'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
+        'asin', 'acos', 'atan', 'acot',
+        'sinh', 'cosh', 'tanh', 'coth',
+        'log', 'log10', 'ln', 'exp', 'sqrt', 'abs'
+    ];
+    
+    // временная замена функций на маркеры с защитой
+    functions.forEach((func, i) => {
+        clean = clean.replace(new RegExp(func, 'g'), `__${i}__`);
+    });
+    
+    // теперь обрабатываем степени    
+    // функции со скобками
+    for (let i = 0; i < functions.length; i++) {
+        const marker = `__${i}__`;
+        const regex = new RegExp(`(${marker}\\([^)]+\\))\\^(\\d+)`, 'g');
+        clean = clean.replace(regex, 'POW_FUNC($1,$2)');
+    }
+    
+    // скобки
+    clean = clean.replace(/\(([^)]+)\)\^(\d+)/g, 'POW_FUNC(($1),$2)');
+    
+    // простые переменные
+    clean = clean.replace(/([a-z])\^(\d+)/g, 'POW_FUNC($1,$2)');
+    
+    // теперь заменяем POW_FUNC на pow, но защищаем его
+    clean = clean.replace(/POW_FUNC/g, '__POW__');
+    
+    // заменяем все оставшиеся буквы на x
+    // Сначала защищаем все маркеры
+    // Временная двойная защита маркеров
+    clean = clean.replace(/__(\d+)__/g, '[[$1]]');
+    clean = clean.replace(/__POW__/g, '[[POW]]');
+    
+    // заменяем буквы
+    clean = clean.replace(/[a-z]/g, 'x');
+    
+    // Возвращаем маркеры из двойной защиты
+    clean = clean.replace(/\[\[(\d+)\]\]/g, '__$1__');
+    clean = clean.replace(/\[\[POW\]\]/g, '__POW__');
+    
+    // умножение
+    clean = clean
+        .replace(/(\d)(x)/g, '$1*$2')
+        .replace(/(x)(\d)/g, '$1*$2')
+        .replace(/(\d)(\()/g, '$1*$2')
+        .replace(/(\))(x)/g, '$1*$2')
+        .replace(/(\))(\()/g, '$1*$2')
+        .replace(/(x)(\()/g, '$1*$2');
+    
+    // добавляем умножение для чисел перед функциями
+    clean = clean.replace(/(\d)(__\d+__)/g, '$1*$2');
+    
+    // восстанавливаем функции из маркеров
+    functions.forEach((func, i) => {
+        clean = clean.replace(new RegExp(`__${i}__`, 'g'), func);
+    });
+    
+    // восстанавливаем pow
+    clean = clean.replace(/__POW__/g, 'pow');
+
     this.checkBrackets(clean);
     
     return clean;
