@@ -47,8 +47,9 @@ cleanExpression(expression) {
         .trim()
         .toLowerCase()
         .replace(/\s+/g, '')
-        
-        // заменяем русские функции
+        .replace(/[а-я]/g, 'x')
+
+        // заменяем функции
         .replace(/tg/g, 'tan')
         .replace(/ctg/g, 'cot')
         .replace(/arctg/g, 'atan')
