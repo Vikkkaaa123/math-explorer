@@ -118,13 +118,22 @@ class EventManager {
     }
 
     setupTabHandlers() {
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.app.switchToTab(e.currentTarget.dataset.tab);
-            });
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tab = e.currentTarget.dataset.tab;
+            this.app.switchToTab(tab);
+            
+            // Перерисовываем график при переключении на интегралы
+            if (tab === 'integration' && this.lastIntegrationData) {
+                setTimeout(() => {
+                    const { func, a, b, method, iterations } = this.lastIntegrationData;
+                    this.chartBuilder.drawIntegrationChart(func, a, b, method, iterations);
+                }, 50);
+            }
         });
-    }
+    });
+}
 
     setupSystemInputs() {
         const systemCountInput = document.getElementById('system-count');
@@ -273,60 +282,87 @@ class EventManager {
 }
 
     async solveIntegration() {
-        try {
-            const func = document.getElementById('integration-function').value;
-            const method = document.getElementById('integration-method').value;
-            const a = parseFloat(document.getElementById('integration-a').value);
-            const b = parseFloat(document.getElementById('integration-b').value);
-            if (!func || isNaN(a) || isNaN(b)) {
-                this.app.showError('Введите функцию и пределы интегрирования');
-                return;
-            }
-            this.app.setLoadingState(true);
-            let result;
-            if (method === 'neural') {
-                result = await this.neuralMethods.integration.solve(func, a, b);
-            } else {
-                switch (method) {
-                    case 'simpson': result = this.methods.simpson.solve(func, a, b); break;
-                    case 'trapezoidal': result = this.methods.trapezoidal.solve(func, a, b); break;
-                    case 'rectangles': result = this.methods.rectangles.solve(func, a, b); break;
-                    case 'monte-carlo': result = this.methods.monteCarlo.solve(func, a, b); break;
-                    default: this.app.showError('Неизвестный метод'); return;
-                }
-            }
-            this.displayIntegrationResult(result);
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка расчета: ' + error.message);
-            this.app.setLoadingState(false);
+    try {
+        const func = document.getElementById('integration-function').value;
+        const method = document.getElementById('integration-method').value;
+        const a = parseFloat(document.getElementById('integration-a').value);
+        const b = parseFloat(document.getElementById('integration-b').value);
+        const precision = parseFloat(document.getElementById('integration-precision').value) || 1e-6;
+        const N = parseInt(document.getElementById('integration-n').value) || 100;
+        const maxIterations = 50;
+        
+        if (!func || isNaN(a) || isNaN(b)) {
+            this.app.showError('Введите функцию и пределы интегрирования');
+            return;
         }
+        
+        this.app.setLoadingState(true);
+        let result;
+        
+        if (method === 'neural') {
+            result = await this.neuralMethods.integration.solve(func, a, b);
+        } else {
+            switch (method) {
+                case 'simpson': 
+                    result = this.methods.simpson.solve(func, a, b, precision, N, maxIterations); 
+                    break;
+                case 'trapezoidal': 
+                    result = this.methods.trapezoidal.solve(func, a, b, precision, N, maxIterations); 
+                    break;
+                case 'rectangles': 
+                    result = this.methods.rectangles.solve(func, a, b, precision, N, maxIterations); 
+                    break;
+                case 'monte-carlo': 
+                    result = this.methods.monteCarlo.solve(func, a, b, precision, N, maxIterations); 
+                    break;
+                default: 
+                    this.app.showError('Неизвестный метод'); 
+                    return;
+            }
+        }
+        
+        this.displayIntegrationResult(result);
+        this.app.setLoadingState(false);
+        
+    } catch (error) {
+        this.app.showError('Ошибка расчета: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
+
 
     async compareIntegrationMethods() {
-        try {
-            const func = document.getElementById('integration-function').value;
-            const a = parseFloat(document.getElementById('integration-a').value);
-            const b = parseFloat(document.getElementById('integration-b').value);
-            if (!func || isNaN(a) || isNaN(b)) {
-                this.app.showError('Введите функцию и пределы интегрирования');
-                return;
-            }
-            this.app.setLoadingState(true);
-            const results = {
-                simpson: this.methods.simpson.solve(func, a, b),
-                trapezoidal: this.methods.trapezoidal.solve(func, a, b),
-                rectangles: this.methods.rectangles.solve(func, a, b),
-                monteCarlo: this.methods.monteCarlo.solve(func, a, b),
-                neural: await this.neuralMethods.integration.solve(func, a, b)
-            };
-            this.displayComparison(results, 'integration-results', 'Интегрирование');
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка сравнения: ' + error.message);
-            this.app.setLoadingState(false);
+    try {
+        const func = document.getElementById('integration-function').value;
+        const a = parseFloat(document.getElementById('integration-a').value);
+        const b = parseFloat(document.getElementById('integration-b').value);
+        const precision = parseFloat(document.getElementById('integration-precision').value) || 1e-6;
+        const N = parseInt(document.getElementById('integration-n').value) || 100;
+        const maxIterations = 50;
+        
+        if (!func || isNaN(a) || isNaN(b)) {
+            this.app.showError('Введите функцию и пределы интегрирования');
+            return;
         }
+        
+        this.app.setLoadingState(true);
+        
+        const results = {
+            simpson: this.methods.simpson.solve(func, a, b, precision, N, maxIterations),
+            trapezoidal: this.methods.trapezoidal.solve(func, a, b, precision, N, maxIterations),
+            rectangles: this.methods.rectangles.solve(func, a, b, precision, N, maxIterations),
+            monteCarlo: this.methods.monteCarlo.solve(func, a, b, precision, N, maxIterations),
+            neural: await this.neuralMethods.integration.solve(func, a, b)
+        };
+        
+        this.displayComparison(results, 'integration-results', 'Интегрирование');
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка сравнения: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
+
 
     async solveDifferential() {
         try {
@@ -479,10 +515,122 @@ class EventManager {
         );
     }
 }
-    displayIntegrationResult(result) {
-        const container = document.getElementById('integration-results');
-        this.displaySingleResult(container, result, 'интеграл');
+
+
+
+displayIntegrationResult(result) {
+    const container = document.getElementById('integration-results');
+    
+    if (!container) {
+        console.error('Контейнер integration-results не найден');
+        return;
     }
+    
+    // проверка сходимости
+    if (!result.converged) {
+        container.innerHTML = `<div class="error-message">${result.message}</div>`;
+        return;
+    }
+    
+    //получаем данные для графика
+    const func = document.getElementById('integration-function').value;
+    const a = parseFloat(document.getElementById('integration-a').value);
+    const b = parseFloat(document.getElementById('integration-b').value);
+    const method = document.getElementById('integration-method').value;
+    
+    //рисуем график
+    if (func && !isNaN(a) && !isNaN(b) && method) {
+        this.lastIntegrationData = { func, a, b, method, iterations: result.iterations };
+        this.chartBuilder.drawIntegrationChart(func, a, b, method, result.iterations);
+    } else {
+        console.warn('Не все данные для графика:', { func, a, b, method });
+    }
+    
+    let html = `
+        <div class="result-success">
+            <h3>Результаты интегрирования</h3>
+            <div class="result-main">
+                <div class="result-icon">✅</div>
+                <div class="result-text">Интеграл вычислен!</div>
+            </div>
+    `;
+    
+
+    const resultValue = typeof result.result === 'string' 
+        ? parseFloat(result.result) 
+        : result.result;
+    
+    html += `
+        <div class="result-details">
+            <div class="detail-row">
+                <span class="detail-label">Метод:</span>
+                <span class="detail-value">${result.method || 'Метод Симпсона'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Результат:</span>
+                <span class="detail-value">${resultValue !== null && resultValue !== undefined ? resultValue.toFixed(8) : '—'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Итераций:</span>
+                <span class="detail-value">${result.iterations?.length || 0}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Погрешность:</span>
+                <span class="detail-value">${result.iterations?.length > 0 ? 
+                    (typeof result.iterations[result.iterations.length - 1].error === 'number' ? 
+                     result.iterations[result.iterations.length - 1].error.toFixed(10) : '—') : '—'}</span>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    if (result.iterations && result.iterations.length > 0) {
+        html += `
+            <div class="iterations-table-container">
+                <h4>Процесс итераций:</h4>
+                <table class="iterations-table">
+                    <thead>
+                        <tr>
+                            <th>Итерация</th>
+                            <th>n</th>
+                            <th>h</th>
+                            <th>I_n</th>
+                            <th>Погрешность</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        result.iterations.forEach((iteration, index) => {
+            const iterationNum = index + 1;
+            const n = iteration.n || '—';
+            const h = typeof iteration.h === 'number' ? iteration.h.toFixed(8) : iteration.h || '—';
+            const I_n = typeof iteration.I_n === 'number' ? iteration.I_n.toFixed(8) : 
+                       typeof iteration.result === 'number' ? iteration.result.toFixed(8) : '—';
+            const error = typeof iteration.error === 'number' ? iteration.error.toFixed(8) : '—';
+            
+            html += `
+                <tr>
+                    <td>${iterationNum}</td> 
+                    <td>${n}</td>
+                    <td>${h}</td>
+                    <td>${I_n}</td>
+                    <td>${error}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+
 
     displayDifferentialResult(result) {
         const container = document.getElementById('differential-results');

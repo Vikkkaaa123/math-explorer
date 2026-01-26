@@ -3,28 +3,33 @@ class SimpsonMethod {
         this.parser = mathParser;
     }
 
-    solve(func, a, b, precision = 1e-6, maxIterations = 20) {
+    solve(func, a, b, precision = 1e-6, N = 100, maxIterations = 20) {
         try {
             const f = this.parser.parseFunction(func);
             
-            let n = 2;
+            // Используем N из входа пользователя
+            let n = Math.max(2, N);
+            if (n % 2 !== 0) n++;
+            
             let previous = 0;
             let current = this._calculate(f, a, b, n);
             const iterations = [];
 
             for (let i = 0; i < maxIterations; i++) {
+                const h = (b - a) / n;
                 const error = Math.abs(current - previous);
                 
+                
                 iterations.push({
-                    iteration: i + 1,
-                    segments: n,
-                    result: current,
-                    error: error,
-                    h: (b - a) / n
+                    n: n,          // количество отрезков
+                    h: h,         // шаг интегрирования
+                    I_n: current, // значение интеграла
+                    error: error  // погрешность
                 });
 
                 if (i > 0 && error < precision) {
                     return {
+                        method: "Метод Симпсона",
                         result: current,
                         iterations: iterations,
                         converged: true,
@@ -34,6 +39,7 @@ class SimpsonMethod {
 
                 if (!this._isFiniteNumber(current)) {
                     return {
+                        method: "Метод Симпсона",
                         result: null,
                         iterations: iterations,
                         converged: false,
@@ -46,6 +52,7 @@ class SimpsonMethod {
                 
                 if (n > 1000000) {
                     return {
+                        method: "Метод Симпсона",
                         result: current,
                         iterations: iterations,
                         converged: false,
@@ -57,6 +64,7 @@ class SimpsonMethod {
             }
 
             return {
+                method: "Метод Симпсона",
                 result: current,
                 iterations: iterations,
                 converged: false,
@@ -65,6 +73,7 @@ class SimpsonMethod {
 
         } catch (error) {
             return {
+                method: "Метод Симпсона",
                 result: null,
                 iterations: [],
                 converged: false,

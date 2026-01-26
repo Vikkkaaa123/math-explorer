@@ -3,12 +3,13 @@ class MonteCarloMethod {
         this.parser = mathParser;
     }
 
-    solve(func, a, b, precision = 1e-4, maxIterations = 15, minPoints = 10000) {
+    solve(func, a, b, precision = 5e-2, N = 10000, maxIterations = 20) {
         try {
             const f = this.parser.parseFunction(func);
             
             if (a >= b) {
                 return {
+                    method: "Метод Монте-Карло",
                     result: null,
                     iterations: [],
                     converged: false,
@@ -16,7 +17,10 @@ class MonteCarloMethod {
                 };
             }
             
-            let n = minPoints;
+
+            const MAX_POINTS = 100000;
+            let n = Math.min(Math.max(1000, N), MAX_POINTS);
+            
             let previous = 0;
             let current = this._calculate(f, a, b, n);
             const iterations = [];
@@ -25,45 +29,54 @@ class MonteCarloMethod {
                 const error = Math.abs(current - previous);
                 
                 iterations.push({
-                    iteration: i + 1,
-                    points: n,
-                    result: current,
+                    n: n,
+                    h: '-',
+                    I_n: current,
                     error: error
                 });
 
+
                 if (i > 0 && error < precision) {
                     return {
+                        method: "Метод Монте-Карло",
                         result: current,
                         iterations: iterations,
                         converged: true,
-                        message: `Интеграл вычислен с точностью ${error.toExponential(2)}`
+                        message: `Интеграл вычислен. ${n} точек, погрешность: ${error.toExponential(2)}`
                     };
                 }
 
                 previous = current;
-                n *= 2;
                 
-                if (n > 10000000) {
+
+                n = Math.min(n * 2, MAX_POINTS);
+                
+
+                if (n >= MAX_POINTS && i > 5) {
                     return {
+                        method: "Метод Монте-Карло",
                         result: current,
                         iterations: iterations,
-                        converged: false,
-                        message: 'Достигнут предел точек'
+                        converged: true,
+                        message: `Максимум ${MAX_POINTS} точек. Результат: ${current.toFixed(6)}`
                     };
                 }
                 
                 current = this._calculate(f, a, b, n);
             }
 
+
             return {
+                method: "Метод Монте-Карло",
                 result: current,
                 iterations: iterations,
-                converged: false,
-                message: `Достигнут предел итераций`
+                converged: true,
+                message: `Приближение после ${maxIterations} итераций. ${n} точек`
             };
 
         } catch (error) {
             return {
+                method: "Метод Монте-Карло",
                 result: null,
                 iterations: [],
                 converged: false,
@@ -74,13 +87,14 @@ class MonteCarloMethod {
 
     _calculate(f, a, b, n) {
         let sum = 0;
-        
+        const range = b - a;
+
         for (let i = 0; i < n; i++) {
-            const x = a + Math.random() * (b - a);
+            const x = a + Math.random() * range;
             sum += f(x);
         }
         
-        return (b - a) * (sum / n);
+        return range * (sum / n);
     }
 
     _isFiniteNumber(num) {

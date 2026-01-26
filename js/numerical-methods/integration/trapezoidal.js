@@ -3,28 +3,32 @@ class TrapezoidalMethod {
         this.parser = mathParser;
     }
 
-    solve(func, a, b, precision = 1e-6, maxIterations = 20) {
+    solve(func, a, b, precision = 1e-6, N = 100, maxIterations = 20) {
         try {
             const f = this.parser.parseFunction(func);
             
-            let n = 1;
+            // Используем N из входа пользователя
+            let n = Math.max(1, N);
+            
             let previous = 0;
             let current = this._calculate(f, a, b, n);
             const iterations = [];
 
             for (let i = 0; i < maxIterations; i++) {
+                const h = (b - a) / n;
                 const error = Math.abs(current - previous);
                 
+                // Используем те же поля, что и в методе Симпсона
                 iterations.push({
-                    iteration: i + 1,
-                    segments: n,
-                    result: current,
-                    error: error,
-                    h: (b - a) / n
+                    n: n,          // количество отрезков
+                    h: h,          // шаг интегрирования
+                    I_n: current,  // значение интеграла
+                    error: error   // погрешность
                 });
 
                 if (i > 0 && error < precision) {
                     return {
+                        method: "Метод трапеций",
                         result: current,
                         iterations: iterations,
                         converged: true,
@@ -34,6 +38,7 @@ class TrapezoidalMethod {
 
                 if (!this._isFiniteNumber(current)) {
                     return {
+                        method: "Метод трапеций",
                         result: null,
                         iterations: iterations,
                         converged: false,
@@ -46,6 +51,7 @@ class TrapezoidalMethod {
                 
                 if (n > 1000000) {
                     return {
+                        method: "Метод трапеций",
                         result: current,
                         iterations: iterations,
                         converged: false,
@@ -57,6 +63,7 @@ class TrapezoidalMethod {
             }
 
             return {
+                method: "Метод трапеций",
                 result: current,
                 iterations: iterations,
                 converged: false,
@@ -65,6 +72,7 @@ class TrapezoidalMethod {
 
         } catch (error) {
             return {
+                method: "Метод трапеций",
                 result: null,
                 iterations: [],
                 converged: false,
