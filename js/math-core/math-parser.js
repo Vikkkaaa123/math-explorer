@@ -49,7 +49,7 @@ cleanExpression(expression) {
         .replace(/\s+/g, '')
         .replace(/[а-я]/g, 'x')
 
-        // заменяем функции
+        //заменяем функции
         .replace(/tg/g, 'tan')
         .replace(/ctg/g, 'cot')
         .replace(/arctg/g, 'atan')
@@ -58,7 +58,7 @@ cleanExpression(expression) {
         .replace(/arccos/g, 'acos');
     
     
-    // ЗАЩИЩАЕМ ВСЕ функции ДО обработки степеней
+    //защищаем все функции ДО обработки степеней
 
     const functions = [
         'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
@@ -138,7 +138,6 @@ cleanExpression(expression) {
 
         try {
             const cleanExpression = this.cleanExpression(expression);
-            console.log('Выражение для math.js:', cleanExpression);
             
             const compiled = this.parser.compile(cleanExpression);
             

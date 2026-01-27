@@ -462,7 +462,6 @@ drawEquationChart(funcStr, root, iterations, methodType) {
 
 drawIntegrationChart(funcStr, a, b, methodType, iterations = []) {
     try {
-        console.log('Начинаем рисовать график интеграла:', { funcStr, a, b, methodType });
         
         const canvas = document.getElementById('integration-chart');
         if (!canvas) {
@@ -499,14 +498,14 @@ drawIntegrationChart(funcStr, a, b, methodType, iterations = []) {
             label: ''
         });
         
-        // 1. Сначала рисуем площадь под оригинальной функцией (бледно-голубой)
+        //рисуем площадь под оригинальной функцией (бледно-голубой)
         const areaUnderFunc = this._generateAreaUnderFunction(func, a, b, 100);
         if (areaUnderFunc.length > 0) {
             datasets.push({
                 label: 'Площадь под функцией',
                 data: areaUnderFunc,
-                borderColor: 'rgba(59, 130, 246, 0.3)',  // Бледно-голубой
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',  // Еще бледнее
+                borderColor: 'rgba(59, 130, 246, 0.3)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 borderWidth: 1,
                 pointRadius: 0,
                 fill: true,
@@ -514,7 +513,7 @@ drawIntegrationChart(funcStr, a, b, methodType, iterations = []) {
             });
         }
         
-        // 2. График самой функции (синяя линия)
+        //график самой функции (синяя линия)
         const funcPoints = this._generateFunctionPoints(func, -100, 100, 200);
         datasets.push({
             label: `f(x) = ${funcStr}`,
@@ -527,7 +526,7 @@ drawIntegrationChart(funcStr, a, b, methodType, iterations = []) {
             tension: 0.1
         });
         
-        // 3. Визуализация метода интегрирования (оранжевые параболы Симпсона)
+        //мметода интегрирования 
         let methodData = [];
         switch(methodType.toLowerCase()) {
             case 'simpson':
@@ -546,20 +545,13 @@ drawIntegrationChart(funcStr, a, b, methodType, iterations = []) {
                 console.log('Метод не поддерживает визуализацию:', methodType);
         }
         
-        // Добавляем визуализацию метода
         if (methodData && methodData.length > 0) {
-            methodData.forEach(data => {
-                datasets.push({
-                    ...data,
-                    borderColor: this.colors.process,
-                    backgroundColor: this.colors.processLight,
-                    pointBackgroundColor: this.colors.process,
-                    borderWidth: 1.5
-                });
-            });
-        }
+    methodData.forEach(data => {
+        datasets.push(data);
+    });
+}
         
-        // 4. Вертикальные линии границ
+        //вертикальные линии границ
         datasets.push({
             label: 'Границы интегрирования',
             data: [
@@ -586,7 +578,7 @@ drawIntegrationChart(funcStr, a, b, methodType, iterations = []) {
             label: ''
         });
         
-        // Создаем график
+        //создаем график
         this.chartManager.createChart('integration-chart', datasets, null, {
             axis: '#000000',
             grid: this.colors.grid
@@ -633,8 +625,6 @@ _generateAreaUnderFunction(func, a, b, points = 100) {
 
 
 
-
-// МЕТОДЫ ГЕНЕРАЦИИ ДАННЫХ:
 _generateSimpsonVisualization(func, a, b, iterations) {
     if (!iterations || iterations.length === 0) {
         return [];
@@ -645,15 +635,9 @@ _generateSimpsonVisualization(func, a, b, iterations) {
     const adjustedN = n % 2 === 0 ? n : n + 1;
     const h = (b - a) / adjustedN;
     const datasets = [];
-    
-    // 1. Массив для ЛИНИЙ парабол
-    const allParabolaPoints = [];
-    
-    // 2. НОВЫЙ: Массив для ЗАКРАШЕННОЙ ОБЛАСТИ под параболами
-    const filledAreaPoints = [];
-    
-    // Начинаем область на оси X
-    filledAreaPoints.push({ x: a, y: 0 });
+    const allParabolaPoints = [];  //массив для ЛИНИЙ парабол
+    const filledAreaPoints = [];  //массив для закрашенной области под параболами
+    filledAreaPoints.push({ x: a, y: 0 });  // Начинаем область на оси X
     
     for (let i = 0; i < adjustedN; i += 2) {
         const x0 = a + i * h;
@@ -668,13 +652,13 @@ _generateSimpsonVisualization(func, a, b, iterations) {
             const y1 = func(x1);
             const y2 = func(x2);
 
-            // РАЗРЫВ между параболами
+            //разрыв между параболами
             if (allParabolaPoints.length > 0) {
                 allParabolaPoints.push({ x: NaN, y: NaN });
                 filledAreaPoints.push({ x: NaN, y: NaN });
             }
             
-            // Начинаем новый сегмент области
+            //начинаем новый сегмент области
             filledAreaPoints.push({ x: x0, y: 0 });
             filledAreaPoints.push({ x: x0, y: y0 });
             
@@ -683,7 +667,7 @@ _generateSimpsonVisualization(func, a, b, iterations) {
                 const t = j / points;
                 const x = x0 + 2 * h * t;
                 
-                // Интерполяция
+                //интерполяция
                 const L0 = ((x - x1) * (x - x2)) / ((x0 - x1) * (x0 - x2));
                 const L1 = ((x - x0) * (x - x2)) / ((x1 - x0) * (x1 - x2));
                 const L2 = ((x - x0) * (x - x1)) / ((x2 - x0) * (x2 - x1));
@@ -694,7 +678,7 @@ _generateSimpsonVisualization(func, a, b, iterations) {
                 filledAreaPoints.push({ x, y });
             }
             
-            // Завершаем сегмент области
+            //завершаем сегмент области
             filledAreaPoints.push({ x: x2, y: y2 });
             filledAreaPoints.push({ x: x2, y: 0 });
             
@@ -704,7 +688,7 @@ _generateSimpsonVisualization(func, a, b, iterations) {
     }
     
     
-    // 1. СНАЧАЛА рисуем ЗАКРАШЕННУЮ ОБЛАСТЬ (нижний слой)
+    //рисуем закрашенную область
     if (filledAreaPoints.length > 0) {
         datasets.push({
             label: '',
@@ -719,7 +703,7 @@ _generateSimpsonVisualization(func, a, b, iterations) {
         });
     }
     
-    // 2. ПОТОМ рисуем ЛИНИИ парабол (верхний слой)
+    //рисуем линии парабол
     if (allParabolaPoints.length > 0) {
         datasets.push({
             label: `Метод Симпсона`,
@@ -734,7 +718,6 @@ _generateSimpsonVisualization(func, a, b, iterations) {
         });
     }
     
-
     const nodePoints = [];
     for (let i = 0; i <= adjustedN; i += 2) {
         const x = a + i * h;
@@ -765,14 +748,17 @@ _generateSimpsonVisualization(func, a, b, iterations) {
 
 
 
-_generateTrapezoidalData(func, a, b, iterations) {
-    if (!iterations || iterations.length === 0) return [];
+
+_generateTrapezoidalVisualization(func, a, b, iterations) {
+    let n = 3;
+    if (iterations && iterations.length > 0) {
+        //берем n из первой итерации
+        const firstIter = iterations[0];
+        n = firstIter.n || firstIter.segments || 3;
+    }
     
-    const lastIteration = iterations[iterations.length - 1];
-    const n = lastIteration.n || lastIteration.segments || 4;
     const h = (b - a) / n;
-    
-    const trapezoidPoints = [];
+    const datasets = [];
     
     for (let i = 0; i < n; i++) {
         const x1 = a + i * h;
@@ -784,79 +770,218 @@ _generateTrapezoidalData(func, a, b, iterations) {
             
             if (!isFinite(y1) || !isFinite(y2)) continue;
             
-            // Трапеция (работает и для положительных, и для отрицательных значений)
-            if (i > 0) {
-                trapezoidPoints.push({ x: NaN, y: NaN });
-            }
+            const trapezoidPoints = [
+                { x: x1, y: 0 },
+                { x: x1, y: y1 },
+                { x: x2, y: y2 },
+                { x: x2, y: 0 }
+            ];
             
-            trapezoidPoints.push(
-                { x: x1, y: 0 },      // Нижняя левая точка
-                { x: x1, y: y1 },     // Верхняя левая точка
-                { x: x2, y: y2 },     // Верхняя правая точка
-                { x: x2, y: 0 }       // Нижняя правая точка
-            );
+            datasets.push({
+                label: i === 0 ? `Трапеции (n=${n})` : '',
+                data: trapezoidPoints,
+                borderColor: 'rgba(255, 152, 0, 0.3)',
+                backgroundColor: 'rgba(255, 152, 0, 0.15)',
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: true,
+                showLine: true,
+                tension: 0
+            });
             
-        } catch (e) {
+        } catch (error) {
             continue;
         }
     }
     
-    if (trapezoidPoints.length === 0) return [];
-    
-    return [{
-        label: 'Трапеции',
-        data: trapezoidPoints,
-        fill: true,
-        pointRadius: 0,
-        showLine: true
-    }];
+    return datasets;
 }
 
-_generateRectanglesData(func, a, b, iterations) {
-    if (!iterations || iterations.length === 0) return [];
+
+
+_generateRectanglesVisualization(func, a, b, iterations) {
+    let n = 4; // Значение по умолчанию
+    if (iterations && iterations.length > 0) {
+        // Используем n из первой итерации
+        const firstIter = iterations[0];
+        n = firstIter.n || firstIter.segments || 4;
+    }
     
-    const lastIteration = iterations[iterations.length - 1];
-    const n = lastIteration.n || lastIteration.segments || 4;
     const h = (b - a) / n;
+    const datasets = [];
     
-    const rectanglePoints = [];
+    //создаем отдельный набор данных для каждого прямоугольника
+    for (let i = 0; i < n; i++) {
+        const x1 = a + i * h;
+        const x2 = x1 + h;
+        const x_mid = (x1 + x2) / 2; //середина отрезка
+        
+        try {
+            const y_mid = func(x_mid);
+            
+            if (!isFinite(y_mid)) continue;
+            
+            //создаем точки для прямоугольника
+            const rectanglePoints = [
+                { x: x1, y: 0 },        //нижняя левая
+                { x: x1, y: y_mid },    //верхняя левая
+                { x: x2, y: y_mid },    //верхняя правая
+                { x: x2, y: 0 }         //нижняя правая
+            ];
+            
+            //создаем отдельный прямоугольник
+            datasets.push({
+                label: i === 0 ? `Средние прямоугольники (n=${n})` : '',
+                data: rectanglePoints,
+                borderColor: 'rgba(255, 152, 0, 0.3)',
+                backgroundColor: 'rgba(255, 152, 0, 0.15)',
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: true,
+                showLine: true,
+                tension: 0
+            });
+            
+        } catch (error) {
+            continue;
+        }
+    }
     
+    //точки в серединах отрезков
+    const midPoints = [];
     for (let i = 0; i < n; i++) {
         const x1 = a + i * h;
         const x2 = x1 + h;
         const x_mid = (x1 + x2) / 2;
         
         try {
-            const y = func(x_mid);
-            if (!isFinite(y)) continue;
-            
-            // Прямоугольник (работает и для положительных, и для отрицательных значений)
-            if (i > 0) {
-                rectanglePoints.push({ x: NaN, y: NaN });
+            const y_mid = func(x_mid);
+            if (isFinite(y_mid)) {
+                midPoints.push({ x: x_mid, y: y_mid });
             }
-            
-            rectanglePoints.push(
-                { x: x1, y: 0 },      // Нижняя левая точка
-                { x: x1, y: y },      // Верхняя левая точка
-                { x: x2, y: y },      // Верхняя правая точка
-                { x: x2, y: 0 }       // Нижняя правая точка
-            );
-            
-        } catch (e) {
-            continue;
-        }
+        } catch (e) {}
     }
     
-    if (rectanglePoints.length === 0) return [];
+    if (midPoints.length > 0) {
+        datasets.push({
+            label: '',
+            data: midPoints,
+            backgroundColor: '#FF9800',
+            borderColor: '#FF9800',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            showLine: false,
+            pointStyle: 'circle'
+        });
+    }
     
-    return [{
-        label: 'Прямоугольники',
-        data: rectanglePoints,
-        fill: true,
-        pointRadius: 0,
-        showLine: true
-    }];
+    return datasets;
 }
+
+
+
+_generateMonteCarloVisualization(func, a, b, iterations) {
+    if (!iterations || iterations.length === 0) {
+        return [];
+    } 
+    //берем n из последней итерации
+    const n = iterations[iterations.length - 1].n || 1000;
+    
+    //ограничиваем количество
+    const pointsToShow = Math.min(n, 1000);
+    
+    //определяем область для точек
+    const x_range = b - a;
+    
+    //ищем min и max функции на интервале
+    let y_min = Infinity;
+    let y_max = -Infinity;
+    for (let i = 0; i <= 20; i++) {
+        const x = a + (i / 20) * x_range;
+        try {
+            const y = func(x);
+            if (isFinite(y)) {
+                y_min = Math.min(y_min, y);
+                y_max = Math.max(y_max, y);
+            }
+        } catch (e) {}
+    }
+
+    y_min = Math.min(y_min, 0);
+    y_max = Math.max(y_max, 0);
+    
+    //расширяем диапазон
+    const y_padding = (y_max - y_min) * 0.2;
+    y_min -= y_padding;
+    y_max += y_padding;
+    
+    const y_range = y_max - y_min;
+    
+    //генерируем точки
+    const red_points = [];
+    const orange_points = [];
+    
+    for (let i = 0; i < pointsToShow; i++) {
+        const x = a + Math.random() * x_range;
+        const y = y_min + Math.random() * y_range;
+        
+        try {
+            const f_x = func(x);
+            if (!isFinite(f_x)) continue;
+            
+            //точка под графиком если находится между осью X (y=0) и функцией
+            if (f_x >= 0) {
+                //для положительной функции точка под графиком
+                if (y >= 0 && y <= f_x) {
+                    red_points.push({ x, y });
+                } else {
+                    orange_points.push({ x, y });
+                }
+            } else {
+                //для отрицательной функции точка под графиком
+                if (y <= 0 && y >= f_x) {
+                    red_points.push({ x, y });
+                } else {
+                    orange_points.push({ x, y });
+                }
+            }
+        } catch (e) {}
+    }
+    
+    const datasets = [];
+    
+    //оранжевые точки (вне области)
+    if (orange_points.length > 0) {
+        datasets.push({
+            label: `Точки вне области (${orange_points.length})`,
+            data: orange_points,
+            backgroundColor: 'rgb(255, 152, 0)',
+            borderColor: 'rgb(255, 152, 0)',
+            pointRadius: 1,
+            pointHoverRadius: 2,
+            showLine: false
+        });
+    }
+    
+    //кКрасные точки (под графиком)
+    if (red_points.length > 0) {
+        datasets.push({
+            label: `Точки под графиком (${red_points.length})`,
+            data: red_points,
+            backgroundColor: 'rgb(255, 0, 0)',
+            borderColor: 'rgb(255, 0, 0)',
+            pointRadius: 1,
+            pointHoverRadius: 2,
+            showLine: false
+        });
+    }
+    
+    return datasets;
+}
+
+
+
+
 
 
     // Вспомогательные методы:
