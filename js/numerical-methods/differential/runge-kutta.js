@@ -9,6 +9,7 @@ class RungeKuttaMethod {
             
             if (x0 >= xEnd || step <= 0) {
                 return {
+                    method: "Метод Рунге-Кутты 4-го порядка",
                     solution: null,
                     iterations: [],
                     converged: false,
@@ -21,7 +22,13 @@ class RungeKuttaMethod {
             let y = y0;
             let stepNumber = 0;
             
-            iterations.push({ step: stepNumber, x: x, y: y });
+            iterations.push({
+                step: stepNumber,
+                x: x,
+                y: y,
+                derivative: 0,
+                k1: 0, k2: 0, k3: 0, k4: 0
+            });
             
             while (x < xEnd && stepNumber < maxSteps) {
                 const k1 = f(x, y);
@@ -33,10 +40,20 @@ class RungeKuttaMethod {
                 x = x + step;
                 stepNumber++;
                 
-                iterations.push({ step: stepNumber, x: x, y: y });
+                iterations.push({
+                    step: stepNumber,
+                    x: x,
+                    y: y,
+                    derivative: (k1 + 2*k2 + 2*k3 + k4)/6,
+                    k1: step * k1,
+                    k2: step * k2,
+                    k3: step * k3,
+                    k4: step * k4
+                });
                 
                 if (!this._isFiniteNumber(y)) {
                     return {
+                        method: "Метод Рунге-Кутты 4-го порядка", // ← ДОБАВЬ
                         solution: null,
                         iterations: iterations,
                         converged: false,
@@ -46,17 +63,23 @@ class RungeKuttaMethod {
             }
             
             return {
+                method: "Метод Рунге-Кутты 4-го порядка",
                 solution: {
                     x: iterations.map(point => point.x),
                     y: iterations.map(point => point.y)
                 },
                 iterations: iterations,
                 converged: true,
-                message: `Решение получено за ${stepNumber} шагов`
+                iterationsCount: stepNumber,
+                final_x: x,
+                final_y: y,
+                step: step,
+                message: `Решение получено за ${stepNumber} шагов, шаг h=${step}`
             };
             
         } catch (error) {
             return {
+                method: "Метод Рунге-Кутты 4-го порядка",
                 solution: null,
                 iterations: [],
                 converged: false,
@@ -69,4 +92,6 @@ class RungeKuttaMethod {
         return typeof num === 'number' && isFinite(num);
     }
 }
+
+
 export default RungeKuttaMethod;

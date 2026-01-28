@@ -284,58 +284,79 @@
 
 
 
-                <!-- Вкладка: Дифф. уравнения -->
-                <div id="differential-tab" class="tab-pane">
-                    <div class="tab-header">
-                        <h2><i class="fas fa-project-diagram"></i> Решение ОДУ</h2>
-                        <p>Численное решение обыкновенных дифференциальных уравнений</p>
-                    </div>
-                    <div class="input-section">
-                        <div class="input-group">
-                            <label for="diff-equation">Уравнение y' = f(x, y):</label>
-                            <input type="text" id="diff-equation" placeholder="Введите пример">
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label for="diff-x0">Начальное x₀:</label>
-                                <input type="number" id="diff-x0" placeholder="Введите число">
-                            </div>
-                            <div class="input-group">
-                                <label for="diff-y0">Начальное y₀:</label>
-                                <input type="number" id="diff-y0" placeholder="Введите число">
-                            </div>
-                            <div class="input-group">
-                                <label for="diff-end">Конечная точка:</label>
-                                <input type="number" id="diff-end" placeholder="Введите число">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="diff-method">Метод решения:</label>
-                            <select id="diff-method">
-                                <option value="euler">Метод Эйлера</option>
-                                <option value="runge-kutta">Метод Рунге-Кутты 4 порядка</option>
-                                <option value="neural">Нейросеть</option>
-                            </select>
-                        </div>
-                        <div class="button-group">
-                            <button class="calculate-btn" id="calculate-differential">
-                                <i class="fas fa-play"></i> Рассчитать
-                            </button>
-                            <button class="compare-btn" id="compare-diff-methods">
-                                <i class="fas fa-chart-bar"></i> Сравнить методы
-                            </button>
-                        </div>
-                    </div>
-                    <div class="results-section">
-                        <div class="visualization-container">
-                            <canvas id="differential-chart"></canvas>
-                        </div>
-                        <div class="methods-comparison">
-                            <h3>Решение ОДУ</h3>
-                            <div class="results-grid" id="differential-results"></div>
-                        </div>
-                    </div>
-                </div>
+<!-- Вкладка: Дифф. уравнения -->
+<div id="differential-tab" class="tab-pane">
+    <div class="tab-header">
+        <h2><i class="fas fa-project-diagram"></i> Решение ОДУ</h2>
+        <p>Решение обыкновенных дифференциальных уравнений различными численными методами</p>
+    </div>
+    
+    <div class="input-section">
+        <!-- 1. Уравнение -->
+        <div class="input-group">
+            <label for="diff-equation">Правая часть уравнения y' = f(x, y):</label>
+            <input type="text" id="diff-equation" placeholder="Введите пример">
+        </div>
+        
+        <!-- 2. Начальные условия -->
+        <div class="input-row four-columns">
+            <div class="input-group">
+                <label for="diff-x0">Начальное x₀:</label>
+                <input type="number" id="diff-x0" step="any" placeholder="Введите число">
+            </div>
+            <div class="input-group">
+                <label for="diff-y0">Начальное y₀:</label>
+                <input type="number" id="diff-y0" step="any" placeholder="Введите число">
+            </div>
+            <div class="input-group">
+                <label for="diff-end">Конечная точка x<sub>end</sub>:</label>
+                <input type="number" id="diff-end" step="any" placeholder="Введите число">
+            </div>
+            <div class="input-group">
+                <label for="diff-step">Шаг интегрирования h:</label>
+                <input type="number" id="diff-step" step="0.001" value="0.1" 
+                       min="0.001" placeholder="0.1">
+            </div>
+        </div>
+        
+        <!-- 3. Метод -->
+        <div class="input-row two-columns">
+            <div class="input-group">
+                <label for="diff-method">Метод решения:</label>
+                <select id="diff-method">
+                    <option value="">-- Выберите метод --</option>
+                    <option value="euler">Метод Эйлера</option>
+                    <option value="runge-kutta">Метод Рунге-Кутты 4 порядка</option>
+                    <option value="neural">Нейросетевой метод</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Кнопки -->
+        <div class="button-group">
+            <button class="calculate-btn" id="calculate-differential">
+                <i class="fas fa-play"></i> Рассчитать
+            </button>
+            <button class="compare-btn" id="compare-diff-methods">
+                <i class="fas fa-chart-bar"></i> Сравнить методы
+            </button>
+        </div>
+    </div>
+    
+    <div class="results-section">
+        <div class="section-header">
+            <h3><i class="fas fa-poll"></i> Результаты</h3>
+        </div>
+        
+        <div class="visualization-container">
+            <canvas id="differential-chart"></canvas>
+        </div>
+        
+        <div id="differential-results" class="results-container">
+            <!-- Результаты будут здесь -->
+        </div>
+    </div>
+</div>
 
 
 

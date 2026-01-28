@@ -17,16 +17,20 @@ import NNIntegration from '../neural/nn-integration.js';
 import NNDifferential from '../neural/nn-differential.js';
 import NNSystems from '../neural/nn-systems.js';
 import ChartBuilder from '../visualization/charts/chart-builder.js';
+import MathParserDE from '../math-core/math-parserDE.js';
 
 class EventManager {
     constructor() {
-        this.methods = {};
+         this.methods = {};
         this.neuralMethods = {};
         this.chartBuilder = null;
+        this.mathParserDE = null;
     }
 
     initialize(appInstance) {
         this.app = appInstance;
+        this.mathParserDE = new MathParserDE();
+        this.mathParserDE.initialize();
         this.initMethods();
         this.setupTabHandlers();
         this.setupCalculationHandlers();
@@ -45,15 +49,15 @@ class EventManager {
         this.methods.trapezoidal = new TrapezoidalMethod(parser);
         this.methods.rectangles = new RectanglesMethod(parser);
         this.methods.monteCarlo = new MonteCarloMethod(parser);
-        this.methods.euler = new EulerMethod(parser);
-        this.methods.rungeKutta = new RungeKuttaMethod(parser);
+        this.methods.euler = new EulerMethod(this.mathParserDE);
+        this.methods.rungeKutta = new RungeKuttaMethod(this.mathParserDE);
         this.methods.gauss = new GaussMethod(parser);
         this.methods.jacobi = new JacobiMethod(parser);
         this.methods.zeidel = new ZeidelMethod(parser);
         
         this.neuralMethods.equations = new NNEquations(parser);
         this.neuralMethods.integration = new NNIntegration(parser);
-        this.neuralMethods.differential = new NNDifferential(parser);
+        this.neuralMethods.differential = new NNDifferential(this.mathParserDE);
         this.neuralMethods.systems = new NNSystems(parser);
 
         this.chartBuilder = new ChartBuilder(parser);
@@ -365,34 +369,63 @@ class EventManager {
 
 
     async solveDifferential() {
-        try {
-            const func = document.getElementById('diff-equation').value;
-            const method = document.getElementById('diff-method').value;
-            const x0 = parseFloat(document.getElementById('diff-x0').value);
-            const y0 = parseFloat(document.getElementById('diff-y0').value);
-            const xEnd = parseFloat(document.getElementById('diff-end').value);
-            if (!func || isNaN(x0) || isNaN(y0) || isNaN(xEnd)) {
-                this.app.showError('Введите уравнение и начальные условия');
-                return;
-            }
-            this.app.setLoadingState(true);
-            let result;
-            if (method === 'neural') {
-                result = await this.neuralMethods.differential.solve(func, x0, y0, xEnd);
-            } else {
-                switch (method) {
-                    case 'euler': result = this.methods.euler.solve(func, x0, y0, xEnd); break;
-                    case 'runge-kutta': result = this.methods.rungeKutta.solve(func, x0, y0, xEnd); break;
-                    default: this.app.showError('Неизвестный метод'); return;
-                }
-            }
-            this.displayDifferentialResult(result);
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка расчета: ' + error.message);
-            this.app.setLoadingState(false);
+    try {
+        const func = document.getElementById('diff-equation').value;
+        const method = document.getElementById('diff-method').value;
+        const x0 = parseFloat(document.getElementById('diff-x0').value);
+        const y0 = parseFloat(document.getElementById('diff-y0').value);
+        const xEnd = parseFloat(document.getElementById('diff-end').value);
+        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1; // Добавить поле!
+        
+        console.log('Параметры диффура:', { func, method, x0, y0, xEnd, step });
+        
+        if (!func) {
+            this.app.showError('Введите уравнение');
+            return;
         }
+        
+        if (isNaN(x0) || isNaN(y0) || isNaN(xEnd)) {
+            this.app.showError('Введите корректные числовые значения');
+            return;
+        }
+        
+        if (step <= 0) {
+            this.app.showError('Шаг должен быть положительным');
+            return;
+        }
+        
+        this.app.setLoadingState(true);
+        let result;
+        
+        if (method === 'neural') {
+            result = await this.neuralMethods.differential.solve(func, x0, y0, xEnd);
+        } else {
+            switch (method) {
+                case 'euler': 
+                    result = this.methods.euler.solve(func, x0, y0, xEnd, step);
+                    break;
+                case 'runge-kutta': 
+                    result = this.methods.rungeKutta.solve(func, x0, y0, xEnd, step);
+                    break;
+                default: 
+                    this.app.showError('Неизвестный метод'); 
+                    this.app.setLoadingState(false);
+                    return;
+            }
+        }
+        
+        console.log('Результат диффура:', result);
+        this.displayDifferentialResult(result);
+        this.app.setLoadingState(false);
+    } catch (error) {
+        console.error('Ошибка расчета диффура:', error);
+        this.app.showError('Ошибка расчета: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
+
+
+
 
     async compareDiffMethods() {
         try {
@@ -633,9 +666,180 @@ displayIntegrationResult(result) {
 
 
     displayDifferentialResult(result) {
-        const container = document.getElementById('differential-results');
-        this.displaySingleResult(container, result, 'дифференциальное уравнение');
+    const container = document.getElementById('differential-results');
+    
+    if (!container) {
+        console.error('Контейнер differential-results не найден');
+        return;
     }
+    
+    if (!result.converged) {
+        container.innerHTML = `<div class="error-message">${result.message}</div>`;
+        return;
+    }
+    
+    // Единый формат как у интегралов!
+    let html = `
+        <div class="result-success">
+            <h3>📈 Дифференциальные уравнения</h3>
+            <div class="result-main">
+                <div class="result-icon">✅</div>
+                <div class="result-text">Уравнение решено!</div>
+            </div>
+            <div class="result-details">
+                <div class="detail-row">
+                    <span class="detail-label">Метод:</span>
+                    <span class="detail-value">${result.method || 'Не указан'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Уравнение:</span>
+                    <span class="detail-value">y' = ${document.getElementById('diff-equation').value}</span>
+                </div>
+    `;
+    
+    if (result.parameters) {
+        html += `
+                <div class="detail-row">
+                    <span class="detail-label">Начальные условия:</span>
+                    <span class="detail-value">y(${result.parameters.x0}) = ${result.parameters.y0}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Конечная точка:</span>
+                    <span class="detail-value">x_end = ${result.parameters.xEnd}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Шаг h:</span>
+                    <span class="detail-value">${result.parameters.step}</span>
+                </div>
+        `;
+    }
+    
+    html += `
+                <div class="detail-row">
+                    <span class="detail-label">Итераций (шагов):</span>
+                    <span class="detail-value">${result.iterationsCount || result.iterations?.length || 0}</span>
+                </div>
+    `;
+    
+    if (result.final_y !== undefined && result.final_x !== undefined) {
+        html += `
+                <div class="detail-row">
+                    <span class="detail-label">Финальная точка:</span>
+                    <span class="detail-value">(${result.final_x.toFixed(6)}, ${result.final_y.toFixed(6)})</span>
+                </div>
+        `;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    // Таблица итераций
+    if (result.iterations && result.iterations.length > 0) {
+        html += this.generateDiffIterationsTable(result.iterations, result.method);
+    }
+    
+    container.innerHTML = html;
+    
+    // Рисуем график (если есть метод в chartBuilder)
+    if (result.solution && this.chartBuilder.drawDifferentialEquationChart) {
+        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
+        this.chartBuilder.drawDifferentialEquationChart(
+            document.getElementById('diff-equation').value,
+            document.getElementById('diff-method').value,
+            result.iterations[0].x,
+            result.iterations[0].y,
+            step,
+            result.iterationsCount || result.iterations.length,
+            result.iterations
+        );
+    }
+}
+
+
+
+generateDiffIterationsTable(iterations, methodName) {
+    let tableHTML = `
+        <div class="iterations-table-container">
+            <h4>Процесс решения (первые 10 и последние 5 шагов):</h4>
+            <table class="iterations-table">
+                <thead>
+                    <tr>
+                        <th>Шаг</th>
+                        <th>x</th>
+                        <th>y</th>
+    `;
+    
+    // Разные столбцы для разных методов
+    if (methodName && methodName.includes('Эйлер')) {
+        tableHTML += `<th>Производная</th>`;
+    } else if (methodName && methodName.includes('Рунге-Кутт')) {
+        tableHTML += `<th>k1</th><th>k2</th><th>k3</th><th>k4</th>`;
+    }
+    
+    tableHTML += `
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    // Показываем первые 10 шагов
+    const showFirst = Math.min(10, iterations.length);
+    for (let i = 0; i < showFirst; i++) {
+        const iter = iterations[i];
+        tableHTML += this.generateDiffIterationRow(iter, methodName);
+    }
+    
+    // Пропускаем если много итераций
+    if (iterations.length > 15) {
+        tableHTML += `
+            <tr>
+                <td colspan="${methodName.includes('Рунге-Кутт') ? 8 : 4}" 
+                    style="text-align: center; color: #666; font-style: italic;">
+                    ... ${iterations.length - 15} промежуточных шагов ...
+                </td>
+            </tr>
+        `;
+        
+        // Показываем последние 5 шагов
+        for (let i = Math.max(showFirst, iterations.length - 5); i < iterations.length; i++) {
+            const iter = iterations[i];
+            tableHTML += this.generateDiffIterationRow(iter, methodName);
+        }
+    }
+    
+    tableHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    return tableHTML;
+}
+
+generateDiffIterationRow(iter, methodName) {
+    let row = `<tr>`;
+    row += `<td>${iter.step || 0}</td>`;
+    row += `<td>${iter.x.toFixed(6)}</td>`;
+    row += `<td>${iter.y.toFixed(6)}</td>`;
+    
+    if (methodName && methodName.includes('Эйлер')) {
+        row += `<td>${(iter.derivative || 0).toFixed(6)}</td>`;
+    } else if (methodName && methodName.includes('Рунге-Кутт')) {
+        row += `<td>${(iter.k1 || 0).toFixed(6)}</td>`;
+        row += `<td>${(iter.k2 || 0).toFixed(6)}</td>`;
+        row += `<td>${(iter.k3 || 0).toFixed(6)}</td>`;
+        row += `<td>${(iter.k4 || 0).toFixed(6)}</td>`;
+    }
+    
+    row += `</tr>`;
+    return row;
+}
+
+
+
+
 
     displaySystemResult(result) {
         const container = document.getElementById('system-results');

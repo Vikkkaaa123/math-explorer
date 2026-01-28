@@ -812,3 +812,29 @@ body {
         height: 450px;
     }
 }
+
+
+/* Стиль для 4 колонок */
+.input-row.four-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.input-row.four-columns .input-group {
+    flex: 1;
+    min-width: 50px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 1200px) {
+    .input-row.four-columns {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .input-row.four-columns {
+        grid-template-columns: 1fr;
+    }
+}

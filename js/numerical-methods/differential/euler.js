@@ -9,6 +9,7 @@ class EulerMethod {
             
             if (x0 >= xEnd || step <= 0) {
                 return {
+                    method: "Метод Эйлера", // ← ДОБАВЬ
                     solution: null,
                     iterations: [],
                     converged: false,
@@ -24,11 +25,12 @@ class EulerMethod {
             iterations.push({
                 step: stepNumber,
                 x: x,
-                y: y
+                y: y,
+                derivative: 0,
+                k1: 0, k2: 0, k3: 0, k4: 0
             });
             
             while (x < xEnd && stepNumber < maxSteps) {
-                // Явный метод Эйлера: y_{n+1} = y_n + h * f(x_n, y_n)
                 const derivative = f(x, y);
                 y = y + step * derivative;
                 x = x + step;
@@ -38,11 +40,14 @@ class EulerMethod {
                     step: stepNumber,
                     x: x,
                     y: y,
-                    derivative: derivative
+                    derivative: derivative,
+                    k1: step * derivative,
+                    k2: 0, k3: 0, k4: 0
                 });
                 
                 if (!this._isFiniteNumber(y)) {
                     return {
+                        method: "Метод Эйлера", // ← ДОБАВЬ
                         solution: null,
                         iterations: iterations,
                         converged: false,
@@ -52,17 +57,23 @@ class EulerMethod {
             }
             
             return {
+                method: "Метод Эйлера", // ← ДОБАВЬ ЭТО
                 solution: {
                     x: iterations.map(point => point.x),
                     y: iterations.map(point => point.y)
                 },
                 iterations: iterations,
                 converged: true,
-                message: `Решение получено за ${stepNumber} шагов`
+                iterationsCount: stepNumber,
+                final_x: x,
+                final_y: y,
+                step: step,
+                message: `Решение получено за ${stepNumber} шагов, шаг h=${step}`
             };
             
         } catch (error) {
             return {
+                method: "Метод Эйлера", // ← ДОБАВЬ
                 solution: null,
                 iterations: [],
                 converged: false,

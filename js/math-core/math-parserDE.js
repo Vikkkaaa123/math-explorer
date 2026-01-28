@@ -5,26 +5,35 @@ class MathParserDE extends MathParser {
         super();
     }
 
-    //переопределяем метод для обработки f(x, y)
     cleanExpressionForDE(expression) {
         let clean = expression
             .trim()
             .toLowerCase()
             .replace(/\s+/g, '')
-            // Заменяем русские буквы
-            .replace(/[а-я]/g, function(match) {
-                // Если это у - оставляем как y, остальное в x
-                return match === 'у' ? 'y' : 'x';
-            })
-            // Тригонометрические функции
+            //тригонометрические функции
             .replace(/tg/g, 'tan')
             .replace(/ctg/g, 'cot')
             .replace(/arctg/g, 'atan')
             .replace(/arcctg/g, 'acot')
             .replace(/arcsin/g, 'asin')
-            .replace(/arccos/g, 'acos');
+            .replace(/arccos/g, 'acos')
+            //русские буквы особая обработка
+            .replace(/[а-я]/g, function(match) {
+                // Русская "у" → английская "y"
+                if (match === 'у' || match === 'У'.toLowerCase()) return 'y';
+                // Русская "х" → английская "x"  
+                if (match === 'х' || match === 'Х'.toLowerCase()) return 'x';
+                // Остальное → "x"
+                return 'x';
+            })
+            // Убираем y' слева если есть после замены русских букв
+            .replace(/^y['`]\s*=/, '')  // "y' = " → ""
+            .replace(/^dy\/dx\s*=/, '') // "dy/dx = " → ""
+            .replace(/^y\s*=/, '');     // "y = " → ""
         
-        // Защищаем функции
+        console.log('После русских букв и y\':', clean);
+        
+        //защищаем функции
         const functions = [
             'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
             'asin', 'acos', 'atan', 'acot',
@@ -32,37 +41,35 @@ class MathParserDE extends MathParser {
             'log', 'log10', 'ln', 'exp', 'sqrt', 'abs'
         ];
         
-        // Временная замена функций
+        //временная замена функций
         functions.forEach((func, i) => {
             clean = clean.replace(new RegExp(func, 'g'), `__${i}__`);
         });
         
-        // Обработка степеней (только для x и y)
-        clean = clean.replace(/([xy])^2/g, 'pow($1,2)');
-        clean = clean.replace(/([xy])^3/g, 'pow($1,3)');
+        //обработка степеней (только для x и y)
+        clean = clean.replace(/([xy])²/g, 'pow($1,2)');
+        clean = clean.replace(/([xy])³/g, 'pow($1,3)');
         clean = clean.replace(/([xy])\^(\d+)/g, 'pow($1,$2)');
         
-        // Восстанавливаем функции
+        //восстанавливаем функции
         functions.forEach((func, i) => {
             clean = clean.replace(new RegExp(`__${i}__`, 'g'), func);
         });
         
-        // Умножение
+        //умножение
         clean = clean
             .replace(/(\d)([xy])/g, '$1*$2')
             .replace(/([xy])(\d)/g, '$1*$2')
             .replace(/([xy])([xy])/g, '$1*$2')
             .replace(/(\d)(\()/g, '$1*$2')
             .replace(/(\))([xy])/g, '$1*$2')
-            .replace(/([xy])(\()/g, '$1*$2');
+            .replace(/([xy])(\()/g, '$1*$2')
+            .replace(/(\d)([a-z]+)/g, '$1*$2');
         
-        // Добавляем умножение для чисел перед функциями
-        clean = clean.replace(/(\d)([a-z]+)/g, '$1*$2');
-        
+        console.log('Финальное выражение:', clean);
         return clean;
     }
 
-    // Парсим функцию двух переменных
     parseFunctionDE(expression) {
         if (!this.ready) {
             throw new Error('Парсер не готов');
@@ -74,13 +81,13 @@ class MathParserDE extends MathParser {
             
             const compiled = math.compile(cleanExpression);
             
-            // Функция принимает x и y
             const parsedFunction = (x, y) => {
                 const scope = { 
                     x: x, 
                     y: y,
                     pi: Math.PI,
-                    e: Math.E
+                    e: Math.E,
+                    ...this.supportedConstants
                 };
                 return compiled.evaluate(scope);
             };
