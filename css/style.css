@@ -838,3 +838,276 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Стили для полей систем */
+.system-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.system-eq {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.system-eq:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* Анимация появления полей */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#system-method-inputs {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Подсказка для начального приближения */
+.input-group input[placeholder*="запятую"] {
+    font-size: 14px;
+}
+
+.input-group input[placeholder*="запятую"]::placeholder {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+
+
+
+
+/* Стили для метода Гаусса */
+.gauss-steps {
+    margin-top: 20px;
+}
+
+.gauss-step {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+}
+
+.gauss-step h4 {
+    margin-top: 0;
+    color: #2196f3;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+}
+
+/* Матрицы */
+.matrix-container {
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.matrix-table {
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+    margin: 0 auto;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.matrix-table th {
+    background-color: #f5f5f5;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.matrix-table td {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+    min-width: 60px;
+}
+
+.matrix-table .row-label {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #495057;
+}
+
+.matrix-table .diagonal {
+    background-color: #e3f2fd;
+    font-weight: bold;
+}
+
+.matrix-table .below-diagonal {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.matrix-table .zero {
+    color: #adb5bd;
+}
+
+.matrix-table .vector-col {
+    background-color: #fff3cd;
+    border-left: 2px solid #ffc107 !important;
+}
+
+.matrix-table .vector-cell {
+    background-color: #fff3cd;
+}
+
+/* Обратная подстановка */
+.back-substitution {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.substitution-step {
+    margin: 8px 0;
+    padding: 8px;
+    background: linear-gradient(to right, #f8f9fa, white);
+    border-radius: 4px;
+}
+
+.substitution-step .step-number {
+    font-weight: bold;
+    color: #6c757d;
+    margin-right: 10px;
+}
+
+.substitution-step .variable {
+    font-weight: bold;
+    color: #2196f3;
+    margin-right: 10px;
+}
+
+.substitution-step .equation {
+    color: #495057;
+}
+
+.step-details {
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.error-step {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+
+
+
+
+/* Стили для векторного ввода начального приближения */
+.vector-input-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    border: 2px solid #3b82f6;
+    border-radius: 10px;
+    background: #f8fafc;
+    flex-wrap: wrap;
+}
+
+.vector-bracket {
+    font-size: 24px;
+    font-weight: bold;
+    color: #3b82f6;
+    padding: 0 5px;
+    user-select: none;
+}
+
+.vector-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.vector-input-field {
+    width: 80px;
+    padding: 8px 10px;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.vector-input-field:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.vector-separator {
+    font-size: 16px;
+    font-weight: bold;
+    color: #6b7280;
+    padding: 0 5px;
+    user-select: none;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .vector-input-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .vector-input-field {
+        width: 100%;
+    }
+    
+    .vector-bracket {
+        text-align: center;
+        padding: 5px 0;
+    }
+}
+
+/* Подсказка для векторного ввода */
+.vector-hint {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 5px;
+    font-style: italic;
+}

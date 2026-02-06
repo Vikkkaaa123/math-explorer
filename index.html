@@ -62,7 +62,7 @@
     <div class="input-section">
 
         <div class="input-group">
-            <label for="equation-function">Функция f(x): </label>
+            <label for="equation-function">Введите уравнение: </label>
             <input type="text" id="equation-function" placeholder="Введите пример">
         </div>
         
@@ -364,50 +364,142 @@
 
                 <!-- Вкладка: Системы уравнений -->
                 <div id="systems-tab" class="tab-pane">
-                    <div class="tab-header">
-                        <h2><i class="fas fa-cogs"></i> Решение систем уравнений</h2>
-                        <p>Решение систем линейных алгебраических уравнений</p>
-                    </div>
-                    <div class="input-section">
-                        <div class="input-group">
-                            <label for="system-count">Количество уравнений в системе:</label>
-                            <input type="number" id="system-count" value="2" min="2" max="10" placeholder="Введите число">
-                        </div>
-                        <div class="input-group">
-                            <label>Система уравнений:</label>
-                            <div class="system-inputs" id="system-equations">
-                                <input type="text" class="system-eq" placeholder="Введите уравнение">
-                                <input type="text" class="system-eq" placeholder="Введите уравнение">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="system-method">Метод решения:</label>
-                            <select id="system-method">
-                                <option value="gauss">Метод Гаусса</option>
-                                <option value="jacobi">Метод Якоби</option>
-                                <option value="zeidel">Метод Зейделя</option>
-                                <option value="neural">Нейросеть</option>
-                            </select>
-                        </div>
-                        <div class="button-group">
-                            <button class="calculate-btn" id="calculate-system">
-                                <i class="fas fa-play"></i> Рассчитать
-                            </button>
-                            <button class="compare-btn" id="compare-system-methods">
-                                <i class="fas fa-chart-bar"></i> Сравнить методы
-                            </button>
-                        </div>
-                    </div>
-                    <div class="results-section">
-                        <div class="visualization-container">
-                            <canvas id="system-chart"></canvas>
-                        </div>
-                        <div class="methods-comparison">
-                            <h3>Решение системы</h3>
-                            <div class="results-grid" id="system-results"></div>
-                        </div>
-                    </div>
-                </div>
+    <div class="tab-header">
+        <h2><i class="fas fa-cogs"></i> Решение систем уравнений</h2>
+        <p>Решение систем линейных алгебраических уравнений</p>
+    </div>
+    
+    <div class="input-section">
+        <!-- Количество уравнений -->
+        <div class="input-group">
+            <label for="system-count">Количество уравнений в системе:</label>
+            <input type="number" id="system-count" value="2" min="2" max="10" placeholder="Введите число">
+        </div>
+        
+        <!-- Система уравнений -->
+        <div class="input-group">
+            <label>Система уравнений:</label>
+            <div class="system-inputs" id="system-equations">
+                <input type="text" class="system-eq" placeholder="Введите уравнение">
+                <input type="text" class="system-eq" placeholder="Введите уравнение">
+            </div>
+        </div>
+        
+        <!-- Метод решения -->
+        <div class="input-group">
+            <label for="system-method">Метод решения:</label>
+            <select id="system-method">
+                <option value="">-- Выберите метод --</option>
+                <option value="gauss">Метод Гаусса</option>
+                <option value="jacobi">Метод Якоби</option>
+                <option value="zeidel">Метод Зейделя</option>
+                <option value="neural">Нейросетевой метод</option>
+            </select>
+        </div>
+        
+        <!-- Динамические поля для методов -->
+        <div id="system-method-inputs"></div>
+        
+        <!-- Кнопки -->
+        <div class="button-group">
+            <button class="calculate-btn" id="calculate-system">
+                <i class="fas fa-play"></i> Рассчитать
+            </button>
+            <button class="compare-btn" id="compare-system-methods">
+                <i class="fas fa-chart-bar"></i> Сравнить методы
+            </button>
+        </div>
+    </div>
+    
+    <div class="results-section">
+        <div class="visualization-container">
+            <canvas id="system-chart"></canvas>
+        </div>
+        <div class="methods-comparison">
+            <h3>Решение системы</h3>
+            <div class="results-grid" id="system-results"></div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Шаблоны для динамических полей систем -->
+<template id="gauss-template">
+    <div class="input-group">
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Метод Гаусса — прямой метод решения СЛАУ без начального приближения.</span>
+        </div>
+    </div>
+</template>
+
+<!-- Шаблон для метода Якоби -->
+<template id="jacobi-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <label for="jacobi-precision">Точность ε:</label>
+            <input type="number" id="jacobi-precision" step="1e-6" min="1e-12" max="1" value="0.000001">
+        </div>
+        <div class="input-group">
+            <label for="jacobi-max-iterations">Макс. итераций:</label>
+            <input type="number" id="jacobi-max-iterations" value="1000" min="1" max="10000">
+        </div>
+    </div>
+    
+    <!-- Динамическое поле для начального приближения -->
+    <div class="input-group" id="jacobi-initial-container">
+        <label>Начальное приближение (вектор):</label>
+        <div class="vector-input-container" id="jacobi-vector-inputs">
+            <!-- Поля будут созданы динамически -->
+        </div>
+    </div>
+    
+    <div class="input-group">
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Метод Якоби — итерационный метод. Требует диагонального преобладания матрицы.</span>
+        </div>
+    </div>
+</template>
+
+<!-- Шаблон для метода Зейделя -->
+<template id="zeidel-template">
+    <div class="input-row three-columns">
+        <div class="input-group">
+            <label for="zeidel-precision">Точность ε:</label>
+            <input type="number" id="zeidel-precision" step="1e-6" min="1e-12" max="1" value="0.000001">
+        </div>
+        <div class="input-group">
+            <label for="zeidel-max-iterations">Макс. итераций:</label>
+            <input type="number" id="zeidel-max-iterations" value="1000" min="1" max="10000">
+        </div>
+    </div>
+    
+    <!-- Динамическое поле для начального приближения -->
+    <div class="input-group" id="zeidel-initial-container">
+        <label>Начальное приближение (вектор):</label>
+        <div class="vector-input-container" id="zeidel-vector-inputs">
+            <!-- Поля будут созданы динамически -->
+        </div>
+    </div>
+    
+    <div class="input-group">
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Метод Зейделя — улучшенный метод Якоби, использует уже вычисленные значения.</span>
+        </div>
+    </div>
+</template>
+
+<template id="neural-template">
+    <div class="input-group">
+        <div class="info-box">
+            <i class="fas fa-brain"></i>
+            <span>Нейросетевой метод — использует машинное обучение для решения систем.</span>
+        </div>
+    </div>
+</template>
 
 
 

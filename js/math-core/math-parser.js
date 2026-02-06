@@ -124,35 +124,67 @@ cleanExpression(expression) {
 
     this.checkBrackets(clean);
     
+            console.log(`После очистки: "${clean}"`);
     return clean;
 }
 
-    parseFunction(expression) {
-        if (!this.ready) {
-            throw new Error('Парсер не готов');
-        }
-
-        if (!expression || typeof expression !== 'string') {
-            throw new Error('Введите функцию');
-        }
-
-        try {
-            const cleanExpression = this.cleanExpression(expression);
-            
-            const compiled = this.parser.compile(cleanExpression);
-            
-            const parsedFunction = (x, variables = {}) => {
-                const scope = { x, ...variables, ...this.supportedConstants };
-                return compiled.evaluate(scope);
-            };
-            
-            return parsedFunction;
-            
-        } catch (error) {
-            console.error('Ошибка парсера:', error);
-            throw new Error(this.getSimpleError(error, expression));
-        }
+    // В MathParser изменяем parseFunction:
+parseFunction(expression) {
+    if (!this.ready) {
+        throw new Error('Парсер не готов');
     }
+
+    if (!expression || typeof expression !== 'string') {
+        throw new Error('Введите функцию');
+    }
+
+    try {
+        // ШАГ 1: Обрабатываем "=" если есть
+        let finalExpression = expression;
+        if (expression.includes('=')) {
+            finalExpression = this.moveAllToLeft(expression);
+        }
+        
+        // ШАГ 2: Очищаем выражение (существующий код)
+        const cleanExpression = this.cleanExpression(finalExpression);
+        
+        // ШАГ 3: Компилируем
+        const compiled = this.parser.compile(cleanExpression);
+        
+        // ШАГ 4: Создаем функцию
+        const parsedFunction = (x, variables = {}) => {
+            const scope = { x, ...variables, ...this.supportedConstants };
+            return compiled.evaluate(scope);
+        };
+
+        
+        return parsedFunction;
+        
+    } catch (error) {
+        console.error('Ошибка парсера:', error);
+        throw new Error(this.getSimpleError(error, expression));
+    }
+}
+
+// Новый метод для переноса через "="
+moveAllToLeft(expression) {
+    // Разделяем по "="
+    const parts = expression.split('=');
+    if (parts.length !== 2) {
+        throw new Error('Неверный формат уравнения. Используйте один знак "="');
+    }
+    
+    const left = parts[0].trim();
+    const right = parts[1].trim();
+    
+    // Если справа "0", оставляем как есть
+    if (right === '0') {
+        return left;
+    }
+    
+    // Если справа не "0", переносим все влево
+    return `(${left}) - (${right})`;
+}
 
     checkBrackets(expression) {
         let count = 0;

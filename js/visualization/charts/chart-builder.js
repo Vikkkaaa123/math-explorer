@@ -12,7 +12,8 @@ class ChartBuilder {
             solution: 'rgba(239, 68, 68, 1)',      // красный
             axis: 'rgba(0, 0, 0, 0.8)',            // черный
             grid: 'rgba(0, 0, 0, 0.1)',
-            gray: 'rgba(100, 100, 100, 0.7)'       // серый
+            gray: 'rgba(100, 100, 100, 0.7)',       // серый
+            initial: 'rgba(16, 185, 129, 1)',      // зеленый
         };
     }
 
@@ -981,6 +982,883 @@ _generateMonteCarloVisualization(func, a, b, iterations) {
 
 
 
+
+
+
+// Основной метод для рисования диффуров
+drawDifferentialEquationChart(equationStr, methodType, x0, y0, step, iterationsCount, iterations) {
+    try {
+        const canvas = document.getElementById('differential-chart');
+        if (!canvas) {
+            console.error('Canvas differential-chart не найден!');
+            return false;
+        }
+        
+        const datasets = [];
+        
+        // Ось X
+        datasets.push({
+            data: [
+                { x: -1000000, y: 0 },
+                { x: 1000000, y: 0 }
+            ],
+            borderColor: '#000000',
+            borderWidth: 2,
+            pointRadius: 0,
+            showLine: true,
+            label: ''
+        });
+        
+        // Ось Y
+        datasets.push({
+            data: [
+                { x: 0, y: -1000000 },
+                { x: 0, y: 1000000 }
+            ],
+            borderColor: '#000000',
+            borderWidth: 2,
+            pointRadius: 0,
+            showLine: true,
+            label: ''
+        });
+        
+        // Начальное условие (большая зеленая точка)
+        datasets.push({
+            label: 'Начальное условие',
+            data: [{ x: x0, y: y0 }],
+            backgroundColor: this.colors.initial,
+            borderColor: this.colors.initial,
+            pointRadius: 8,
+            pointHoverRadius: 10,
+            showLine: false
+        });
+        
+        // Визуализация метода
+        switch(methodType) {
+            case 'euler':
+                this.drawEulerMethod(datasets, iterations);
+                break;
+            case 'runge-kutta':
+                this.drawRungeKuttaMethod(datasets, iterations);
+                break;
+            case 'compare':
+                this.drawEulerMethod(datasets, iterations.euler || []);
+                this.drawRungeKuttaMethod(datasets, iterations.rungeKutta || []);
+                break;
+        }
+        
+        //чтобы полностью выводился график - прозрачные точки
+if (iterations && iterations.length > 0) {
+            const first = iterations[0];
+            const last = iterations[iterations.length - 1];
+            
+            datasets.push({
+                label: '', 
+                data: [
+                    { x: first.x, y: first.y },
+                    { x: last.x, y: last.y }
+                ],
+                backgroundColor: 'rgba(0,0,0,0)',
+                borderColor: 'rgba(0,0,0,0)',
+                pointRadius: 0,
+                showLine: false
+            });
+        }
+
+
+        this.chartManager.createChart('differential-chart', datasets, null, {
+            axis: '#000000',
+            grid: this.colors.grid,
+        });
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Ошибка рисования диффура:', error);
+        return false;
+    }
+}
+
+
+
+
+
+// Метод Эйлера
+drawEulerMethod(datasets, iterations) {
+    if (!iterations || iterations.length === 0) return;
+    
+    const points = iterations.map(iter => ({ x: iter.x, y: iter.y }));
+    
+    // Создаем массив для ломаной линии
+    const linePoints = [];
+    for (let i = 0; i < points.length; i++) {
+        linePoints.push(points[i]);
+        // Если не последняя точка, добавляем точку с тем же x, но y следующей
+        // Это создаст "ступеньку" - ломаную линию
+        if (i < points.length - 1) {
+            linePoints.push({ 
+                x: points[i + 1].x, 
+                y: points[i].y 
+            });
+        }
+    }
+    
+    // Ломаная линия Эйлера
+    datasets.push({
+        label: 'Метод Эйлера',
+        data: linePoints,
+        borderColor: this.colors.solution,
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        pointRadius: 0,
+        showLine: true,
+        tension: 0,
+        cubicInterpolationMode: 'monotone',
+        fill: false
+    });
+    
+}
+
+
+
+
+
+
+
+// Метод Рунге-Кутты
+drawRungeKuttaMethod(datasets, iterations) {
+    if (!iterations || iterations.length === 0) return;
+    
+    const points = iterations.map(iter => ({ x: iter.x, y: iter.y }));
+    
+    // Плавная линия Рунге-Кутты
+    datasets.push({
+        label: 'Метод Рунге-Кутты 4-го порядка',
+        data: points,
+        borderColor: this.colors.function,
+        backgroundColor: 'transparent',
+        borderWidth: 3,
+        pointRadius: 0, // Скрываем точки на линии
+        showLine: true,
+        tension: 0.4, // Сглаживание
+        cubicInterpolationMode: 'monotone', // Добавь эту опцию
+        fill: false
+    });
+    
+}
+
+
+
+
+
+
+
+
+    drawSystemChart(matrix, vector, variables, method, result) {
+        try {
+            const n = variables.length;
+            
+            // Рисуем только для 2D систем
+            if (n !== 2) {
+                console.log('Визуализация только для систем 2×2');
+                return false;
+            }
+            
+            // 1. Преобразуем уравнения к виду y = f(x)
+            const equations = this._convertToExplicitForm(matrix, vector, variables);
+            
+            // 2. Находим диапазон для графика
+            const range = this._calculateRange(result);
+            
+            // 3. Создаем график
+            this._draw2DSystem(equations, variables, method, result, range);
+            
+            return true;
+            
+        } catch (error) {
+            console.error('Ошибка рисования системы:', error);
+            return false;
+        }
+    }
+    
+    _convertToExplicitForm(matrix, vector, variables) {
+        // Преобразуем a₁x + b₁y = c₁ → y = (c₁ - a₁x)/b₁
+        const equations = [];
+        
+        for (let i = 0; i < matrix.length; i++) {
+            const a = matrix[i][0]; // коэффициент при x
+            const b = matrix[i][1]; // коэффициент при y
+            const c = vector[i];
+            
+            if (Math.abs(b) > 1e-10) {
+                // Можно выразить y через x
+                equations.push({
+                    type: 'function',
+                    label: `Уравнение ${i+1}`,
+                    func: (x) => (c - a * x) / b,
+                    index: i
+                });
+            } else {
+                // Вертикальная линия: a*x = c → x = c/a
+                equations.push({
+                    type: 'vertical',
+                    label: `Уравнение ${i+1}`,
+                    x: c / a,
+                    index: i
+                });
+            }
+        }
+        
+        return equations;
+    }
+    
+    _calculateRange(result) {
+        let xMin = -10, xMax = 10;
+        let yMin = -10, yMax = 10;
+        
+        // Если есть решение - центрируем вокруг него
+        if (result && result.solution) {
+            const [solX, solY] = result.solution;
+            const padding = 5;
+            xMin = solX - padding;
+            xMax = solX + padding;
+            yMin = solY - padding;
+            yMax = solY + padding;
+        }
+        
+        // Если есть итерации - расширяем диапазон чтобы все вместить
+        if (result && result.iterations) {
+            result.iterations.forEach(iter => {
+                if (iter.x && iter.x.length >= 2) {
+                    xMin = Math.min(xMin, iter.x[0]);
+                    xMax = Math.max(xMax, iter.x[0]);
+                    yMin = Math.min(yMin, iter.x[1]);
+                    yMax = Math.max(yMax, iter.x[1]);
+                }
+            });
+            
+            // Добавляем отступ
+            const xPadding = Math.max(1, (xMax - xMin) * 0.2);
+            const yPadding = Math.max(1, (yMax - yMin) * 0.2);
+            xMin -= xPadding;
+            xMax += xPadding;
+            yMin -= yPadding;
+            yMax += yPadding;
+        }
+        
+        return { xMin, xMax, yMin, yMax };
+    }
+    
+    _draw2DSystem(equations, variables, method, result, range) {
+        const datasets = [];
+        
+        // 1. Оси координат
+        datasets.push({
+            data: [
+                { x: range.xMin, y: 0 },
+                { x: range.xMax, y: 0 }
+            ],
+            borderColor: this.colors.axis,
+            borderWidth: 2,
+            pointRadius: 0,
+            showLine: true,
+            label: ''
+        });
+        
+        datasets.push({
+            data: [
+                { x: 0, y: range.yMin },
+                { x: 0, y: range.yMax }
+            ],
+            borderColor: this.colors.axis,
+            borderWidth: 2,
+            pointRadius: 0,
+            showLine: true,
+            label: ''
+        });
+        
+        // 2. Уравнения (линии)
+        equations.forEach((eq, index) => {
+            if (eq.type === 'function') {
+                const points = this._generateFunctionPoints(eq.func, range.xMin, range.xMax, 100);
+                const color = index === 0 ? this.colors.function1 : this.colors.function2;
+                
+                datasets.push({
+                    label: eq.label,
+                    data: points,
+                    borderColor: color,
+                    backgroundColor: color,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false,
+                    showLine: true,
+                    tension: 0
+                });
+            } else if (eq.type === 'vertical') {
+                datasets.push({
+                    label: eq.label,
+                    data: [
+                        { x: eq.x, y: range.yMin },
+                        { x: eq.x, y: range.yMax }
+                    ],
+                    borderColor: index === 0 ? this.colors.function1 : this.colors.function2,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    showLine: true,
+                    tension: 0
+                });
+            }
+        });
+        
+        // 3. Решение (красная точка)
+        if (result && result.solution) {
+            const [solX, solY] = result.solution;
+            
+            datasets.push({
+                label: 'Решение системы',
+                data: [{ x: solX, y: solY }],
+                backgroundColor: this.colors.solution,
+                borderColor: this.colors.solution,
+                borderWidth: 2,
+                pointRadius: 8,
+                pointHoverRadius: 12,
+                showLine: false
+            });
+            
+            // Подпись решения
+            datasets.push({
+                label: '',
+                data: [
+                    { x: solX, y: solY },
+                    { x: solX + 0.5, y: solY + 0.5 }
+                ],
+                backgroundColor: 'transparent',
+                borderColor: 'transparent',
+                pointRadius: 0,
+                showLine: false,
+                datalabels: {
+                    display: true,
+                    align: 'top',
+                    anchor: 'start',
+                    formatter: () => `(${solX.toFixed(3)}, ${solY.toFixed(3)})`,
+                    color: this.colors.solution,
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
+                }
+            });
+        }
+        
+        // 4. Итерации для Якоби/Зейделя
+        if ((method.includes('Якоби') || method.includes('Зейдель')) && 
+            result.iterations && result.iterations.length > 0) {
+            this._drawIterations(datasets, result.iterations, result.solution);
+        }
+        
+        // 5. Начальное приближение для итерационных методов
+        if ((method.includes('Якоби') || method.includes('Зейдель')) && 
+            result.iterations && result.iterations.length > 0) {
+            const firstIter = result.iterations[0];
+            if (firstIter.x && firstIter.x.length >= 2) {
+                datasets.push({
+                    label: 'Начальное приближение',
+                    data: [{ x: firstIter.x[0], y: firstIter.x[1] }],
+                    backgroundColor: this.colors.initialPoint,
+                    borderColor: this.colors.initialPoint,
+                    borderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 10,
+                    showLine: false
+                });
+            }
+        }
+        
+        // 6. Создаем график
+        const chartOptions = {
+            axis: this.colors.axis,
+            grid: this.colors.grid,
+            xMin: range.xMin,
+            xMax: range.xMax,
+            yMin: range.yMin,
+            yMax: range.yMax
+        };
+        
+        this.chartManager.createChart('system-chart', datasets, null, chartOptions);
+    }
+    
+    _drawIterations(datasets, iterations, solution) {
+        if (!iterations || iterations.length < 2) return;
+        
+        // Собираем точки итераций
+        const iterationPoints = [];
+        const pathPoints = [];
+        
+        iterations.forEach((iter, index) => {
+            if (iter.x && iter.x.length >= 2) {
+                const point = { 
+                    x: iter.x[0], 
+                    y: iter.x[1],
+                    iteration: index + 1
+                };
+                
+                iterationPoints.push(point);
+                pathPoints.push(point);
+                
+                // Разрыв для лучшей видимости
+                if (index < iterations.length - 1) {
+                    pathPoints.push({ x: NaN, y: NaN });
+                }
+            }
+        });
+        
+        // 1. Траектория (оранжевый пунктир)
+        if (pathPoints.length > 0) {
+            datasets.push({
+                label: 'Траектория итераций',
+                data: pathPoints,
+                borderColor: this.colors.iterationPath,
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 0,
+                fill: false,
+                showLine: true,
+                tension: 0
+            });
+        }
+        
+        // 2. Точки итераций (оранжевые)
+        if (iterationPoints.length > 0) {
+            datasets.push({
+                label: 'Точки итераций',
+                data: iterationPoints,
+                backgroundColor: this.colors.process,
+                borderColor: this.colors.process,
+                borderWidth: 1,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                showLine: false
+            });
+            
+            // Подписи к точкам (первые и последние)
+            [0, iterationPoints.length - 1].forEach(idx => {
+                if (iterationPoints[idx]) {
+                    datasets.push({
+                        label: '',
+                        data: [
+                            iterationPoints[idx],
+                            { x: iterationPoints[idx].x + 0.3, y: iterationPoints[idx].y + 0.3 }
+                        ],
+                        backgroundColor: 'transparent',
+                        borderColor: 'transparent',
+                        pointRadius: 0,
+                        showLine: false,
+                        datalabels: {
+                            display: true,
+                            align: 'top',
+                            anchor: 'start',
+                            formatter: () => `x${idx+1}(${iterationPoints[idx].iteration})`,
+                            color: this.colors.process,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        
+        // 3. Стрелки направления (если достаточно точек)
+        if (iterationPoints.length >= 2) {
+            for (let i = 0; i < iterationPoints.length - 1; i++) {
+                const start = iterationPoints[i];
+                const end = iterationPoints[i + 1];
+                
+                // Рассчитываем вектор и его длину
+                const dx = end.x - start.x;
+                const dy = end.y - start.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                
+                if (length > 0.1) { // Не рисуем слишком маленькие стрелки
+                    // Нормализуем
+                    const ndx = dx / length;
+                    const ndy = dy / length;
+                    
+                    // Сокращаем стрелку на 20%
+                    const arrowLength = length * 0.8;
+                    const arrowEndX = start.x + ndx * arrowLength;
+                    const arrowEndY = start.y + ndy * arrowLength;
+                    
+                    datasets.push({
+                        label: '',
+                        data: [
+                            { x: start.x, y: start.y },
+                            { x: arrowEndX, y: arrowEndY }
+                        ],
+                        borderColor: this.colors.process,
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        showLine: true,
+                        tension: 0
+                    });
+                }
+            }
+        }
+    }
+    
+
+
+
+
+drawSystemChart(matrix, vector, variables, methodType, result) {
+    console.log('=== НАЧИНАЕМ РИСОВАТЬ СИСТЕМУ (через ChartManager) ===');
+    console.log('Метод:', methodType);
+    console.log('Матрица:', matrix);
+    console.log('Vector:', vector);
+    console.log('Variables:', variables);
+    console.log('Решение:', result.solution);
+    console.log('Итерации:', result.iterations);
+    
+    try {
+        // Проверяем, что система 2D
+        if (matrix.length !== 2 || matrix[0].length !== 2) {
+            console.warn('График строится только для систем 2x2');
+            return false;
+        }
+        
+        const datasets = [];
+        
+        // 1. Ось X - ЧЕРНАЯ (через ChartManager)
+        datasets.push(this.chartManager.createLine(
+            -1000, 0, 1000, 0, '', '#000000', false, 2
+        ));
+        
+        // 2. Ось Y - ЧЕРНАЯ (через ChartManager)  
+        datasets.push(this.chartManager.createLine(
+            0, -1000, 0, 1000, '', '#000000', false, 2
+        ));
+        
+        // 3. Первое уравнение - СИНИЙ
+        const a1 = matrix[0][0];
+        const b1 = matrix[0][1];
+        const c1 = vector[0];
+        
+        console.log(`Уравнение 1: ${a1}x + ${b1}y = ${c1}`);
+        
+        if (Math.abs(b1) > 1e-10) {
+            // y = (c1 - a1*x)/b1
+            const func1 = (x) => (c1 - a1 * x) / b1;
+            const points1 = this._generateEquationLinePoints(func1, -10, 10, 200);
+            
+            datasets.push({
+                label: `Уравнение 1: ${a1}${variables[0]} + ${b1}${variables[1]} = ${c1}`,
+                data: points1,
+                borderColor: '#3b82f6', // СИНИЙ
+                backgroundColor: '#3b82f6',
+                borderWidth: 3,
+                pointRadius: 0,
+                fill: false,
+                showLine: true,
+                tension: 0
+            });
+        } else {
+            // Вертикальная линия: x = c1/a1
+            const x1 = c1 / a1;
+            datasets.push(this.chartManager.createLine(
+                x1, -10, x1, 10,
+                `Уравнение 1: ${a1}${variables[0]} = ${c1}`,
+                '#3b82f6', false, 3
+            ));
+        }
+        
+        // 4. Второе уравнение - ЗЕЛЕНЫЙ
+        const a2 = matrix[1][0];
+        const b2 = matrix[1][1];
+        const c2 = vector[1];
+        
+        console.log(`Уравнение 2: ${a2}x + ${b2}y = ${c2}`);
+        
+        if (Math.abs(b2) > 1e-10) {
+            // y = (c2 - a2*x)/b2
+            const func2 = (x) => (c2 - a2 * x) / b2;
+            const points2 = this._generateEquationLinePoints(func2, -10, 10, 200);
+            
+            datasets.push({
+        label: `Уравнение 2: ${a2}${variables[0]} + ${b2}${variables[1]} = ${c2}`,
+        data: points2,
+        borderColor: '#0d9488',
+        backgroundColor: '#0d9488',
+        borderWidth: 3,
+        pointRadius: 0,
+        fill: false,
+        showLine: true,
+        tension: 0
+    });
+        } else {
+            // Вертикальная линия: x = c2/a2
+            const x2 = c2 / a2;
+            datasets.push(this.chartManager.createLine(
+                x2, -10, x2, 10,
+                `Уравнение 2: ${a2}${variables[0]} = ${c2}`,
+                '#10b981', false, 3
+            ));
+        }
+        
+        // 5. Решение - КРАСНАЯ точка (через ChartManager)
+        if (result.solution && result.solution.length >= 2) {
+            console.log('Рисуем решение:', result.solution[0], result.solution[1]);
+            
+            datasets.push(this.chartManager.createPoint(
+                result.solution[0], result.solution[1],
+                'Решение системы',
+                '#ef4444', // КРАСНЫЙ
+                10
+            ));
+        }
+        
+       // 6. ДОПОЛНИТЕЛЬНО: Для Якоби/Зейделя - рисуем траекторию
+if ((methodType === 'jacobi' || methodType === 'zeidel') && 
+    result.iterations && result.iterations.length > 0) {
+    console.log('Добавляем траекторию для метода:', methodType);
+    console.log('Количество итераций:', result.iterations.length);
+    console.log('Начальное приближение в result:', result.initialGuess);
+    console.log('Результат передаваемый в метод:', result);
+    
+    this._addIterativeTrajectoryToDatasets(datasets, result.iterations, methodType, result);
+    
+    console.log('Метод _addIterativeTrajectoryToDatasets вызван для', methodType);
+}
+
+        
+        console.log('Всего datasets:', datasets.length);
+        
+        // Определяем диапазон для графика
+        const bounds = this._calculateSystemBounds(result);
+        console.log('Границы графика:', bounds);
+        
+        // 7. Создаем график ЧЕРЕЗ CHARTMANAGER
+        const success = this.chartManager.createChart(
+            'system-chart', 
+            datasets, 
+            null, // нет отдельного корня
+            {
+                axis: '#000000',
+                grid: 'rgba(0,0,0,0.1)',
+                xMin: bounds.xMin,
+                xMax: bounds.xMax,
+                yMin: bounds.yMin,
+                yMax: bounds.yMax
+            }
+        );
+        
+        console.log('График создан через ChartManager:', success ? 'успешно' : 'ошибка');
+        return success;
+        
+    } catch (error) {
+        console.error('Ошибка рисования системы:', error);
+        return false;
+    }
+}
+
+// Вспомогательный метод для расчета границ графика системы
+_calculateSystemBounds(result) {
+    // Начинаем с решения
+    let xMin = -10, xMax = 10, yMin = -10, yMax = 10;
+    
+    if (result.solution && result.solution.length >= 2) {
+        const [solX, solY] = result.solution;
+        xMin = solX - 5;
+        xMax = solX + 5;
+        yMin = solY - 5;
+        yMax = solY + 5;
+    }
+    
+    // Для итерационных методов расширяем границы
+    if ((result.method && (result.method.includes('Якоби') || result.method.includes('Зейделя'))) && 
+        result.iterations && result.iterations.length > 0) {
+        
+        // Находим min/max всех итераций
+        let iterXMin = Infinity, iterXMax = -Infinity;
+        let iterYMin = Infinity, iterYMax = -Infinity;
+        
+        result.iterations.forEach(iter => {
+            if (iter.x && iter.x.length >= 2) {
+                iterXMin = Math.min(iterXMin, iter.x[0]);
+                iterXMax = Math.max(iterXMax, iter.x[0]);
+                iterYMin = Math.min(iterYMin, iter.x[1]);
+                iterYMax = Math.max(iterYMax, iter.x[1]);
+            }
+        });
+        
+        if (isFinite(iterXMin)) {
+            xMin = Math.min(xMin, iterXMin - 1);
+            xMax = Math.max(xMax, iterXMax + 1);
+            yMin = Math.min(yMin, iterYMin - 1);
+            yMax = Math.max(yMax, iterYMax + 1);
+        }
+    }
+    
+    // Убедимся, что границы не слишком маленькие
+    const xRange = xMax - xMin;
+    const yRange = yMax - yMin;
+    
+    if (xRange < 5) {
+        const centerX = (xMin + xMax) / 2;
+        xMin = centerX - 2.5;
+        xMax = centerX + 2.5;
+    }
+    
+    if (yRange < 5) {
+        const centerY = (yMin + yMax) / 2;
+        yMin = centerY - 2.5;
+        yMax = centerY + 2.5;
+    }
+    
+    return { xMin, xMax, yMin, yMax };
+}
+
+
+// Вспомогательный метод для добавления траектории итераций
+_addIterativeTrajectoryToDatasets(datasets, iterations, methodType, result) {
+    console.log('=== РИСУЕМ ТРАЕКТОРИЮ ===');
+    console.log('Метод:', methodType);
+    
+    if (!iterations || iterations.length === 0) return;
+    
+    // Определяем начальное приближение
+    let initialPoint = { x: 0, y: 0 };
+    if (result.initialGuess && Array.isArray(result.initialGuess) && result.initialGuess.length >= 2) {
+        initialPoint = { 
+            x: result.initialGuess[0], 
+            y: result.initialGuess[1] 
+        };
+    }
+    
+    // 1. Начальное приближение - ЗЕЛЕНАЯ точка
+    datasets.push({
+        label: 'Начальное приближение',
+        data: [{ 
+            x: initialPoint.x, 
+            y: initialPoint.y 
+        }],
+        backgroundColor: '#10b981', // ЗЕЛЕНЫЙ
+        borderColor: '#10b981',
+        borderWidth: 2,
+        pointRadius: 10,
+        pointHoverRadius: 12,
+        showLine: false
+    });
+    
+    // 2. Траектория от начальной точки через все итерации - оранжевый пунктир
+    const trajectoryPoints = [];
+    
+    // Начинаем с начальной точки
+    trajectoryPoints.push({ x: initialPoint.x, y: initialPoint.y });
+    
+    // Добавляем все итерации
+    for (let i = 0; i < iterations.length; i++) {
+        const iter = iterations[i];
+        
+        if (iter.x && Array.isArray(iter.x) && iter.x.length >= 2) {
+            const x = iter.x[0];
+            const y = iter.x[1];
+            
+            trajectoryPoints.push({ x, y });
+            
+            // Разрыв между точками (кроме последней)
+            if (i < iterations.length - 1) {
+                trajectoryPoints.push({ x: NaN, y: NaN });
+                // Начинаем новый сегмент с текущей точки
+                trajectoryPoints.push({ x, y });
+            }
+        }
+    }
+    
+    if (trajectoryPoints.length > 0) {
+        const trajectoryLabel = methodType === 'jacobi' 
+            ? 'Траектория метода Якоби' 
+            : 'Траектория метода Зейделя';
+            
+        datasets.push({
+            label: trajectoryLabel,
+            data: trajectoryPoints,
+            borderColor: 'rgba(245, 158, 11, 0.6)', // ОРАНЖЕВЫЙ бледный
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [5, 5], // ПУНКТИР
+            pointRadius: 0,
+            showLine: true,
+            tension: 0.1,
+            fill: false,
+            spanGaps: true
+        });
+    }
+    
+    // 3. Точки итераций (все в одном dataset) - оранжевые
+    const iterationPointsLabel = methodType === 'jacobi' 
+        ? 'Точки итераций Якоби' 
+        : 'Точки итераций Зейделя';
+    
+    const iterationPointsData = [];
+    
+    for (let i = 0; i < iterations.length; i++) {
+        const iter = iterations[i];
+        
+        if (iter.x && Array.isArray(iter.x) && iter.x.length >= 2) {
+            const x = iter.x[0];
+            const y = iter.x[1];
+            
+            // Проверяем, не совпадает ли с решением
+            const isSolution = result.solution && result.solution.length >= 2 &&
+                              Math.abs(x - result.solution[0]) < 0.0001 &&
+                              Math.abs(y - result.solution[1]) < 0.0001;
+            
+            // Проверяем, не совпадает ли с начальным приближением
+            const isInitial = Math.abs(x - initialPoint.x) < 0.0001 &&
+                             Math.abs(y - initialPoint.y) < 0.0001;
+            
+            if (!isSolution && !isInitial) {
+                iterationPointsData.push({ x, y });
+            }
+        }
+    }
+    
+    if (iterationPointsData.length > 0) {
+        datasets.push({
+            label: iterationPointsLabel,
+            data: iterationPointsData,
+            backgroundColor: 'rgba(245, 158, 11, 0.8)', // ОРАНЖЕВЫЙ
+            borderColor: 'rgba(245, 158, 11, 1)',
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            showLine: false
+        });
+    }
+}
+
+
+
+// Вспомогательный метод для генерации точек линии уравнения
+_generateEquationLinePoints(func, xMin, xMax, points = 200) {
+    const result = [];
+    const step = (xMax - xMin) / points;
+    
+    for (let i = 0; i <= points; i++) {
+        const x = xMin + i * step;
+        try {
+            const y = func(x);
+            if (isFinite(y) && Math.abs(y) < 1000) {
+                result.push({ x, y });
+            }
+        } catch (e) {
+            // Пропускаем точки с ошибками
+        }
+    }
+    
+    return result;
+}
 
 
 
