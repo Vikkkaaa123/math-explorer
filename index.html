@@ -31,7 +31,7 @@
                     </button>
                     <button class="tab-button" data-tab="integration">
                         <i class="fas fa-integral"></i>
-                        Интегрирование
+                        ∫ Интегрирование
                     </button>
                     <button class="tab-button" data-tab="differential">
                         <i class="fas fa-project-diagram"></i>
@@ -104,6 +104,9 @@
     <div id="equation-results" class="results-container">
     </div>
 </div>
+
+
+<!-- Шаблоны методов для уравнений -->
 
 <template id="newton-template">
     <div class="input-row two-columns">
@@ -210,13 +213,11 @@
     </div>
     
     <div class="input-section">
-        <!-- 1. Подынтегральная функция -->
         <div class="input-group">
             <label for="integration-function">Подынтегральное выражение f(x):</label>
             <input type="text" id="integration-function" placeholder="Введите пример">
         </div>
         
-        <!-- 2. Пределы интегрирования -->
         <div class="input-row two-columns">
             <div class="input-group">
                 <label for="integration-a">Нижний предел a:</label>
@@ -228,7 +229,6 @@
             </div>
         </div>
 
-         <!-- 3. Выбор метода -->
         <div class="input-group">
             <label for="integration-method">Метод интегрирования:</label>
             <select id="integration-method">
@@ -241,7 +241,6 @@
             </select>
         </div>
         
-        <!-- 4. Параметры точности и N -->
         <div class="input-row two-columns">
             <div class="input-group">
                 <label for="integration-precision">Точность:</label>
@@ -253,7 +252,6 @@
             </div>
         </div>
         
-        <!-- Кнопки -->
         <div class="button-group">
             <button class="calculate-btn" id="calculate-integration">
                 <i class="fas fa-play"></i> Рассчитать
@@ -280,10 +278,6 @@
 
 
 
-
-
-
-
 <!-- Вкладка: Дифф. уравнения -->
 <div id="differential-tab" class="tab-pane">
     <div class="tab-header">
@@ -292,13 +286,11 @@
     </div>
     
     <div class="input-section">
-        <!-- 1. Уравнение -->
         <div class="input-group">
             <label for="diff-equation">Правая часть уравнения y' = f(x, y):</label>
             <input type="text" id="diff-equation" placeholder="Введите пример">
         </div>
         
-        <!-- 2. Начальные условия -->
         <div class="input-row four-columns">
             <div class="input-group">
                 <label for="diff-x0">Начальное x₀:</label>
@@ -319,7 +311,6 @@
             </div>
         </div>
         
-        <!-- 3. Метод -->
         <div class="input-row two-columns">
             <div class="input-group">
                 <label for="diff-method">Метод решения:</label>
@@ -332,7 +323,6 @@
             </div>
         </div>
         
-        <!-- Кнопки -->
         <div class="button-group">
             <button class="calculate-btn" id="calculate-differential">
                 <i class="fas fa-play"></i> Рассчитать
@@ -353,7 +343,7 @@
         </div>
         
         <div id="differential-results" class="results-container">
-            <!-- Результаты будут здесь -->
+            
         </div>
     </div>
 </div>
@@ -362,21 +352,19 @@
 
 
 
-                <!-- Вкладка: Системы уравнений -->
-                <div id="systems-tab" class="tab-pane">
+ <!-- Вкладка: Системы уравнений -->
+   <div id="systems-tab" class="tab-pane">
     <div class="tab-header">
         <h2><i class="fas fa-cogs"></i> Решение систем уравнений</h2>
         <p>Решение систем линейных алгебраических уравнений</p>
     </div>
     
     <div class="input-section">
-        <!-- Количество уравнений -->
         <div class="input-group">
             <label for="system-count">Количество уравнений в системе:</label>
             <input type="number" id="system-count" value="2" min="2" max="10" placeholder="Введите число">
         </div>
         
-        <!-- Система уравнений -->
         <div class="input-group">
             <label>Система уравнений:</label>
             <div class="system-inputs" id="system-equations">
@@ -385,7 +373,6 @@
             </div>
         </div>
         
-        <!-- Метод решения -->
         <div class="input-group">
             <label for="system-method">Метод решения:</label>
             <select id="system-method">
@@ -397,10 +384,9 @@
             </select>
         </div>
         
-        <!-- Динамические поля для методов -->
+
         <div id="system-method-inputs"></div>
         
-        <!-- Кнопки -->
         <div class="button-group">
             <button class="calculate-btn" id="calculate-system">
                 <i class="fas fa-play"></i> Рассчитать
@@ -423,71 +409,31 @@
 </div>
 
 
-
 <!-- Шаблоны для динамических полей систем -->
-<template id="gauss-template">
-    <div class="input-group">
-        <div class="info-box">
-            <i class="fas fa-info-circle"></i>
-            <span>Метод Гаусса — прямой метод решения СЛАУ без начального приближения.</span>
-        </div>
-    </div>
-</template>
-
-<!-- Шаблон для метода Якоби -->
 <template id="jacobi-template">
-    <div class="input-row three-columns">
+    <div class="input-row two-columns" style="align-items: flex-end;">
         <div class="input-group">
             <label for="jacobi-precision">Точность ε:</label>
             <input type="number" id="jacobi-precision" step="1e-6" min="1e-12" max="1" value="0.000001">
         </div>
+        
         <div class="input-group">
-            <label for="jacobi-max-iterations">Макс. итераций:</label>
-            <input type="number" id="jacobi-max-iterations" value="1000" min="1" max="10000">
-        </div>
-    </div>
-    
-    <!-- Динамическое поле для начального приближения -->
-    <div class="input-group" id="jacobi-initial-container">
-        <label>Начальное приближение (вектор):</label>
-        <div class="vector-input-container" id="jacobi-vector-inputs">
-            <!-- Поля будут созданы динамически -->
-        </div>
-    </div>
-    
-    <div class="input-group">
-        <div class="info-box">
-            <i class="fas fa-info-circle"></i>
-            <span>Метод Якоби — итерационный метод. Требует диагонального преобладания матрицы.</span>
+            <label>Начальное приближение (вектор):</label>
+            <div class="vector-input-container" id="jacobi-vector-inputs"></div>
         </div>
     </div>
 </template>
 
-<!-- Шаблон для метода Зейделя -->
 <template id="zeidel-template">
-    <div class="input-row three-columns">
+    <div class="input-row two-columns" style="align-items: flex-end;">
         <div class="input-group">
             <label for="zeidel-precision">Точность ε:</label>
             <input type="number" id="zeidel-precision" step="1e-6" min="1e-12" max="1" value="0.000001">
         </div>
+        
         <div class="input-group">
-            <label for="zeidel-max-iterations">Макс. итераций:</label>
-            <input type="number" id="zeidel-max-iterations" value="1000" min="1" max="10000">
-        </div>
-    </div>
-    
-    <!-- Динамическое поле для начального приближения -->
-    <div class="input-group" id="zeidel-initial-container">
-        <label>Начальное приближение (вектор):</label>
-        <div class="vector-input-container" id="zeidel-vector-inputs">
-            <!-- Поля будут созданы динамически -->
-        </div>
-    </div>
-    
-    <div class="input-group">
-        <div class="info-box">
-            <i class="fas fa-info-circle"></i>
-            <span>Метод Зейделя — улучшенный метод Якоби, использует уже вычисленные значения.</span>
+            <label>Начальное приближение (вектор):</label>
+            <div class="vector-input-container" id="zeidel-vector-inputs"></div>
         </div>
     </div>
 </template>
@@ -522,10 +468,10 @@
             </div>
 
             <div class="ai-results" id="ai-results">
-                <!-- AI-анализ будет здесь -->
+        
             </div>
         </div>
-    </div> <!-- закрытие tabs-content -->
+    </div> 
 </main>
 
 

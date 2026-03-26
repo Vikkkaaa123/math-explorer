@@ -29,25 +29,17 @@ class EventManager {
         this.systemParser = null;
     }
 
-    initialize(appInstance) {
-        this.app = appInstance;
-        this.mathParserDE = new MathParserDE();
-        this.mathParserDE.initialize();
-        this.systemParser = new SystemParser();
-        this.initMethods();
-        this.setupTabHandlers();
-        this.setupCalculationHandlers();
-        this.setupSystemInputs();
-        this.setupEquationDynamicInterface(); 
-        this.setupSystemDynamicInterface();
 
- // Инициализируем поля начального приближения
-    setTimeout(() => {
-        const countInput = document.getElementById('system-count');
-        if (countInput) {
-            this.updateInitialGuessInputs(parseInt(countInput.value));
-        }
-    }, 500);
+    initialize(appInstance) {
+    this.app = appInstance;
+    this.mathParserDE = new MathParserDE();
+    this.mathParserDE.initialize();
+    this.systemParser = new SystemParser();
+    this.initMethods();
+    this.setupTabHandlers();
+    this.setupCalculationHandlers();
+    this.setupEquationInterface();
+    this.setupSystemInterface();
 }
 
     initMethods() {
@@ -75,293 +67,147 @@ class EventManager {
         this.chartBuilder = new ChartBuilder(parser);
     }
 
-    setupEquationDynamicInterface() {        
-        const methodSelect = document.getElementById('equation-method');
-        const container = document.getElementById('method-inputs-container');
-      
-        if (!methodSelect) {
-            console.error('Элемент equation-method не найден!');
-            return;
-        }
-        
-        if (!container) {
-            console.error('Элемент method-inputs-container не найден!');
-            return;
-        }
-        
-        methodSelect.addEventListener('change', (e) => {
-            this.updateEquationInputs(e.target.value);
-        });
-        
-        this.updateEquationInputs(methodSelect.value);
-    }
 
-
-
-    setupSystemDynamicInterface() {
-    const methodSelect = document.getElementById('system-method');
-    const container = document.getElementById('system-method-inputs');
-    
-    if (!methodSelect) {
-        console.error('Элемент system-method не найден!');
-        return;
-    }
-    
-    if (!container) {
-        console.error('Элемент system-method-inputs не найден!');
-        return;
-    }
-    
-    methodSelect.addEventListener('change', (e) => {
-        this.updateSystemMethodInputs(e.target.value);
-    });
-    
-    // Инициализируем поля при загрузке
-    this.updateSystemMethodInputs(methodSelect.value);
-}
-
-
-
-    updateEquationInputs(method) {
-        console.log('Обновление полей для метода:', method);
-        
-        const container = document.getElementById('method-inputs-container');
-        
-        if (!container) {
-            console.error('ОШИБКА: Контейнер method-inputs-container не найден в updateEquationInputs!');
-            return;
-        }
-        
-        try {
-            container.innerHTML = '';
-        } catch (error) {
-            console.error('Ошибка при очистке контейнера:', error);
-            return;
-        }
-        
-        if (!method) {
-            console.log('Метод не выбран, очищаем контейнер');
-            return;
-        }
-        
-        const template = document.getElementById(`${method}-template`);
-        
-        if (!template) {
-            console.warn(`Шаблон ${method}-template не найден`);
-            return;
-        }
-        
-        try {
-            const content = template.content.cloneNode(true);
-            container.appendChild(content);
-        } catch (error) {
-            console.error('Ошибка при добавлении полей:', error);
-        }
-    }
-
-
-
-
-
-updateSystemMethodInputs(method) {
-    console.log('Обновление полей для системного метода:', method);
-    
-    const container = document.getElementById('system-method-inputs');
-    if (!container) {
-        console.error('ОШИБКА: Контейнер system-method-inputs не найден!');
-        return;
-    }
-    
-    try {
-        container.innerHTML = '';
-    } catch (error) {
-        console.error('Ошибка при очистке контейнера:', error);
-        return;
-    }
-    
-    if (!method) {
-        console.log('Метод не выбран, очищаем контейнер');
-        return;
-    }
-    
-    const template = document.getElementById(`${method}-template`);
-    
-    if (!template) {
-        console.warn(`Шаблон ${method}-template не найден`);
-        return;
-    }
-    
-    try {
-        const content = template.content.cloneNode(true);
-        container.appendChild(content);
-        
-        // Если это Якоби или Зейдель, обновляем поля начального приближения
-        if (method === 'jacobi' || method === 'zeidel') {
-            // Получаем текущее количество уравнений
-            const countInput = document.getElementById('system-count');
-            const count = countInput ? parseInt(countInput.value) : 2;
-            
-            // Обновляем поля векторного ввода
-            setTimeout(() => {
-                this.updateInitialGuessInputs(count);
-            }, 50);
-        }
-        
-    } catch (error) {
-        console.error('Ошибка при добавлении полей:', error);
-    }
-}
-
-
+    //обработчик переключения вкладок
     setupTabHandlers() {
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             const tab = e.currentTarget.dataset.tab;
-            this.app.switchToTab(tab);
+            this.app.switchToTab(tab); //переключение на выбранную вкладку
         });
     });
-}
+  }
 
-
-
-
-// Добавьте этот метод в EventManager
-saveVectorInputValues(methodName, count) {
-    // Сохраняем текущие значения перед обновлением
-    const savedValues = [];
-    for (let i = 0; i < count; i++) {
-        const input = document.getElementById(`${methodName}-initial-${i}`);
-        if (input && input.value !== '') {
-            savedValues.push(input.value);
+ //динамический интерфейс для уравнений
+setupEquationInterface() {
+    const methodSelect = document.getElementById('equation-method');
+    const container = document.getElementById('method-inputs-container');
+    
+    if (!methodSelect || !container) return;
+    
+    const updateInputs = (method) => {
+        container.innerHTML = '';
+        if (!method) return;
+        
+        const template = document.getElementById(`${method}-template`);
+        if (template) {
+            container.appendChild(template.content.cloneNode(true));
         }
-    }
-    return savedValues;
+    };
+    
+    methodSelect.addEventListener('change', (e) => updateInputs(e.target.value));
+    updateInputs(methodSelect.value);
 }
 
-restoreVectorInputValues(methodName, savedValues) {
-    // Восстанавливаем сохраненные значения
-    if (savedValues && savedValues.length > 0) {
-        setTimeout(() => {
-            for (let i = 0; i < savedValues.length; i++) {
-                const input = document.getElementById(`${methodName}-initial-${i}`);
-                if (input) {
-                    input.value = savedValues[i];
-                }
-            }
-        }, 100);
-    }
-}
-
-
-   setupSystemInputs() {
-    const systemCountInput = document.getElementById('system-count');
-    if (systemCountInput) {
-        systemCountInput.addEventListener('change', (e) => {
-            const count = parseInt(e.target.value);
-            this.updateSystemInputs(count);
+//динамический интерфейс для систем
+setupSystemInterface() {
+    const methodSelect = document.getElementById('system-method');
+    const container = document.getElementById('system-method-inputs');
+    const countInput = document.getElementById('system-count');
+    
+    if (!methodSelect || !container || !countInput) return;
+    
+    const updateMethodInputs = (method) => {
+        container.innerHTML = '';
+        if (!method) return;
+        
+        const template = document.getElementById(`${method}-template`);
+        if (template) {
+            container.appendChild(template.content.cloneNode(true));
             
-            // Обновляем также поля начального приближения
-            this.updateInitialGuessInputs(count);
-        });
-        this.updateSystemInputs(2);
-        this.updateInitialGuessInputs(2);
-    }
-}
-
-updateSystemInputs(count) {
-    const container = document.getElementById('system-equations');
-    if (!container) return;
+            if (method === 'jacobi' || method === 'zeidel') {
+                setTimeout(() => {
+                    createInitialGuessFields(method);
+                }, 50);
+            }
+        }
+    };
     
-    container.innerHTML = '';
+const createInitialGuessFields = (method) => {
+    const vectorContainer = document.getElementById(`${method}-vector-inputs`);
+    if (!vectorContainer) return;
     
-    for (let i = 0; i < count; i++) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'equation-input-wrapper';
-        
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'system-eq';
-        input.placeholder = `Введите уравнение ${i + 1} (например: 2x+3y=10)`;
-        
-        const label = document.createElement('div');
-        label.className = 'equation-label';
-        label.textContent = `Уравнение ${i + 1}:`;
-        
-        wrapper.appendChild(label);
-        wrapper.appendChild(input);
-        container.appendChild(wrapper);
-    }
-}
-
-// Новый метод для создания полей начального приближения
-updateInitialGuessInputs(count) {
-    console.log('Обновление полей начального приближения для', count, 'уравнений');
+    const count = parseInt(countInput.value) || 2;
+    vectorContainer.innerHTML = '';
+    vectorContainer.className = 'vector-input-container';
     
-    // Обновляем поля для Якоби
-    const jacobiContainer = document.getElementById('jacobi-vector-inputs');
-    if (jacobiContainer) {
-        this.createVectorInputFields(jacobiContainer, count, 'jacobi');
-    }
-    
-    // Обновляем поля для Зейделя
-    const zeidelContainer = document.getElementById('zeidel-vector-inputs');
-    if (zeidelContainer) {
-        this.createVectorInputFields(zeidelContainer, count, 'zeidel');
-    }
-}
-
-// Метод для создания полей векторного ввода
-createVectorInputFields(container, count, methodName) {
-    container.innerHTML = '';
-    
-    // Левая скобка
+    //левая скобка
     const leftBracket = document.createElement('span');
     leftBracket.className = 'vector-bracket';
     leftBracket.textContent = '[';
-    container.appendChild(leftBracket);
+    vectorContainer.appendChild(leftBracket);
     
-    // Поля ввода
     for (let i = 0; i < count; i++) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'vector-input-wrapper';
-        
         const input = document.createElement('input');
         input.type = 'number';
-        input.className = `vector-input-field ${methodName}-initial-guess`;
-        input.id = `${methodName}-initial-${i}`;
+        input.className = 'vector-input-field';
+        input.id = `${method}-initial-${i}`;
         input.value = '0';
         input.step = 'any';
-        input.placeholder = '0';
+        vectorContainer.appendChild(input);
         
-        wrapper.appendChild(input);
-        
-        // Добавляем разделитель, если не последний элемент
         if (i < count - 1) {
             const separator = document.createElement('span');
             separator.className = 'vector-separator';
             separator.textContent = ',';
-            wrapper.appendChild(separator);
+            vectorContainer.appendChild(separator);
         }
-        
-        container.appendChild(wrapper);
     }
     
-    // Правая скобка
+    //правая скобка
     const rightBracket = document.createElement('span');
     rightBracket.className = 'vector-bracket';
     rightBracket.textContent = ']';
-    container.appendChild(rightBracket);
+    vectorContainer.appendChild(rightBracket);
+};
     
-    // Подсказка
-    const hint = document.createElement('div');
-    hint.className = 'vector-hint';
-    hint.textContent = `Введите ${count} значений через запятую или используйте поля выше`;
-    container.appendChild(hint);
+    const updateEquationInputs = (count) => {
+        const eqContainer = document.getElementById('system-equations');
+        if (!eqContainer) return;
+        
+        eqContainer.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'equation-input-wrapper';
+            
+            const label = document.createElement('div');
+            label.className = 'equation-label';
+            label.textContent = `Уравнение ${i + 1}:`;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'system-eq';
+            input.placeholder = `Введите уравнение ${i + 1}`;
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            eqContainer.appendChild(wrapper);
+        }
+    };
+    
+    //слушатели
+    methodSelect.addEventListener('change', (e) => updateMethodInputs(e.target.value));
+    countInput.addEventListener('change', (e) => {
+        const count = parseInt(e.target.value);
+        updateEquationInputs(count);
+        
+        const currentMethod = methodSelect.value;
+        if (currentMethod === 'jacobi' || currentMethod === 'zeidel') {
+            createInitialGuessFields(currentMethod);
+        }
+    });
+    
+    //инициализация
+    updateEquationInputs(parseInt(countInput.value));
+    updateMethodInputs(methodSelect.value);
 }
 
 
 
+
+
+//настройка обработчиков кнопок расчета - привязывает функции расчета к соответсвующим кнопкам
     setupCalculationHandlers() {
         document.getElementById('calculate-equation')?.addEventListener('click', () => this.solveEquation());
         document.getElementById('compare-equation-methods')?.addEventListener('click', () => this.compareEquationMethods());
@@ -372,6 +218,8 @@ createVectorInputFields(container, count, methodName) {
         document.getElementById('calculate-system')?.addEventListener('click', () => this.solveSystem());
         document.getElementById('compare-system-methods')?.addEventListener('click', () => this.compareSystemMethods());
     }
+
+
 
 
 
@@ -489,6 +337,91 @@ createVectorInputFields(container, count, methodName) {
 
 
 
+    displayEquationResult(result) {
+    const container = document.getElementById('equation-results');
+    
+    if (!container) {
+        console.error('Контейнер equation-results не найден');
+        return;
+    }
+    
+    if (!result.converged) {
+        container.innerHTML = `<div class="error-message">${result.message}</div>`;
+        return;
+    }
+    
+    //формируем HTML
+    let content = `
+        <div class="result-success">
+            <h3>Результаты расчета</h3>
+            <div class="result-main">
+                <div class="result-icon">✅</div>
+                <div class="result-text">Уравнение решено!</div>
+            </div>
+            <div class="result-details">
+                <div class="detail-row">
+                    <span class="detail-label">Метод:</span>
+                    <span class="detail-value">${result.method || 'Не указан'}</span>
+                </div>
+    `;
+    
+    if (result.iterationsCount !== undefined) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Количество итераций:</span>
+                    <span class="detail-value">${result.iterationsCount}</span>
+                </div>
+        `;
+    }
+    
+    if (result.residual !== undefined) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Невязка:</span>
+                    <span class="detail-value">${result.residual.toFixed(10)}</span>
+                </div>
+        `;
+    }
+    
+    if (result.root !== undefined && result.root !== null) {
+        content += `
+                <div class="detail-row">
+                    <span class="detail-label">Результат:</span>
+                    <span class="detail-value">x ≈ ${result.root.toFixed(6)}</span>
+                </div>
+        `;
+    }
+    
+    content += `
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = content;
+    
+    if (result.iterations && result.iterations.length > 0) {
+        this.displayIterationsTable(container, result.iterations);
+    }
+    
+    //рисуем график
+    if (result.converged && result.root !== null) {
+        const method = document.getElementById('equation-method').value;
+        const func = document.getElementById('equation-function').value;
+        this.chartBuilder.drawEquationChart(func, result.root, result.iterations, method);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
     async solveIntegration() {
     try {
         const func = document.getElementById('integration-function').value;
@@ -571,359 +504,6 @@ createVectorInputFields(container, count, methodName) {
     }
 }
 
-
-
-
-    async solveDifferential() {
-    try {
-        const func = document.getElementById('diff-equation').value;
-        const method = document.getElementById('diff-method').value;
-        const x0 = parseFloat(document.getElementById('diff-x0').value);
-        const y0 = parseFloat(document.getElementById('diff-y0').value);
-        const xEnd = parseFloat(document.getElementById('diff-end').value);
-        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1; // Добавить поле!
-        
-        console.log('Параметры диффура:', { func, method, x0, y0, xEnd, step });
-        
-        if (!func) {
-            this.app.showError('Введите уравнение');
-            return;
-        }
-        
-        if (isNaN(x0) || isNaN(y0) || isNaN(xEnd)) {
-            this.app.showError('Введите корректные числовые значения');
-            return;
-        }
-        
-        if (step <= 0) {
-            this.app.showError('Шаг должен быть положительным');
-            return;
-        }
-        
-        this.app.setLoadingState(true);
-        let result;
-        
-        if (method === 'neural') {
-            result = await this.neuralMethods.differential.solve(func, x0, y0, xEnd);
-        } else {
-            switch (method) {
-                case 'euler': 
-                    result = this.methods.euler.solve(func, x0, y0, xEnd, step);
-                    break;
-                case 'runge-kutta': 
-                    result = this.methods.rungeKutta.solve(func, x0, y0, xEnd, step);
-                    break;
-                default: 
-                    this.app.showError('Неизвестный метод'); 
-                    this.app.setLoadingState(false);
-                    return;
-            }
-        }
-        
-        console.log('Результат диффура:', result);
-        this.displayDifferentialResult(result);
-        this.app.setLoadingState(false);
-    } catch (error) {
-        console.error('Ошибка расчета диффура:', error);
-        this.app.showError('Ошибка расчета: ' + error.message);
-        this.app.setLoadingState(false);
-    }
-}
-
-
-
-
-    async compareDiffMethods() {
-    try {
-        const func = document.getElementById('diff-equation').value;
-        const x0 = parseFloat(document.getElementById('diff-x0').value);
-        const y0 = parseFloat(document.getElementById('diff-y0').value);
-        const xEnd = parseFloat(document.getElementById('diff-end').value);
-        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
-        
-        if (!func || isNaN(x0) || isNaN(y0) || isNaN(xEnd)) {
-            this.app.showError('Введите уравнение и начальные условия');
-            return;
-        }
-        
-        this.app.setLoadingState(true);
-        const results = {
-            euler: this.methods.euler.solve(func, x0, y0, xEnd, step),
-            rungeKutta: this.methods.rungeKutta.solve(func, x0, y0, xEnd, step),
-            neural: await this.neuralMethods.differential.solve(func, x0, y0, xEnd)
-        };
-        
-        //рисуем оба метода на одном графике
-        if (results.euler.iterations && results.rungeKutta.iterations) {
-            this.chartBuilder.drawDifferentialEquationChart(
-                func,
-                'compare',
-                x0,
-                y0,
-                step,
-                Math.max(results.euler.iterationsCount || 0, results.rungeKutta.iterationsCount || 0),
-                {
-                    euler: results.euler.iterations,
-                    rungeKutta: results.rungeKutta.iterations
-                }
-            );
-        }
-        
-        this.displayComparison(results, 'differential-results', 'Дифф. уравнения');
-        this.app.setLoadingState(false);
-    } catch (error) {
-        this.app.showError('Ошибка сравнения: ' + error.message);
-        this.app.setLoadingState(false);
-    }
-}
-
-
-
-
-async solveSystem() {
-    try {
-        const equationInputs = document.querySelectorAll('.system-eq');
-        const equations = Array.from(equationInputs).map(input => input.value).filter(eq => eq.trim());
-        
-        if (equations.length === 0) {
-            this.app.showError('Введите уравнения системы');
-            return;
-        }
-        
-        const method = document.getElementById('system-method').value;
-        this.app.setLoadingState(true);
-        
-        // Парсим систему (один раз для всех методов)
-        const { matrix, vector, variables } = this.systemParser.parseEquations(equations);
-        
-        console.log('=== СИСТЕМА ДЛЯ РЕШЕНИЯ ===');
-        console.log('Метод:', method);
-        console.log('Матрица:', matrix);
-        console.log('Вектор:', vector);
-        console.log('Переменные:', variables);
-        
-         let result;
-        
-        if (method === 'neural') {
-            result = await this.neuralMethods.systems.solve(equations);
-        } else {
-            switch (method) {
-                case 'gauss': 
-                    result = this.methods.gauss.solve(matrix, vector, variables);
-                    break;
-                    
-                case 'jacobi': 
-                    const jacobiParams = this.getJacobiParameters(matrix.length);
-                    result = this.methods.jacobi.solve(
-                        matrix, 
-                        vector, 
-                        jacobiParams.initialGuess,
-                        variables,
-                        jacobiParams.precision,
-                        jacobiParams.maxIterations
-                    );
-                    // Сохраняем начальное приближение для Якоби
-                    result.initialGuess = jacobiParams.initialGuess;
-                    break;
-                    
-                case 'zeidel': 
-                    const zeidelParams = this.getZeidelParameters(matrix.length);
-                    result = this.methods.zeidel.solve(
-                        matrix, 
-                        vector, 
-                        zeidelParams.initialGuess,
-                        variables,
-                        zeidelParams.precision,
-                        zeidelParams.maxIterations
-                    );
-                    // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Сохраняем начальное приближение для Зейделя
-                    result.initialGuess = zeidelParams.initialGuess;
-                    break;
-                    
-                default: 
-                    this.app.showError('Неизвестный метод'); 
-                    this.app.setLoadingState(false);
-                    return;
-            }
-        }
-        
-        console.log('=== РЕЗУЛЬТАТ РЕШЕНИЯ ===');
-        console.log('Метод:', result.method);
-        console.log('Итерации:', result.iterations);
-        console.log('Сошелся:', result.converged);
-        console.log('Решение:', result.solution);
-        console.log('Итерации:', result.iterations);
-        console.log('Начальное приближение в result:', result.initialGuess); // Проверяем!
-        
-        // ВСЕГДА передаем данные системы в результат для графика
-        // Но не перезаписываем, если они уже есть
-        if (!result.matrix) result.matrix = matrix;
-        if (!result.vector) result.vector = vector;
-        if (!result.variables) result.variables = variables;
-        
-        this.displaySystemResult(result);
-        this.app.setLoadingState(false);
-        
-    } catch (error) {
-        console.error('Ошибка решения системы:', error);
-        this.app.showError('Ошибка решения системы: ' + error.message);
-        this.app.setLoadingState(false);
-    }
-}
-
-getJacobiParameters(n) {
-    console.log('getJacobiParameters вызван с n =', n);
-    
-    let precision = 1e-6;
-    let maxIterations = 1000;
-    
-    // Получаем точность
-    const precisionInput = document.getElementById('jacobi-precision');
-    if (precisionInput && precisionInput.value) {
-        precision = parseFloat(precisionInput.value);
-    }
-    
-    // Получаем максимальное количество итераций
-    const maxIterationsInput = document.getElementById('jacobi-max-iterations');
-    if (maxIterationsInput && maxIterationsInput.value) {
-        maxIterations = parseInt(maxIterationsInput.value);
-    }
-    
-    // Получаем начальное приближение из векторных полей
-    let initialGuess = Array(n).fill(0);
-    
-    try {
-        // Собираем значения из полей векторного ввода
-        const values = [];
-        for (let i = 0; i < n; i++) {
-            const input = document.getElementById(`jacobi-initial-${i}`);
-            if (input && input.value !== '') {
-                const val = parseFloat(input.value);
-                if (!isNaN(val)) {
-                    values.push(val);
-                } else {
-                    values.push(0);
-                }
-            } else {
-                values.push(0);
-            }
-        }
-        
-        // Проверяем, все ли значения корректны
-        if (values.length === n && values.every(v => !isNaN(v))) {
-            initialGuess = values;
-            console.log('Используем векторное приближение Якоби:', initialGuess);
-        } else {
-            console.log('Не все значения корректны, используем нули для Якоби');
-        }
-        
-    } catch (e) {
-        console.warn('Ошибка чтения начального приближения Якоби:', e);
-    }
-    
-    return { precision, maxIterations, initialGuess };
-}
-
-getZeidelParameters(n) {
-    console.log('getZeidelParameters вызван с n =', n);
-    
-    let precision = 1e-6;
-    let maxIterations = 1000;
-    
-    const precisionInput = document.getElementById('zeidel-precision');
-    if (precisionInput && precisionInput.value) {
-        precision = parseFloat(precisionInput.value);
-    }
-    
-    const maxIterationsInput = document.getElementById('zeidel-max-iterations');
-    if (maxIterationsInput && maxIterationsInput.value) {
-        maxIterations = parseInt(maxIterationsInput.value);
-    }
-    
-    let initialGuess = Array(n).fill(0);
-    
-    try {
-        // Собираем значения из полей векторного ввода
-        const values = [];
-        for (let i = 0; i < n; i++) {
-            const input = document.getElementById(`zeidel-initial-${i}`);
-            if (input && input.value !== '') {
-                const val = parseFloat(input.value);
-                if (!isNaN(val)) {
-                    values.push(val);
-                } else {
-                    values.push(0);
-                }
-            } else {
-                values.push(0);
-            }
-        }
-        
-        if (values.length === n && values.every(v => !isNaN(v))) {
-            initialGuess = values;
-            console.log('Используем векторное приближение Зейделя:', initialGuess);
-        } else {
-            console.log('Не все значения корректны, используем нули для Зейделя');
-        }
-        
-    } catch (e) {
-        console.warn('Ошибка чтения начального приближения Зейделя:', e);
-    }
-    
-    return { precision, maxIterations, initialGuess };
-}
-
-
-    async compareSystemMethods() {
-    try {
-        const equationInputs = document.querySelectorAll('.system-eq');
-        const equations = Array.from(equationInputs).map(input => input.value).filter(eq => eq.trim());
-        
-        if (equations.length === 0) {
-            this.app.showError('Введите уравнения системы');
-            return;
-        }
-        
-        this.app.setLoadingState(true);
-        
-        // Используем новый парсер
-        const { matrix, vector, variables } = this.systemParser.parseEquations(equations);
-        
-        const results = {
-            gauss: this.methods.gauss.solve(matrix, vector, variables),
-            jacobi: this.methods.jacobi.solve(matrix, vector, this.getInitialApproximation(matrix.length)),
-            zeidel: this.methods.zeidel.solve(matrix, vector, this.getInitialApproximation(matrix.length)),
-            neural: await this.neuralMethods.systems.solve(equations)
-        };
-        
-        this.displayComparison(results, 'system-results', 'Системы уравнений');
-        this.app.setLoadingState(false);
-    } catch (error) {
-        this.app.showError('Ошибка сравнения: ' + error.message);
-        this.app.setLoadingState(false);
-    }
-}
-
-
-
-
-
-
-     displayEquationResult(result) {
-    const container = document.getElementById('equation-results');
-    this.displaySingleResult(container, result, 'уравнение');
-    
-    if (result.converged && result.root !== null) {
-        const method = document.getElementById('equation-method').value;
-        const func = document.getElementById('equation-function').value;
-        this.chartBuilder.drawEquationChart(
-            func, 
-            result.root, 
-            result.iterations, 
-            method
-        );
-    }
-}
 
 
 
@@ -1038,6 +618,261 @@ displayIntegrationResult(result) {
     
     container.innerHTML = html;
 }
+
+
+
+
+
+
+
+
+
+    async solveDifferential() {
+    try {
+        const func = document.getElementById('diff-equation').value;
+        const method = document.getElementById('diff-method').value;
+        const x0 = parseFloat(document.getElementById('diff-x0').value);
+        const y0 = parseFloat(document.getElementById('diff-y0').value);
+        const xEnd = parseFloat(document.getElementById('diff-end').value);
+        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
+        
+        console.log('Параметры диффура:', { func, method, x0, y0, xEnd, step });
+        
+        if (!func) {
+            this.app.showError('Введите уравнение');
+            return;
+        }
+        
+        if (isNaN(x0) || isNaN(y0) || isNaN(xEnd)) {
+            this.app.showError('Введите корректные числовые значения');
+            return;
+        }
+        
+        if (step <= 0) {
+            this.app.showError('Шаг должен быть положительным');
+            return;
+        }
+        
+        this.app.setLoadingState(true);
+        let result;
+        
+        if (method === 'neural') {
+            result = await this.neuralMethods.differential.solve(func, x0, y0, xEnd);
+        } else {
+            switch (method) {
+                case 'euler': 
+                    result = this.methods.euler.solve(func, x0, y0, xEnd, step);
+                    break;
+                case 'runge-kutta': 
+                    result = this.methods.rungeKutta.solve(func, x0, y0, xEnd, step);
+                    break;
+                default: 
+                    this.app.showError('Неизвестный метод'); 
+                    this.app.setLoadingState(false);
+                    return;
+            }
+        }
+        
+        console.log('Результат диффура:', result);
+        this.displayDifferentialResult(result);
+        this.app.setLoadingState(false);
+    } catch (error) {
+        console.error('Ошибка расчета диффура:', error);
+        this.app.showError('Ошибка расчета: ' + error.message);
+        this.app.setLoadingState(false);
+    }
+}
+
+
+
+    async compareDiffMethods() {
+    try {
+        const func = document.getElementById('diff-equation').value;
+        const x0 = parseFloat(document.getElementById('diff-x0').value);
+        const y0 = parseFloat(document.getElementById('diff-y0').value);
+        const xEnd = parseFloat(document.getElementById('diff-end').value);
+        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
+        
+        if (!func || isNaN(x0) || isNaN(y0) || isNaN(xEnd)) {
+            this.app.showError('Введите уравнение и начальные условия');
+            return;
+        }
+        
+        this.app.setLoadingState(true);
+        const results = {
+            euler: this.methods.euler.solve(func, x0, y0, xEnd, step),
+            rungeKutta: this.methods.rungeKutta.solve(func, x0, y0, xEnd, step),
+            neural: await this.neuralMethods.differential.solve(func, x0, y0, xEnd)
+        };
+        
+        //рисуем оба метода на одном графике
+        if (results.euler.iterations && results.rungeKutta.iterations) {
+            this.chartBuilder.drawDifferentialEquationChart(
+                func,
+                'compare',
+                x0,
+                y0,
+                step,
+                Math.max(results.euler.iterationsCount || 0, results.rungeKutta.iterationsCount || 0),
+                {
+                    euler: results.euler.iterations,
+                    rungeKutta: results.rungeKutta.iterations
+                }
+            );
+        }
+        
+        this.displayComparison(results, 'differential-results', 'Дифф. уравнения');
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка сравнения: ' + error.message);
+        this.app.setLoadingState(false);
+    }
+}
+
+
+
+
+
+async solveSystem() {
+    try {
+        const equationInputs = document.querySelectorAll('.system-eq');
+        const equations = Array.from(equationInputs).map(input => input.value).filter(eq => eq.trim());
+        
+        if (equations.length === 0) {
+            this.app.showError('Введите уравнения системы');
+            return;
+        }
+        
+        const method = document.getElementById('system-method').value;
+        this.app.setLoadingState(true);
+        
+        const { matrix, vector, variables } = this.systemParser.parseEquations(equations);
+        
+        let result;
+        
+        if (method === 'neural') {
+            result = await this.neuralMethods.systems.solve(equations);
+        } else {
+            switch (method) {
+                case 'gauss': 
+                    result = this.methods.gauss.solve(matrix, vector, variables);
+                    break;
+                    
+                case 'jacobi': 
+                case 'zeidel': 
+                    const params = this.getIterationParameters(method, matrix.length);
+                    result = this.methods[method].solve(
+                        matrix, 
+                        vector, 
+                        params.initialGuess,
+                        variables,
+                        params.precision,
+                        params.maxIterations
+                    );
+                    result.initialGuess = params.initialGuess;
+                    break;
+                    
+                default: 
+                    this.app.showError('Неизвестный метод'); 
+                    this.app.setLoadingState(false);
+                    return;
+            }
+        }
+        
+        //добавляем данные для графика
+        result.matrix = result.matrix || matrix;
+        result.vector = result.vector || vector;
+        result.variables = result.variables || variables;
+        
+        this.displaySystemResult(result);
+        this.app.setLoadingState(false);
+        
+    } catch (error) {
+        console.error('Ошибка решения системы:', error);
+        this.app.showError('Ошибка решения системы: ' + error.message);
+        this.app.setLoadingState(false);
+    }
+}
+
+
+
+getIterationParameters(method, n) {    
+    let precision = 1e-6;
+    let maxIterations = 1000;
+    
+    //точность
+    const precisionInput = document.getElementById(`${method}-precision`);
+    if (precisionInput && precisionInput.value) {
+        precision = parseFloat(precisionInput.value);
+    }
+    
+    //макс итераций
+    const maxIterationsInput = document.getElementById(`${method}-max-iterations`);
+    if (maxIterationsInput && maxIterationsInput.value) {
+        maxIterations = parseInt(maxIterationsInput.value);
+    }
+    
+    //начал приближение
+    let initialGuess = Array(n).fill(0);
+    
+    try {
+        const values = [];
+        for (let i = 0; i < n; i++) {
+            const input = document.getElementById(`${method}-initial-${i}`);
+            if (input && input.value !== '') {
+                const val = parseFloat(input.value);
+                values.push(!isNaN(val) ? val : 0);
+            } else {
+                values.push(0);
+            }
+        }
+        
+        if (values.length === n && values.every(v => !isNaN(v))) {
+            initialGuess = values;
+        }
+        
+    } catch (e) {
+        console.warn(`Ошибка чтения начального приближения ${method}:`, e);
+    }
+    
+    return { precision, maxIterations, initialGuess };
+}
+
+
+
+    async compareSystemMethods() {
+    try {
+        const equationInputs = document.querySelectorAll('.system-eq');
+        const equations = Array.from(equationInputs).map(input => input.value).filter(eq => eq.trim());
+        
+        if (equations.length === 0) {
+            this.app.showError('Введите уравнения системы');
+            return;
+        }
+        
+        this.app.setLoadingState(true);
+        
+        const { matrix, vector, variables } = this.systemParser.parseEquations(equations);
+        
+        const results = {
+            gauss: this.methods.gauss.solve(matrix, vector, variables),
+            jacobi: this.methods.jacobi.solve(matrix, vector, this.getInitialApproximation(matrix.length)),
+            zeidel: this.methods.zeidel.solve(matrix, vector, this.getInitialApproximation(matrix.length)),
+            neural: await this.neuralMethods.systems.solve(equations)
+        };
+        
+        this.displayComparison(results, 'system-results', 'Системы уравнений');
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка сравнения: ' + error.message);
+        this.app.setLoadingState(false);
+    }
+}
+
+
+
+
+
 
 
 
@@ -1522,106 +1357,6 @@ generateSystemIterationRow(iter, variables, index) {
 }
 
 
-
-
-
-    displaySingleResult(container, result, type) {
-        if (!container) {
-            console.error(`Контейнер для ${type} не найден`);
-            return;
-        }
-        
-        if (!result.converged) {
-            container.innerHTML = `<div class="error-message">${result.message}</div>`;
-            return;
-        }
-
-        
-        let content = `
-            <div class="result-success">
-                <h3>Результаты расчета</h3>
-                <div class="result-main">
-                    <div class="result-icon">✅</div>
-                    <div class="result-text">${this.getSuccessMessage(type)} решено!</div>
-                </div>
-                <div class="result-details">
-                    <div class="detail-row">
-                        <span class="detail-label">Метод:</span>
-                        <span class="detail-value">${result.method || 'Не указан'}</span>
-                    </div>
-        `;
-        
-        if (result.iterationsCount !== undefined) {
-            content += `
-                    <div class="detail-row">
-                        <span class="detail-label">Количество итераций:</span>
-                        <span class="detail-value">${result.iterationsCount}</span>
-                    </div>
-            `;
-        }
-        
-        if (type === 'уравнение' && result.residual !== undefined) {
-            content += `
-                    <div class="detail-row">
-                        <span class="detail-label">Невязка:</span>
-                        <span class="detail-value">${result.residual.toFixed(10)}</span>
-                    </div>
-            `;
-        }
-        
-        if (result.error !== undefined && result.error !== null && type !== 'уравнение') {
-            content += `
-                    <div class="detail-row">
-                        <span class="detail-label">Погрешность:</span>
-                        <span class="detail-value">${result.error.toFixed(10)}</span>
-                    </div>
-            `;
-        }
-        
-        if (result.root !== undefined && result.root !== null) {
-            content += `
-                    <div class="detail-row">
-                        <span class="detail-label">Результат:</span>
-                        <span class="detail-value">x ≈ ${result.root.toFixed(6)}</span>
-                    </div>
-            `;
-        } else if (result.result !== undefined && result.result !== null) {
-            content += `
-                    <div class="detail-row">
-                        <span class="detail-label">Результат:</span>
-                        <span class="detail-value">${result.result.toFixed(6)}</span>
-                    </div>
-            `;
-        } else if (result.solution && Array.isArray(result.solution)) {
-            content += `
-                    <div class="detail-row">
-                        <span class="detail-label">Решение:</span>
-                        <span class="detail-value">[${result.solution.map(x => x.toFixed(6)).join(', ')}]</span>
-                    </div>
-            `;
-        }
-        
-        content += `
-                </div>
-            </div>
-        `;
-        
-        container.innerHTML = content;
-        
-        if (result.iterations && result.iterations.length > 0) {
-            this.displayIterationsTable(container, result.iterations);
-        }
-    }
-
-    getSuccessMessage(type) {
-        const messages = {
-            'уравнение': 'Уравнение',
-            'интеграл': 'Интеграл', 
-            'дифференциальное уравнение': 'Дифференциальное уравнение',
-            'система уравнений': 'Система уравнений'
-        };
-        return messages[type] || 'Задача';
-    }
 
     displayIterationsTable(container, iterations) {
         const tableHTML = `
