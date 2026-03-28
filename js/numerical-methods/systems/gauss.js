@@ -253,14 +253,14 @@ class GaussMethod {
         }
     }
     
-    // Метод для форматирования матрицы в HTML (опционально)
+    //для форматирования таблицы
     formatMatrixHTML(matrix, variables = null) {
         const n = matrix.length;
-        const m = matrix[0].length; // n+1 для расширенной матрицы
+        const m = matrix[0].length; //n+1 для расширенной матрицы
         
         let html = '<table class="matrix-table">';
         
-        // Заголовок
+        //заголовок
         html += '<thead><tr><th></th>';
         for (let j = 0; j < m - 1; j++) {
             const varName = variables ? variables[j] : `x${j+1}`;
@@ -268,7 +268,7 @@ class GaussMethod {
         }
         html += '<th>b</th></tr></thead>';
         
-        // Данные
+        //данные
         html += '<tbody>';
         for (let i = 0; i < n; i++) {
             html += '<tr>';
@@ -279,7 +279,7 @@ class GaussMethod {
                 let cellClass = '';
                 let displayValue = value.toFixed(4);
                 
-                // Подсветка нулей и диагональных элементов
+                //подсветка нулей и диагональных элементов
                 if (Math.abs(value) < 1e-10) {
                     displayValue = '0.0000';
                     cellClass = 'zero';

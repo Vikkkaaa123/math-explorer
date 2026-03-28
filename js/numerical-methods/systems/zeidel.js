@@ -16,16 +16,16 @@ class ZeidelMethod {
                     method: this.method,
                     residual: null,
                     iterationsCount: 0,
-                    initialGuess: initialGuess || Array(n).fill(0) // ДОБАВЛЕНО
+                    initialGuess: initialGuess || Array(n).fill(0)
                 };
             }
 
             const varNames = variables || this.generateVariableNames(n);
             
-            // Сохраняем начальное приближение
+            //сохраняем начальное приближение
             const savedInitialGuess = initialGuess ? [...initialGuess] : Array(n).fill(0);
             
-            // Проверка диагональных элементов
+            //проверка диагональных элементов
             for (let i = 0; i < n; i++) {
                 if (Math.abs(matrix[i][i]) < 1e-10) {
                     return {
@@ -36,12 +36,12 @@ class ZeidelMethod {
                         method: this.method,
                         residual: null,
                         iterationsCount: 0,
-                        initialGuess: savedInitialGuess // ДОБАВЛЕНО
+                        initialGuess: savedInitialGuess
                     };
                 }
             }
 
-            let x = savedInitialGuess; // Используем сохраненное начальное приближение
+            let x = savedInitialGuess;
             const iterations = [];
 
             for (let k = 0; k < maxIterations; k++) {
@@ -63,7 +63,6 @@ class ZeidelMethod {
                     x[i] = (vector[i] - sum1 - sum2) / matrix[i][i];
                 }
 
-                // ВЫЧИСЛЯЕМ ТОЛЬКО НЕВЯЗКУ
                 const residual = this.calculateResidual(matrix, vector, x);
 
                 iterations.push({
@@ -83,7 +82,7 @@ class ZeidelMethod {
                         iterationsCount: k + 1,
                         residual: residual,
                         variables: varNames,
-                        initialGuess: savedInitialGuess // ДОБАВЛЕНО - КРИТИЧЕСКИ ВАЖНО!
+                        initialGuess: savedInitialGuess
                     };
                 }
             }
@@ -99,7 +98,7 @@ class ZeidelMethod {
                 iterationsCount: maxIterations,
                 residual: finalResidual,
                 variables: varNames,
-                initialGuess: savedInitialGuess // ДОБАВЛЕНО
+                initialGuess: savedInitialGuess
             };
 
         } catch (error) {
@@ -111,7 +110,7 @@ class ZeidelMethod {
                 method: this.method,
                 residual: null,
                 iterationsCount: 0,
-                initialGuess: initialGuess || Array(matrix.length || 2).fill(0) // ДОБАВЛЕНО
+                initialGuess: initialGuess || Array(matrix.length || 2).fill(0)
             };
         }
     }

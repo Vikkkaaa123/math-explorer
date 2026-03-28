@@ -53,7 +53,7 @@ class RungeKuttaMethod {
                 
                 if (!this._isFiniteNumber(y)) {
                     return {
-                        method: "Метод Рунге-Кутты 4-го порядка", // ← ДОБАВЬ
+                        method: "Метод Рунге-Кутты 4-го порядка",
                         solution: null,
                         iterations: iterations,
                         converged: false,

@@ -41,10 +41,6 @@
                         <i class="fas fa-cogs"></i>
                         Системы
                     </button>
-                    <button class="tab-button" data-tab="ai">
-                        <i class="fas fa-robot"></i>
-                        AI-Помощник
-                    </button>
                 </div>
             </nav>
 
@@ -74,7 +70,6 @@
                 <option value="bisection">Метод половинного деления</option>
                 <option value="iteration">Метод простой итерации</option>
                 <option value="secant">Метод секущих</option>
-                <option value="neural">Нейросетевой метод</option>
             </select>
         </div>
         
@@ -237,7 +232,6 @@
                 <option value="trapezoidal">Метод трапеций</option>
                 <option value="rectangles">Метод прямоугольников</option>
                 <option value="monte-carlo">Метод Монте-Карло</option>
-                <option value="neural">Нейросетевой метод</option>
             </select>
         </div>
         
@@ -318,7 +312,6 @@
                     <option value="">-- Выберите метод --</option>
                     <option value="euler">Метод Эйлера</option>
                     <option value="runge-kutta">Метод Рунге-Кутты 4 порядка</option>
-                    <option value="neural">Нейросетевой метод</option>
                 </select>
             </div>
         </div>
@@ -380,7 +373,6 @@
                 <option value="gauss">Метод Гаусса</option>
                 <option value="jacobi">Метод Якоби</option>
                 <option value="zeidel">Метод Зейделя</option>
-                <option value="neural">Нейросетевой метод</option>
             </select>
         </div>
         
@@ -401,8 +393,9 @@
         <div class="visualization-container">
             <canvas id="system-chart"></canvas>
         </div>
+        
         <div class="methods-comparison">
-            <h3>Решение системы</h3>
+            <h3><i class="fas fa-poll"></i> Результаты</h3>
             <div class="results-grid" id="system-results"></div>
         </div>
     </div>
@@ -447,30 +440,6 @@
     </div>
 </template>
 
-
-
-
-<!-- Вкладка: AI-Помощник -->
-        <div id="ai-tab" class="tab-pane">
-            <div class="tab-header">
-                <h2><i class="fas fa-robot"></i> AI-Помощник</h2>
-                <p>Опишите задачу текстом - система подберет оптимальные методы решения</p>
-            </div>
-            
-            <div class="ai-input-section">
-                <div class="input-group">
-                    <label for="ai-task-input">Опишите математическую задачу:</label>
-                    <textarea id="ai-task-input" placeholder="Введите пример задачи"></textarea>
-                </div>
-                <button class="calculate-btn ai-btn" id="analyze-ai-task">
-                    <i class="fas fa-brain"></i> Проанализировать
-                </button>
-            </div>
-
-            <div class="ai-results" id="ai-results">
-        
-            </div>
-        </div>
     </div> 
 </main>
 

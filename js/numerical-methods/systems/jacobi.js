@@ -21,7 +21,7 @@ class JacobiMethod {
 
             const varNames = variables || this.generateVariableNames(n);
             
-            // Проверяем диагональные элементы
+            //проверяем диагональные элементы
             for (let i = 0; i < n; i++) {
                 if (Math.abs(matrix[i][i]) < 1e-10) {
                     return {
@@ -36,7 +36,7 @@ class JacobiMethod {
                 }
             }
 
-            // Начальное приближение
+            //начальное приближение
             let x = initialGuess || Array(n).fill(0);
             let xNew = Array(n).fill(0);
             const iterations = [];
@@ -44,7 +44,7 @@ class JacobiMethod {
             for (let k = 0; k < maxIterations; k++) {
                 const xPrev = [...x];
 
-                // Формула Якоби
+                //формула Якоби
                 for (let i = 0; i < n; i++) {
                     let sum = 0;
                     for (let j = 0; j < n; j++) {
@@ -55,16 +55,15 @@ class JacobiMethod {
                     xNew[i] = (vector[i] - sum) / matrix[i][i];
                 }
 
-                // ВЫЧИСЛЯЕМ ТОЛЬКО НЕВЯЗКУ
                 const residual = this.calculateResidual(matrix, vector, xNew);
 
                 iterations.push({
                     iteration: k + 1,
                     x: [...xNew],
-                    residual: residual  // Только невязка!
+                    residual: residual
                 });
 
-                // Критерий остановки по невязке
+                //критерий остановки по невязке
                 if (residual < precision) {
                     return {
                         solution: xNew,
@@ -82,7 +81,7 @@ class JacobiMethod {
                 x = [...xNew];
             }
 
-            // Если не сошлось
+            //если не сошлось
             const finalResidual = this.calculateResidual(matrix, vector, xNew);
             return {
                 solution: xNew,

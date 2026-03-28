@@ -12,10 +12,6 @@ import RungeKuttaMethod from '../numerical-methods/differential/runge-kutta.js';
 import GaussMethod from '../numerical-methods/systems/gauss.js';
 import JacobiMethod from '../numerical-methods/systems/jacobi.js';
 import ZeidelMethod from '../numerical-methods/systems/zeidel.js';
-import NNEquations from '../neural/nn-equations.js';
-import NNIntegration from '../neural/nn-integration.js';
-import NNDifferential from '../neural/nn-differential.js';
-import NNSystems from '../neural/nn-systems.js';
 import ChartBuilder from '../visualization/charts/chart-builder.js';
 import MathParserDE from '../math-core/math-parserDE.js';
 import SystemParser from '../math-core/system-parser.js';
@@ -23,7 +19,6 @@ import SystemParser from '../math-core/system-parser.js';
 class EventManager {
     constructor() {
          this.methods = {};
-        this.neuralMethods = {};
         this.chartBuilder = null;
         this.mathParserDE = null;
         this.systemParser = null;
@@ -58,12 +53,6 @@ class EventManager {
         this.methods.gauss = new GaussMethod();
         this.methods.jacobi = new JacobiMethod();
         this.methods.zeidel = new ZeidelMethod();
-        
-        this.neuralMethods.equations = new NNEquations(parser);
-        this.neuralMethods.integration = new NNIntegration(parser);
-        this.neuralMethods.differential = new NNDifferential(this.mathParserDE);
-        this.neuralMethods.systems = new NNSystems();
-
         this.chartBuilder = new ChartBuilder(parser);
     }
 
@@ -222,77 +211,73 @@ const createInitialGuessFields = (method) => {
 
 
 
-
+//уравнения
     async solveEquation() {
-        try {
-            const func = document.getElementById('equation-function')?.value;
-            const method = document.getElementById('equation-method')?.value;
-            
-            if (!func) {
-                this.app.showError('Введите функцию');
-                return;
-            }
-            
-            if (!method) {
-                this.app.showError('Выберите метод решения');
-                return;
-            }
-            
-            this.app.setLoadingState(true);
-            let result;
-            
-            if (method === 'neural') {
-                const a = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
-                const b = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
-                result = await this.neuralMethods.equations.solve(func, { min: a, max: b });
-            } else {
-                switch (method) {
-                    case 'newton': 
-                        const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
-                        const newtonPrecision = parseFloat(document.getElementById('newton-precision')?.value) || 0.0001;
-                        result = this.methods.newton.solve(func, newtonX0, newtonPrecision); 
-                        break;
-                        
-                    case 'bisection': 
-                        const a = parseFloat(document.getElementById('bisection-a')?.value) || 0;
-                        const b = parseFloat(document.getElementById('bisection-b')?.value) || 1;
-                        const bisectionPrecision = parseFloat(document.getElementById('bisection-precision')?.value) || 0.0001;
-                        result = this.methods.bisection.solve(func, a, b, bisectionPrecision); 
-                        break;
-                        
-                   case 'iteration': 
-                       const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
-                       const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
-                       const iterationPrecision = parseFloat(document.getElementById('iteration-precision')?.value) || 0.0001;
-                       result = this.methods.iteration.solve(func, iterationX0, iterationLambda, iterationPrecision); 
-                       break;
-                        
-                    case 'secant': 
-                        const x1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
-                        const x2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
-                        const secantPrecision = parseFloat(document.getElementById('secant-precision')?.value) || 0.0001;
-                        result = this.methods.secant.solve(func, x1, x2, secantPrecision); 
-                        break;
-                        
-                    default: 
-                        this.app.showError('Неизвестный метод'); 
-                        this.app.setLoadingState(false);
-                        return;
-                }
-            }
-            
-            this.displayEquationResult(result);
-            this.app.setLoadingState(false);
-        } catch (error) {
-            this.app.showError('Ошибка расчета: ' + error.message);
-            this.app.setLoadingState(false);
+    try {
+        const func = document.getElementById('equation-function')?.value;
+        const method = document.getElementById('equation-method')?.value;
+        
+        if (!func) {
+            this.app.showError('Введите функцию');
+            return;
         }
+        
+        if (!method) {
+            this.app.showError('Выберите метод решения');
+            return;
+        }
+        
+        this.app.setLoadingState(true);
+        let result;
+        
+        switch (method) {
+            case 'newton': 
+                const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
+                const newtonPrecision = parseFloat(document.getElementById('newton-precision')?.value) || 0.0001;
+                result = this.methods.newton.solve(func, newtonX0, newtonPrecision); 
+                break;
+                
+            case 'bisection': 
+                const a = parseFloat(document.getElementById('bisection-a')?.value) || 0;
+                const b = parseFloat(document.getElementById('bisection-b')?.value) || 1;
+                const bisectionPrecision = parseFloat(document.getElementById('bisection-precision')?.value) || 0.0001;
+                result = this.methods.bisection.solve(func, a, b, bisectionPrecision); 
+                break;
+                
+            case 'iteration': 
+                const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
+                const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
+                const iterationPrecision = parseFloat(document.getElementById('iteration-precision')?.value) || 0.0001;
+                result = this.methods.iteration.solve(func, iterationX0, iterationLambda, iterationPrecision); 
+                break;
+                
+            case 'secant': 
+                const x1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
+                const x2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
+                const secantPrecision = parseFloat(document.getElementById('secant-precision')?.value) || 0.0001;
+                result = this.methods.secant.solve(func, x1, x2, secantPrecision); 
+                break;
+                
+            default: 
+                this.app.showError('Неизвестный метод'); 
+                this.app.setLoadingState(false);
+                return;
+        }
+        
+        this.displayEquationResult(result);
+        this.app.setLoadingState(false);
+    } catch (error) {
+        this.app.showError('Ошибка расчета: ' + error.message);
+        this.app.setLoadingState(false);
     }
+}
 
-    
-    async compareEquationMethods() {
+
+async compareEquationMethods() {
     try {
         const func = document.getElementById('equation-function').value;
+        console.log('Функция:', func);
+
         if (!func) {
             this.app.showError('Введите функцию');
             return;
@@ -300,35 +285,221 @@ const createInitialGuessFields = (method) => {
         
         this.app.setLoadingState(true);
         
-        const newtonX0 = parseFloat(document.getElementById('newton-x0')?.value) || 1.0;
-        const bisectionA = parseFloat(document.getElementById('bisection-a')?.value) || 0;
-        const bisectionB = parseFloat(document.getElementById('bisection-b')?.value) || 1;
-        const iterationX0 = parseFloat(document.getElementById('iteration-x0')?.value) || 1.0;
-        const iterationLambda = parseFloat(document.getElementById('iteration-lambda')?.value) || 0.1;
-        const secantX1 = parseFloat(document.getElementById('secant-x1')?.value) || 0.5;
-        const secantX2 = parseFloat(document.getElementById('secant-x2')?.value) || 1.0;
-        const neuralA = parseFloat(document.getElementById('neural-interval-a')?.value) || -10;
-        const neuralB = parseFloat(document.getElementById('neural-interval-b')?.value) || 10;
+        const p = this.autoDetectParameters(func);
+        const parser = this.app.getMathParser();
+        const f = parser.parseFunction(func);
         
-        const results = {
-            newton: this.methods.newton.solve(func, newtonX0),
-            bisection: this.methods.bisection.solve(func, bisectionA, bisectionB),
-            iteration: this.methods.iteration.solve(func, iterationX0, iterationLambda),
-            secant: this.methods.secant.solve(func, secantX1, secantX2),
-            neural: await this.neuralMethods.equations.solve(func, { min: neuralA, max: neuralB })
-        };
+        const results = {};
+        
+        let start = performance.now();
+        results.newton = this.methods.newton.solve(func, p.newtonX0);
+        results.newton.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.bisection = this.methods.bisection.solve(func, p.interval[0], p.interval[1]);
+        results.bisection.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.iteration = this.methods.iteration.solve(func, p.newtonX0, p.lambda);
+        results.iteration.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.secant = this.methods.secant.solve(func, p.secantX1, p.secantX2);
+        results.secant.timeMs = performance.now() - start;
+        
+        const container = document.getElementById('equation-results');
+        if (!container) return;
         
         if (results.newton.converged) {
-            this.chartBuilder.drawEquationChart(
-                func, 
-                results.newton.root, 
-                results.newton.iterations, 
-                'newton'
-            );
+            this.chartBuilder.drawEquationChart(func, results.newton.root, null, 'newton');
         }
         
-        this.displayComparison(results, 'equation-results', 'Уравнения');
+        let html = '<div class="comparison-results">';
+        html += '<h3>Сравнение методов</h3>';
+        html += '<p><small>Интервал корня: [' + p.interval[0].toFixed(2) + ', ' + p.interval[1].toFixed(2) + ']</small></p>';
+        html += '<table class="comparison-table">';
+        html += '<thead><tr><th>Метод</th><th>Корень x</th><th>Итерации</th><th>Невязка f(x)</th><th>Время (мс)</th><th>Статус</th></tr></thead>';
+        html += '<tbody>';
+        
+        for (const [method, res] of Object.entries(results)) {
+            const methodName = {
+                newton: 'Метод Ньютона',
+                bisection: 'Метод половинного деления',
+                iteration: 'Метод простой итерации',
+                secant: 'Метод секущих'
+            }[method];
+            
+            if (res.converged && res.root !== null && res.root !== undefined) {
+                const residual = Math.abs(f(res.root));
+                const iterations = res.iterationsCount || res.iterations?.length || '—';
+                const time = res.timeMs ? res.timeMs.toFixed(2) : '—';
+                
+                html += '<tr class="status-success">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td>' + res.root.toFixed(8) + '</td>';
+                html += '<td>' + iterations + '</td>';
+                html += '<td>' + residual.toExponential(4) + '</td>';
+                html += '<td>' + time + '</td>';
+                html += '<td class="status-success">Сходится</td>';
+                html += '</tr>';
+            } else {
+                html += '<tr class="status-error">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td>—</td>';
+                html += '<td>—</td>';
+                html += '<td>—</td>';
+                html += '<td>—</td>';
+                html += '<td class="status-error">Расходится</td>';
+                html += '</tr>';
+            }
+        }
+        
+        html += '</tbody></table>';
+        
+        const histData = {};
+        for (const [method, res] of Object.entries(results)) {
+            if (res.converged && res.root !== null) {
+                const name = {
+                    newton: 'Метод Ньютона',
+                    bisection: 'Метод половинного деления',
+                    iteration: 'Метод простой итерации',
+                    secant: 'Метод секущих'
+                }[method];
+                histData[name] = res.iterationsCount || res.iterations?.length || 0;
+            }
+        }
+        
+        const histId = 'hist-' + Date.now();
+        html += '<div class="chart-container" style="margin-top: 2rem;">';
+        html += '<h4>Количество итераций</h4>';
+        html += '<canvas id="' + histId + '" style="width: 100%; height: 300px;"></canvas>';
+        html += '</div>';
+        
+        const accuracyId = 'accuracy-' + Date.now();
+        html += '<div class="chart-container" style="margin-top: 2rem;">';
+        html += '<h4>График точности</h4>';
+        html += '<canvas id="' + accuracyId + '" style="width: 100%; height: 400px;"></canvas>';
+        html += '</div>';
+        
+        container.innerHTML = html;
+        
+        const histCanvas = document.getElementById(histId);
+        if (histCanvas && Object.keys(histData).length > 0) {
+            new Chart(histCanvas, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(histData),
+                    datasets: [{
+                        label: 'Итерации',
+                        data: Object.values(histData),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Количество итераций' },
+                            ticks: { stepSize: 1, precision: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+        
+        const accuracyCanvas = document.getElementById(accuracyId);
+if (accuracyCanvas) {
+    const datasets = [];
+    const colors = {
+        newton: '#2563eb',
+        bisection: '#10b981',
+        iteration: '#f59e0b',
+        secant: '#ef4444'
+    };
+    const names = {
+        newton: 'Метод Ньютона',
+        bisection: 'Метод половинного деления',
+        iteration: 'Метод простой итерации',
+        secant: 'Метод секущих'
+    };
+    
+    for (const [method, res] of Object.entries(results)) {
+        if (!res.converged || !res.iterations || res.iterations.length === 0) continue;
+        
+        const data = [];
+        for (let i = 0; i < res.iterations.length; i++) {
+            const iter = res.iterations[i];
+            let residual = null;
+            
+            if (iter.error !== undefined) residual = Math.abs(iter.error);
+            else if (iter.fx !== undefined) residual = Math.abs(iter.fx);
+            else if (iter.fCurrent !== undefined) residual = Math.abs(iter.fCurrent);
+            
+            if (residual !== null && residual > 0 && isFinite(residual)) {
+                data.push({ x: Math.log10(residual), y: i + 1 });
+            }
+        }
+        
+        if (data.length > 0) {
+            datasets.push({
+                label: names[method],
+                data: data,
+                borderColor: colors[method],
+                backgroundColor: colors[method],
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: colors[method],
+                showLine: true,
+                tension: 0.1,
+                fill: false
+            });
+        }
+    }
+    
+    if (datasets.length > 0) {
+        new Chart(accuracyCanvas, {
+            type: 'scatter',
+            data: { datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'log₁₀|f(x)| (точность)' },
+                        reverse: true
+                    },
+                    y: {
+                        title: { display: true, text: 'Номер итерации' },
+                        ticks: { stepSize: 1, precision: 0 },
+                        min: 0
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const residual = Math.pow(10, ctx.raw.x);
+                                return ctx.dataset.label + ': итерация ' + ctx.raw.y + ', невязка = ' + residual.toExponential(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    } else {
+        accuracyCanvas.parentElement.innerHTML += '<p style="color: gray; text-align: center;">Нет данных для построения графика точности</p>';
+    }
+}
+        
         this.app.setLoadingState(false);
+        
     } catch (error) {
         this.app.showError('Ошибка сравнения: ' + error.message);
         this.app.setLoadingState(false);
@@ -336,8 +507,7 @@ const createInitialGuessFields = (method) => {
 }
 
 
-
-    displayEquationResult(result) {
+displayEquationResult(result) {
     const container = document.getElementById('equation-results');
     
     if (!container) {
@@ -350,7 +520,7 @@ const createInitialGuessFields = (method) => {
         return;
     }
     
-    //формируем HTML
+    // Формируем HTML
     let content = `
         <div class="result-success">
             <h3>Результаты расчета</h3>
@@ -415,13 +585,7 @@ const createInitialGuessFields = (method) => {
 
 
 
-
-
-
-
-
-
-
+//интегралы
     async solveIntegration() {
     try {
         const func = document.getElementById('integration-function').value;
@@ -440,26 +604,23 @@ const createInitialGuessFields = (method) => {
         this.app.setLoadingState(true);
         let result;
         
-        if (method === 'neural') {
-            result = await this.neuralMethods.integration.solve(func, a, b);
-        } else {
-            switch (method) {
-                case 'simpson': 
-                    result = this.methods.simpson.solve(func, a, b, precision, N, maxIterations); 
-                    break;
-                case 'trapezoidal': 
-                    result = this.methods.trapezoidal.solve(func, a, b, precision, N, maxIterations); 
-                    break;
-                case 'rectangles': 
-                    result = this.methods.rectangles.solve(func, a, b, precision, N, maxIterations); 
-                    break;
-                case 'monte-carlo': 
-                    result = this.methods.monteCarlo.solve(func, a, b, precision, N, maxIterations); 
-                    break;
-                default: 
-                    this.app.showError('Неизвестный метод'); 
-                    return;
-            }
+        switch (method) {
+            case 'simpson': 
+                result = this.methods.simpson.solve(func, a, b, precision, N, maxIterations); 
+                break;
+            case 'trapezoidal': 
+                result = this.methods.trapezoidal.solve(func, a, b, precision, N, maxIterations); 
+                break;
+            case 'rectangles': 
+                result = this.methods.rectangles.solve(func, a, b, precision, N, maxIterations); 
+                break;
+            case 'monte-carlo': 
+                result = this.methods.monteCarlo.solve(func, a, b, precision, N, maxIterations); 
+                break;
+            default: 
+                this.app.showError('Неизвестный метод'); 
+                this.app.setLoadingState(false);
+                return;
         }
         
         this.displayIntegrationResult(result);
@@ -472,7 +633,7 @@ const createInitialGuessFields = (method) => {
 }
 
 
-    async compareIntegrationMethods() {
+async compareIntegrationMethods() {
     try {
         const func = document.getElementById('integration-function').value;
         const a = parseFloat(document.getElementById('integration-a').value);
@@ -488,22 +649,222 @@ const createInitialGuessFields = (method) => {
         
         this.app.setLoadingState(true);
         
-        const results = {
-            simpson: this.methods.simpson.solve(func, a, b, precision, N, maxIterations),
-            trapezoidal: this.methods.trapezoidal.solve(func, a, b, precision, N, maxIterations),
-            rectangles: this.methods.rectangles.solve(func, a, b, precision, N, maxIterations),
-            monteCarlo: this.methods.monteCarlo.solve(func, a, b, precision, N, maxIterations),
-            neural: await this.neuralMethods.integration.solve(func, a, b)
-        };
+        const parser = this.app.getMathParser();
+        const f = parser.parseFunction(func);
         
-        this.displayComparison(results, 'integration-results', 'Интегрирование');
+        const results = {};
+        
+        let start = performance.now();
+        results.simpson = this.methods.simpson.solve(func, a, b, precision, N, maxIterations);
+        results.simpson.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.trapezoidal = this.methods.trapezoidal.solve(func, a, b, precision, N, maxIterations);
+        results.trapezoidal.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.rectangles = this.methods.rectangles.solve(func, a, b, precision, N, maxIterations);
+        results.rectangles.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.monteCarlo = this.methods.monteCarlo.solve(func, a, b, precision, N, maxIterations);
+        results.monteCarlo.timeMs = performance.now() - start;
+        
+        const container = document.getElementById('integration-results');
+        if (!container) return;
+        
+        this.chartBuilder.drawIntegrationChart(func, a, b, 'compare', null);
+        
+        let html = '<div class="comparison-results">';
+        html += '<h3>Сравнение методов интегрирования</h3>';
+        html += '<p><small>Точность: ' + precision + ', начальное N: ' + N + '</small></p>';
+        html += '<table class="comparison-table">';
+        html += '<thead><tr><th>Метод</th><th>Значение интеграла</th><th>Итерации</th><th>Конечное N</th><th>Погрешность</th><th>Время (мс)</th><th>Статус</th></tr></thead>';
+        html += '<tbody>';
+        
+        for (const [method, res] of Object.entries(results)) {
+            const methodName = {
+                simpson: 'Метод Симпсона',
+                trapezoidal: 'Метод трапеций',
+                rectangles: 'Метод прямоугольников',
+                monteCarlo: 'Метод Монте-Карло'
+            }[method];
+            
+            if (res.converged && res.result !== null) {
+                const iterations = res.iterations.length;
+                const lastIter = res.iterations[res.iterations.length - 1];
+                const finalN = lastIter.n;
+                
+                let error = null;
+                if (lastIter.error !== undefined && lastIter.error > 0) {
+                    error = lastIter.error;
+                } else if (iterations > 1) {
+                    const prevIter = res.iterations[res.iterations.length - 2];
+                    if (prevIter.error !== undefined && prevIter.error > 0) {
+                        error = prevIter.error;
+                    }
+                }
+                
+                const time = res.timeMs ? res.timeMs.toFixed(2) : '—';
+                
+                html += '<tr class="status-success">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td>' + res.result.toFixed(8) + '</td>';
+                html += '<td>' + iterations + '</td>';
+                html += '<td>' + finalN + '</td>';
+                html += '<td>' + (error ? error.toExponential(4) : '< 1e-15') + '</td>';
+                html += '<td>' + time + '</td>';
+                html += '<td class="status-success">Сходится</td>';
+                html += '</tr>';
+            } else {
+                html += '<tr class="status-error">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td colspan="5">—</td>';
+                html += '<td class="status-error">' + (res.message || 'Расходится') + '</td>';
+                html += '</tr>';
+            }
+        }
+        
+        html += '</tbody></table>';
+        
+        const histData = {};
+        for (const [method, res] of Object.entries(results)) {
+            if (res.converged) {
+                const name = {
+                    simpson: 'Симпсон',
+                    trapezoidal: 'Трапеции',
+                    rectangles: 'Прямоугольники',
+                    monteCarlo: 'Монте-Карло'
+                }[method];
+                histData[name] = res.iterations.length;
+            }
+        }
+        
+        const histId = 'hist-' + Date.now();
+        html += '<div class="chart-container" style="margin-top: 2rem;">';
+        html += '<h4>Количество итераций</h4>';
+        html += '<canvas id="' + histId + '" style="width: 100%; height: 300px;"></canvas>';
+        html += '</div>';
+        
+        const accuracyId = 'accuracy-' + Date.now();
+        html += '<div class="chart-container" style="margin-top: 2rem;">';
+        html += '<h4>График точности</h4>';
+        html += '<canvas id="' + accuracyId + '" style="width: 100%; height: 400px;"></canvas>';
+        html += '</div>';
+        
+        container.innerHTML = html;
+        
+        const histCanvas = document.getElementById(histId);
+        if (histCanvas && Object.keys(histData).length > 0) {
+            new Chart(histCanvas, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(histData),
+                    datasets: [{
+                        label: 'Итерации',
+                        data: Object.values(histData),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Количество итераций' },
+                            ticks: { stepSize: 1, precision: 0 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        const accuracyCanvas = document.getElementById(accuracyId);
+        if (accuracyCanvas) {
+            const datasets = [];
+            const colors = {
+                simpson: '#2563eb',
+                trapezoidal: '#10b981',
+                rectangles: '#f59e0b',
+                monteCarlo: '#ef4444'
+            };
+            const names = {
+                simpson: 'Симпсон',
+                trapezoidal: 'Трапеции',
+                rectangles: 'Прямоугольники',
+                monteCarlo: 'Монте-Карло'
+            };
+            
+            for (const [method, res] of Object.entries(results)) {
+                if (!res.converged || !res.iterations || res.iterations.length === 0) continue;
+                
+                const data = [];
+                for (let i = 0; i < res.iterations.length; i++) {
+                    const iter = res.iterations[i];
+                    if (iter.error !== undefined && iter.error !== null && iter.error > 0 && isFinite(iter.error)) {
+                        data.push({ x: Math.log10(iter.error), y: i + 1 });
+                    }
+                }
+                
+                if (data.length > 0) {
+                    datasets.push({
+                        label: names[method],
+                        data: data,
+                        borderColor: colors[method],
+                        backgroundColor: colors[method],
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: colors[method],
+                        showLine: true,
+                        tension: 0.1,
+                        fill: false
+                    });
+                }
+            }
+            
+            if (datasets.length > 0) {
+                new Chart(accuracyCanvas, {
+                    type: 'scatter',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'log₁₀(погрешность)' },
+                                reverse: true
+                            },
+                            y: {
+                                title: { display: true, text: 'Номер итерации' },
+                                ticks: { stepSize: 1, precision: 0 },
+                                min: 0
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const error = Math.pow(10, ctx.raw.x);
+                                        return ctx.dataset.label + ': итерация ' + ctx.raw.y + ', погрешность = ' + error.toExponential(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
         this.app.setLoadingState(false);
+        
     } catch (error) {
         this.app.showError('Ошибка сравнения: ' + error.message);
         this.app.setLoadingState(false);
     }
 }
-
 
 
 
@@ -515,13 +876,11 @@ displayIntegrationResult(result) {
         return;
     }
     
-    // проверка сходимости
     if (!result.converged) {
         container.innerHTML = `<div class="error-message">${result.message}</div>`;
         return;
     }
     
-    //получаем данные для графика
     const func = document.getElementById('integration-function').value;
     const a = parseFloat(document.getElementById('integration-a').value);
     const b = parseFloat(document.getElementById('integration-b').value);
@@ -531,9 +890,11 @@ displayIntegrationResult(result) {
     if (func && !isNaN(a) && !isNaN(b) && method) {
         this.lastIntegrationData = { func, a, b, method, iterations: result.iterations };
         this.chartBuilder.drawIntegrationChart(func, a, b, method, result.iterations);
-    } else {
-        console.warn('Не все данные для графика:', { func, a, b, method });
     }
+    
+    const resultValue = typeof result.result === 'string' 
+        ? parseFloat(result.result) 
+        : result.result;
     
     let html = `
         <div class="result-success">
@@ -542,81 +903,45 @@ displayIntegrationResult(result) {
                 <div class="result-icon">✅</div>
                 <div class="result-text">Интеграл вычислен!</div>
             </div>
-    `;
-    
-
-    const resultValue = typeof result.result === 'string' 
-        ? parseFloat(result.result) 
-        : result.result;
-    
-    html += `
-        <div class="result-details">
-            <div class="detail-row">
-                <span class="detail-label">Метод:</span>
-                <span class="detail-value">${result.method || 'Метод Симпсона'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Результат:</span>
-                <span class="detail-value">${resultValue !== null && resultValue !== undefined ? resultValue.toFixed(8) : '—'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Итераций:</span>
-                <span class="detail-value">${result.iterations?.length || 0}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Погрешность:</span>
-                <span class="detail-value">${result.iterations?.length > 0 ? 
-                    (typeof result.iterations[result.iterations.length - 1].error === 'number' ? 
-                     result.iterations[result.iterations.length - 1].error.toFixed(10) : '—') : '—'}</span>
+            <div class="result-details">
+                <div class="detail-row">
+                    <span class="detail-label">Метод:</span>
+                    <span class="detail-value">${result.method || 'Метод Симпсона'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Результат:</span>
+                    <span class="detail-value">${resultValue !== null && resultValue !== undefined ? resultValue.toFixed(8) : '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Итераций:</span>
+                    <span class="detail-value">${result.iterations?.length || 0}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Погрешность:</span>
+                    <span class="detail-value">${result.iterations?.length > 0 ? 
+                        (typeof result.iterations[result.iterations.length - 1].error === 'number' ? 
+                         result.iterations[result.iterations.length - 1].error.toFixed(10) : '—') : '—'}</span>
+                </div>
             </div>
         </div>
-    </div>
     `;
     
-    if (result.iterations && result.iterations.length > 0) {
-        html += `
-            <div class="iterations-table-container">
-                <h4>Процесс итераций:</h4>
-                <table class="iterations-table">
-                    <thead>
-                        <tr>
-                            <th>Итерация</th>
-                            <th>n</th>
-                            <th>h</th>
-                            <th>I_n</th>
-                            <th>Погрешность</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        result.iterations.forEach((iteration, index) => {
-            const iterationNum = index + 1;
-            const n = iteration.n || '—';
-            const h = typeof iteration.h === 'number' ? iteration.h.toFixed(8) : iteration.h || '—';
-            const I_n = typeof iteration.I_n === 'number' ? iteration.I_n.toFixed(8) : 
-                       typeof iteration.result === 'number' ? iteration.result.toFixed(8) : '—';
-            const error = typeof iteration.error === 'number' ? iteration.error.toFixed(8) : '—';
-            
-            html += `
-                <tr>
-                    <td>${iterationNum}</td> 
-                    <td>${n}</td>
-                    <td>${h}</td>
-                    <td>${I_n}</td>
-                    <td>${error}</td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-    
     container.innerHTML = html;
+    
+    if (result.iterations && result.iterations.length > 0) {
+        this.displayIterationsTable(container, result.iterations, {
+            columns: ['Итерация', 'n', 'h', 'Iₙ', 'Погрешность'],
+            extractRow: (iter, index) => [
+                index + 1,
+                iter.n || '-',
+                typeof iter.h === 'number' ? iter.h.toFixed(8) : iter.h || '-',
+                typeof iter.I_n === 'number' ? iter.I_n.toFixed(8) : 
+                typeof iter.result === 'number' ? iter.result.toFixed(8) : '-',
+                iter.error?.toFixed(8) || '-'
+            ],
+            title: 'Процесс интегрирования:'
+        });
+    }
 }
 
 
@@ -625,8 +950,7 @@ displayIntegrationResult(result) {
 
 
 
-
-
+//диффуры
     async solveDifferential() {
     try {
         const func = document.getElementById('diff-equation').value;
@@ -635,8 +959,6 @@ displayIntegrationResult(result) {
         const y0 = parseFloat(document.getElementById('diff-y0').value);
         const xEnd = parseFloat(document.getElementById('diff-end').value);
         const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
-        
-        console.log('Параметры диффура:', { func, method, x0, y0, xEnd, step });
         
         if (!func) {
             this.app.showError('Введите уравнение');
@@ -656,24 +978,19 @@ displayIntegrationResult(result) {
         this.app.setLoadingState(true);
         let result;
         
-        if (method === 'neural') {
-            result = await this.neuralMethods.differential.solve(func, x0, y0, xEnd);
-        } else {
-            switch (method) {
-                case 'euler': 
-                    result = this.methods.euler.solve(func, x0, y0, xEnd, step);
-                    break;
-                case 'runge-kutta': 
-                    result = this.methods.rungeKutta.solve(func, x0, y0, xEnd, step);
-                    break;
-                default: 
-                    this.app.showError('Неизвестный метод'); 
-                    this.app.setLoadingState(false);
-                    return;
-            }
+        switch (method) {
+            case 'euler': 
+                result = this.methods.euler.solve(func, x0, y0, xEnd, step);
+                break;
+            case 'runge-kutta': 
+                result = this.methods.rungeKutta.solve(func, x0, y0, xEnd, step);
+                break;
+            default: 
+                this.app.showError('Неизвестный метод'); 
+                this.app.setLoadingState(false);
+                return;
         }
         
-        console.log('Результат диффура:', result);
         this.displayDifferentialResult(result);
         this.app.setLoadingState(false);
     } catch (error) {
@@ -698,14 +1015,26 @@ displayIntegrationResult(result) {
             return;
         }
         
-        this.app.setLoadingState(true);
-        const results = {
-            euler: this.methods.euler.solve(func, x0, y0, xEnd, step),
-            rungeKutta: this.methods.rungeKutta.solve(func, x0, y0, xEnd, step),
-            neural: await this.neuralMethods.differential.solve(func, x0, y0, xEnd)
-        };
+        if (step <= 0) {
+            this.app.showError('Шаг должен быть положительным');
+            return;
+        }
         
-        //рисуем оба метода на одном графике
+        this.app.setLoadingState(true);
+        
+        const results = {};
+        
+        let start = performance.now();
+        results.euler = this.methods.euler.solve(func, x0, y0, xEnd, step);
+        results.euler.timeMs = performance.now() - start;
+        
+        start = performance.now();
+        results.rungeKutta = this.methods.rungeKutta.solve(func, x0, y0, xEnd, step);
+        results.rungeKutta.timeMs = performance.now() - start;
+        
+        const container = document.getElementById('differential-results');
+        if (!container) return;
+        
         if (results.euler.iterations && results.rungeKutta.iterations) {
             this.chartBuilder.drawDifferentialEquationChart(
                 func,
@@ -721,8 +1050,45 @@ displayIntegrationResult(result) {
             );
         }
         
-        this.displayComparison(results, 'differential-results', 'Дифф. уравнения');
+        let html = '<div class="comparison-results">';
+        html += '<h3>Сравнение методов решения ДУ</h3>';
+        html += '<table class="comparison-table">';
+        html += '<thead><tr><th>Метод</th><th>y(x_end)</th><th>Шагов</th><th>Время (мс)</th><th>Статус</th></tr></thead>';
+        html += '<tbody>';
+        
+        for (const [method, res] of Object.entries(results)) {
+            const methodName = {
+                euler: 'Метод Эйлера',
+                rungeKutta: 'Метод Рунге-Кутты 4-го порядка'
+            }[method];
+            
+            if (res.converged) {
+                const steps = res.iterationsCount || res.iterations?.length || '—';
+                const time = res.timeMs ? res.timeMs.toFixed(2) : '—';
+                const finalY = res.final_y !== undefined ? res.final_y.toFixed(8) : '—';
+                
+                html += '<tr class="status-success">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td>' + finalY + '</td>';
+                html += '<td>' + steps + '</td>';
+                html += '<td>' + time + '</td>';
+                html += '<td class="status-success">Сходится</td>';
+                html += '</tr>';
+            } else {
+                html += '<tr class="status-error">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td colspan="3">—</td>';
+                html += '<td class="status-error">' + (res.message || 'Расходится') + '</td>';
+                html += '</tr>';
+            }
+        }
+        
+        html += '</tbody></table></div>';
+        
+        container.innerHTML = html;
+        
         this.app.setLoadingState(false);
+        
     } catch (error) {
         this.app.showError('Ошибка сравнения: ' + error.message);
         this.app.setLoadingState(false);
@@ -731,8 +1097,143 @@ displayIntegrationResult(result) {
 
 
 
+displayDifferentialResult(result) {
+    const container = document.getElementById('differential-results');
+    
+    if (!container) {
+        console.error('Контейнер differential-results не найден');
+        return;
+    }
+    
+    if (!result.converged) {
+        container.innerHTML = `<div class="error-message">${result.message}</div>`;
+        return;
+    }
+    
+    let html = `
+        <div class="result-success">
+            <h3>Дифференциальные уравнения</h3>
+            <div class="result-main">
+                <div class="result-icon">✅</div>
+                <div class="result-text">Уравнение решено!</div>
+            </div>
+            <div class="result-details">
+                <div class="detail-row">
+                    <span class="detail-label">Метод:</span>
+                    <span class="detail-value">${result.method || 'Не указан'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Уравнение:</span>
+                    <span class="detail-value">y' = ${document.getElementById('diff-equation').value}</span>
+                </div>
+    `;
+    
+    if (result.parameters) {
+        html += `
+                <div class="detail-row">
+                    <span class="detail-label">Начальные условия:</span>
+                    <span class="detail-value">y(${result.parameters.x0}) = ${result.parameters.y0}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Конечная точка:</span>
+                    <span class="detail-value">x_end = ${result.parameters.xEnd}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Шаг h:</span>
+                    <span class="detail-value">${result.parameters.step}</span>
+                </div>
+        `;
+    }
+    
+    html += `
+                <div class="detail-row">
+                    <span class="detail-label">Итераций (шагов):</span>
+                    <span class="detail-value">${result.iterationsCount || result.iterations?.length || 0}</span>
+                </div>
+    `;
+    
+    if (result.final_y !== undefined && result.final_x !== undefined) {
+        html += `
+                <div class="detail-row">
+                    <span class="detail-label">Финальная точка:</span>
+                    <span class="detail-value">(${result.final_x.toFixed(6)}, ${result.final_y.toFixed(6)})</span>
+                </div>
+        `;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    //таблица итераций для ДУ
+    if (result.iterations && result.iterations.length > 0) {
+        const isEuler = result.method?.includes('Эйлер');
+        const isRungeKutta = result.method?.includes('Рунге-Кутт');
+        
+        let columns = ['Шаг', 'x', 'y'];
+        let extractRow;
+        
+        if (isEuler) {
+            columns.push('Производная');
+            extractRow = (iter) => [
+                iter.step || 0,
+                iter.x.toFixed(6),
+                iter.y.toFixed(6),
+                (iter.derivative || 0).toFixed(6)
+            ];
+        } else if (isRungeKutta) {
+            columns.push('k1', 'k2', 'k3', 'k4');
+            extractRow = (iter) => [
+                iter.step || 0,
+                iter.x.toFixed(6),
+                iter.y.toFixed(6),
+                (iter.k1 || 0).toFixed(6),
+                (iter.k2 || 0).toFixed(6),
+                (iter.k3 || 0).toFixed(6),
+                (iter.k4 || 0).toFixed(6)
+            ];
+        } else {
+            extractRow = (iter) => [
+                iter.step || 0,
+                iter.x.toFixed(6),
+                iter.y.toFixed(6)
+            ];
+        }
+        
+        this.displayIterationsTable(container, result.iterations, {
+            columns,
+            extractRow,
+            title: 'Процесс решения:'
+        });
+    }
+    
+    //рисуем график
+    if (result.iterations && result.iterations.length > 0) {
+        const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
+        const method = document.getElementById('diff-method').value;
+        
+        this.chartBuilder.drawDifferentialEquationChart(
+            document.getElementById('diff-equation').value,
+            method,
+            result.iterations[0].x,
+            result.iterations[0].y,
+            step,
+            result.iterationsCount || result.iterations.length,
+            result.iterations
+        );
+    }
+}
 
 
+
+
+
+
+
+//системы
 async solveSystem() {
     try {
         const equationInputs = document.querySelectorAll('.system-eq');
@@ -750,33 +1251,29 @@ async solveSystem() {
         
         let result;
         
-        if (method === 'neural') {
-            result = await this.neuralMethods.systems.solve(equations);
-        } else {
-            switch (method) {
-                case 'gauss': 
-                    result = this.methods.gauss.solve(matrix, vector, variables);
-                    break;
-                    
-                case 'jacobi': 
-                case 'zeidel': 
-                    const params = this.getIterationParameters(method, matrix.length);
-                    result = this.methods[method].solve(
-                        matrix, 
-                        vector, 
-                        params.initialGuess,
-                        variables,
-                        params.precision,
-                        params.maxIterations
-                    );
-                    result.initialGuess = params.initialGuess;
-                    break;
-                    
-                default: 
-                    this.app.showError('Неизвестный метод'); 
-                    this.app.setLoadingState(false);
-                    return;
-            }
+        switch (method) {
+            case 'gauss': 
+                result = this.methods.gauss.solve(matrix, vector, variables);
+                break;
+                
+            case 'jacobi': 
+            case 'zeidel': 
+                const params = this.getIterationParameters(method, matrix.length);
+                result = this.methods[method].solve(
+                    matrix, 
+                    vector, 
+                    params.initialGuess,
+                    variables,
+                    params.precision,
+                    params.maxIterations
+                );
+                result.initialGuess = params.initialGuess;
+                break;
+                
+            default: 
+                this.app.showError('Неизвестный метод'); 
+                this.app.setLoadingState(false);
+                return;
         }
         
         //добавляем данные для графика
@@ -793,7 +1290,6 @@ async solveSystem() {
         this.app.setLoadingState(false);
     }
 }
-
 
 
 getIterationParameters(method, n) {    
@@ -853,17 +1349,247 @@ getIterationParameters(method, n) {
         this.app.setLoadingState(true);
         
         const { matrix, vector, variables } = this.systemParser.parseEquations(equations);
+        const n = matrix.length;
         
-        const results = {
-            gauss: this.methods.gauss.solve(matrix, vector, variables),
-            jacobi: this.methods.jacobi.solve(matrix, vector, this.getInitialApproximation(matrix.length)),
-            zeidel: this.methods.zeidel.solve(matrix, vector, this.getInitialApproximation(matrix.length)),
-            neural: await this.neuralMethods.systems.solve(equations)
-        };
+        const results = {};
         
-        this.displayComparison(results, 'system-results', 'Системы уравнений');
+        //метод Гаусса
+        let start = performance.now();
+        results.gauss = this.methods.gauss.solve(matrix, vector, variables);
+        results.gauss.timeMs = performance.now() - start;
+        
+        //метод Якоби
+        start = performance.now();
+        const jacobiInitialGuess = Array(n).fill(0);
+        results.jacobi = this.methods.jacobi.solve(
+            matrix, 
+            vector, 
+            jacobiInitialGuess,
+            variables,
+            1e-6,
+            1000
+        );
+        results.jacobi.timeMs = performance.now() - start;
+        
+        //метод Зейделя
+        start = performance.now();
+        const zeidelInitialGuess = Array(n).fill(0);
+        results.zeidel = this.methods.zeidel.solve(
+            matrix, 
+            vector, 
+            zeidelInitialGuess,
+            variables,
+            1e-6,
+            1000
+        );
+        results.zeidel.timeMs = performance.now() - start;
+        
+        const container = document.getElementById('system-results');
+        if (!container) return;
+        
+        //рисуем график для двумерн систем
+        if (variables.length === 2 && results.gauss.converged) {
+            this.chartBuilder.drawSystemChart(
+                matrix,
+                vector,
+                variables,
+                'compare',
+                results.gauss
+            );
+        }
+        
+        //таблица сравнения
+        let html = '<div class="comparison-results">';
+        html += '<h3>Сравнение методов решения систем</h3>';
+        html += '<table class="comparison-table">';
+        html += '<thead>';
+        html += '<tr><th>Метод</th><th>Решение</th><th>Итерации</th><th>Невязка</th><th>Время (мс)</th><th>Статус</th></tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        
+        for (const [method, res] of Object.entries(results)) {
+            const methodName = {
+                gauss: 'Метод Гаусса',
+                jacobi: 'Метод Якоби',
+                zeidel: 'Метод Зейделя'
+            }[method];
+            
+            if (res.converged && res.solution) {
+                const solutionStr = res.solution.map(x => x.toFixed(6)).join(', ');
+                const iterations = method === 'gauss' ? '-' : (res.iterationsCount || res.iterations?.length || '—');
+                const residual = res.residual !== undefined && isFinite(res.residual) ? res.residual.toExponential(4) : '—';
+                const time = res.timeMs ? res.timeMs.toFixed(2) : '—';
+                
+                html += '<tr class="status-success">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td>[' + solutionStr + ']</td>';
+                html += '<td>' + iterations + '</td>';
+                html += '<td>' + residual + '</td>';
+                html += '<td>' + time + '</td>';
+                html += '<td class="status-success">Сходится</td>';
+                html += '</tr>';
+            } else {
+                const message = res.message || 'Расходится';
+                html += '<tr class="status-error">';
+                html += '<td><strong>' + methodName + '</strong></td>';
+                html += '<td colspan="4">—</td>';
+                html += '<td class="status-error">' + message + '</td>';
+                html += '</tr>';
+            }
+        }
+        
+        html += '</tbody></table></div>';
+        
+        //диаграмма итераций
+        const histData = {};
+        if (results.jacobi.converged && results.jacobi.iterationsCount) {
+            histData['Якоби'] = results.jacobi.iterationsCount;
+        }
+        if (results.zeidel.converged && results.zeidel.iterationsCount) {
+            histData['Зейдель'] = results.zeidel.iterationsCount;
+        }
+        
+        if (Object.keys(histData).length > 0) {
+            const histId = 'hist-' + Date.now();
+            html += '<div class="chart-container" style="margin-top: 2rem;">';
+            html += '<h4>Количество итераций (итерационные методы)</h4>';
+            html += '<canvas id="' + histId + '" style="width: 100%; height: 300px;"></canvas>';
+            html += '</div>';
+            container.innerHTML = html;
+            
+            const histCanvas = document.getElementById(histId);
+            if (histCanvas) {
+                new Chart(histCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(histData),
+                        datasets: [{
+                            label: 'Итерации',
+                            data: Object.values(histData),
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Количество итераций' },
+                                ticks: { stepSize: 1, precision: 0 }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        } else {
+            container.innerHTML = html;
+        }
+        
+        //график сходимости для итерационных методов
+        const hasJacobiData = results.jacobi.iterations && results.jacobi.iterations.length > 0 && results.jacobi.converged;
+        const hasZeidelData = results.zeidel.iterations && results.zeidel.iterations.length > 0 && results.zeidel.converged;
+        
+        if (hasJacobiData || hasZeidelData) {
+            const accuracyId = 'accuracy-' + Date.now();
+            const accuracyHtml = '<div class="chart-container" style="margin-top: 2rem;">' +
+                '<h4>График сходимости итерационных методов</h4>' +
+                '<canvas id="' + accuracyId + '" style="width: 100%; height: 400px;"></canvas>' +
+                '</div>';
+            
+            container.insertAdjacentHTML('beforeend', accuracyHtml);
+            
+            const accuracyCanvas = document.getElementById(accuracyId);
+            if (accuracyCanvas) {
+                const datasets = [];
+                const colors = {
+                    jacobi: '#f59e0b',
+                    zeidel: '#10b981'
+                };
+                const names = {
+                    jacobi: 'Метод Якоби',
+                    zeidel: 'Метод Зейделя'
+                };
+                
+                for (const [method, res] of Object.entries(results)) {
+                    if (method !== 'jacobi' && method !== 'zeidel') continue;
+                    if (!res.converged || !res.iterations || res.iterations.length === 0) continue;
+                    
+                    const data = [];
+                    for (let i = 0; i < res.iterations.length; i++) {
+                        const iter = res.iterations[i];
+                        let residual = null;
+                        
+                        if (iter.residual !== undefined && isFinite(iter.residual) && iter.residual > 0) {
+                            residual = Math.abs(iter.residual);
+                        } else if (iter.error !== undefined && isFinite(iter.error) && iter.error > 0) {
+                            residual = Math.abs(iter.error);
+                        }
+                        
+                        if (residual !== null && residual > 0 && isFinite(residual)) {
+                            const logVal = Math.log10(residual);
+                            if (isFinite(logVal)) {
+                                data.push({ x: logVal, y: i + 1 });
+                            }
+                        }
+                    }
+                    
+                    if (data.length > 0) {
+                        datasets.push({
+                            label: names[method],
+                            data: data,
+                            borderColor: colors[method],
+                            backgroundColor: colors[method],
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: colors[method],
+                            showLine: true,
+                            tension: 0.1,
+                            fill: false
+                        });
+                    }
+                }
+                
+                if (datasets.length > 0) {
+                    new Chart(accuracyCanvas, {
+                        type: 'scatter',
+                        data: { datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                x: {
+                                    title: { display: true, text: 'log₁₀(невязка)' },
+                                    reverse: true
+                                },
+                                y: {
+                                    title: { display: true, text: 'Номер итерации' },
+                                    ticks: { stepSize: 1, precision: 0 },
+                                    min: 0
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const residual = Math.pow(10, ctx.raw.x);
+                                            return ctx.dataset.label + ': итерация ' + ctx.raw.y + ', невязка = ' + residual.toExponential(2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        
         this.app.setLoadingState(false);
+        
     } catch (error) {
+        console.error('Ошибка сравнения систем:', error);
         this.app.showError('Ошибка сравнения: ' + error.message);
         this.app.setLoadingState(false);
     }
@@ -871,189 +1597,7 @@ getIterationParameters(method, n) {
 
 
 
-
-
-
-
-
-    displayDifferentialResult(result) {
-    const container = document.getElementById('differential-results');
-    
-    if (!container) {
-        console.error('Контейнер differential-results не найден');
-        return;
-    }
-    
-    if (!result.converged) {
-        container.innerHTML = `<div class="error-message">${result.message}</div>`;
-        return;
-    }
-    
-    let html = `
-        <div class="result-success">
-            <h3>📈 Дифференциальные уравнения</h3>
-            <div class="result-main">
-                <div class="result-icon">✅</div>
-                <div class="result-text">Уравнение решено!</div>
-            </div>
-            <div class="result-details">
-                <div class="detail-row">
-                    <span class="detail-label">Метод:</span>
-                    <span class="detail-value">${result.method || 'Не указан'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Уравнение:</span>
-                    <span class="detail-value">y' = ${document.getElementById('diff-equation').value}</span>
-                </div>
-    `;
-    
-    if (result.parameters) {
-        html += `
-                <div class="detail-row">
-                    <span class="detail-label">Начальные условия:</span>
-                    <span class="detail-value">y(${result.parameters.x0}) = ${result.parameters.y0}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Конечная точка:</span>
-                    <span class="detail-value">x_end = ${result.parameters.xEnd}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Шаг h:</span>
-                    <span class="detail-value">${result.parameters.step}</span>
-                </div>
-        `;
-    }
-    
-    html += `
-                <div class="detail-row">
-                    <span class="detail-label">Итераций (шагов):</span>
-                    <span class="detail-value">${result.iterationsCount || result.iterations?.length || 0}</span>
-                </div>
-    `;
-    
-    if (result.final_y !== undefined && result.final_x !== undefined) {
-        html += `
-                <div class="detail-row">
-                    <span class="detail-label">Финальная точка:</span>
-                    <span class="detail-value">(${result.final_x.toFixed(6)}, ${result.final_y.toFixed(6)})</span>
-                </div>
-        `;
-    }
-    
-    html += `
-            </div>
-        </div>
-    `;
-    
-    // Таблица итераций
-    if (result.iterations && result.iterations.length > 0) {
-        html += this.generateDiffIterationsTable(result.iterations, result.method);
-    }
-    
-    container.innerHTML = html;
-    
-    // Рисуем график (если есть метод в chartBuilder)
-    if (result.iterations && result.iterations.length > 0) {
-    const step = parseFloat(document.getElementById('diff-step')?.value) || 0.1;
-    const method = document.getElementById('diff-method').value;
-    
-    this.chartBuilder.drawDifferentialEquationChart(
-        document.getElementById('diff-equation').value,
-        method,
-        result.iterations[0].x,
-        result.iterations[0].y,
-        step,
-        result.iterationsCount || result.iterations.length,
-        result.iterations
-    );
-}
-}
-
-
-
-generateDiffIterationsTable(iterations, methodName) {
-    let tableHTML = `
-        <div class="iterations-table-container">
-            <h4>Процесс решения (первые 10 и последние 5 шагов):</h4>
-            <table class="iterations-table">
-                <thead>
-                    <tr>
-                        <th>Шаг</th>
-                        <th>x</th>
-                        <th>y</th>
-    `;
-    
-    // Разные столбцы для разных методов
-    if (methodName && methodName.includes('Эйлер')) {
-        tableHTML += `<th>Производная</th>`;
-    } else if (methodName && methodName.includes('Рунге-Кутт')) {
-        tableHTML += `<th>k1</th><th>k2</th><th>k3</th><th>k4</th>`;
-    }
-    
-    tableHTML += `
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-    
-    // Показываем первые 10 шагов
-    const showFirst = Math.min(10, iterations.length);
-    for (let i = 0; i < showFirst; i++) {
-        const iter = iterations[i];
-        tableHTML += this.generateDiffIterationRow(iter, methodName);
-    }
-    
-    // Пропускаем если много итераций
-    if (iterations.length > 15) {
-        tableHTML += `
-            <tr>
-                <td colspan="${methodName.includes('Рунге-Кутт') ? 8 : 4}" 
-                    style="text-align: center; color: #666; font-style: italic;">
-                    ... ${iterations.length - 15} промежуточных шагов ...
-                </td>
-            </tr>
-        `;
-        
-        // Показываем последние 5 шагов
-        for (let i = Math.max(showFirst, iterations.length - 5); i < iterations.length; i++) {
-            const iter = iterations[i];
-            tableHTML += this.generateDiffIterationRow(iter, methodName);
-        }
-    }
-    
-    tableHTML += `
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    return tableHTML;
-}
-
-generateDiffIterationRow(iter, methodName) {
-    let row = `<tr>`;
-    row += `<td>${iter.step || 0}</td>`;
-    row += `<td>${iter.x.toFixed(6)}</td>`;
-    row += `<td>${iter.y.toFixed(6)}</td>`;
-    
-    if (methodName && methodName.includes('Эйлер')) {
-        row += `<td>${(iter.derivative || 0).toFixed(6)}</td>`;
-    } else if (methodName && methodName.includes('Рунге-Кутт')) {
-        row += `<td>${(iter.k1 || 0).toFixed(6)}</td>`;
-        row += `<td>${(iter.k2 || 0).toFixed(6)}</td>`;
-        row += `<td>${(iter.k3 || 0).toFixed(6)}</td>`;
-        row += `<td>${(iter.k4 || 0).toFixed(6)}</td>`;
-    }
-    
-    row += `</tr>`;
-    return row;
-}
-
-
-
-
-
-    displaySystemResult(result) {
+    displaySystemResult(result) {    
     const container = document.getElementById('system-results');
     if (!container) {
         console.error('Контейнер system-results не найден!');
@@ -1067,7 +1611,7 @@ generateDiffIterationRow(iter, methodName) {
     
     let html = `
         <div class="result-success">
-            <h3>📊 ${result.method}</h3>
+            <h3>${result.method}</h3>
             <div class="result-main">
                 <div class="result-icon">✅</div>
                 <div class="result-text">
@@ -1081,7 +1625,7 @@ generateDiffIterationRow(iter, methodName) {
                 </div>
     `;
     
-    // Для Гаусса показываем определитель
+    //для гаусса показываем определитель
     if (result.method === 'Метод Гаусса' && result.determinant !== null && result.determinant !== undefined) {
         html += `
                 <div class="detail-row">
@@ -1091,7 +1635,7 @@ generateDiffIterationRow(iter, methodName) {
         `;
     }
     
-    // Для итерационных методов показываем количество итераций
+    //для итерационных методов показываем количество итераций
     if ((result.method === 'Метод Якоби' || result.method === 'Метод Зейделя') && 
         result.iterationsCount !== null && result.iterationsCount !== undefined) {
         html += `
@@ -1117,7 +1661,7 @@ generateDiffIterationRow(iter, methodName) {
                     <span class="detail-value solution">
     `;
     
-    // Красиво выводим решение с именами переменных
+    //вывод решения с именами переменных
     if (result.variables && result.solution) {
         result.variables.forEach((varName, idx) => {
             html += `${varName} = ${result.solution[idx].toFixed(6)}<br>`;
@@ -1132,28 +1676,30 @@ generateDiffIterationRow(iter, methodName) {
         </div>
     `;
     
-    // РАЗНЫЙ ВЫВОД ДЛЯ РАЗНЫХ МЕТОДОВ
     if (result.method === 'Метод Гаусса' && result.steps) {
         html += this.displayGaussSteps(result.steps, result.variables);
-    } else if ((result.method === 'Метод Якоби' || result.method === 'Метод Зейделя') && 
-               result.iterations && result.iterations.length > 0) {
-        html += this.generateSystemIterationsTable(result.iterations, result.variables);
+    }
+    if ((result.method === 'Метод Якоби' || result.method === 'Метод Зейделя') && 
+        result.iterations && result.iterations.length > 0) {
+        const tempDiv = document.createElement('div');
+        this.displayIterationsTable(tempDiv, result.iterations, {
+            columns: ['Итерация', ...result.variables, 'Невязка'],
+            extractRow: (iter, index) => [
+                iter.iteration || index + 1,
+                ...result.variables.map((_, idx) => 
+                    (iter.x?.[idx] || iter.solution?.[idx] || 0).toFixed(6)
+                ),
+                iter.residual?.toFixed(6) || '-'
+            ],
+            title: 'Процесс итераций:'
+        });
+        html += tempDiv.innerHTML;
     }
     
-    // Создаем контейнер для ОСНОВНОГО графика системы
-    html += `
-        <div class="chart-container">
-            <div class="chart-wrapper" id="system-graph-wrapper">
-                <h4>График системы уравнений</h4>
-                <canvas id="system-chart" style="width: 100%; height: 400px;"></canvas>
-            </div>
-        </div>
-    `;
     
     container.innerHTML = html;
     
-    // РИСУЕМ ОСНОВНОЙ ГРАФИК СИСТЕМЫ (всегда)
-    // Проверяем, что система 2D
+    // проверяем, что система 2д и рисуем основной график
     if (result.variables && result.variables.length === 2 && 
         result.matrix && result.matrix.length === 2 && 
         result.vector && result.vector.length === 2 &&
@@ -1161,23 +1707,17 @@ generateDiffIterationRow(iter, methodName) {
         
         setTimeout(() => {
             try {
-                // Определяем тип метода
                 let methodType = 'gauss';
                 if (result.method.includes('Якоби')) methodType = 'jacobi';
                 if (result.method.includes('Зейделя') || result.method.includes('Зейдел')) methodType = 'zeidel';
                 
-                console.log('Рисуем ОСНОВНОЙ график системы, methodType:', methodType);
-                
-                // Рисуем основной график системы (уравнения + решение)
-                const success = this.chartBuilder.drawSystemChart(
+                this.chartBuilder.drawSystemChart(
                     result.matrix,
                     result.vector,
                     result.variables,
                     methodType,
                     result
                 );
-                
-                console.log('Основной график построен:', success);
                 
             } catch (error) {
                 console.warn('Ошибка построения основного графика:', error);
@@ -1186,49 +1726,56 @@ generateDiffIterationRow(iter, methodName) {
     }
 }
 
+
+
 displayGaussSteps(steps, variables) {
+    if (!steps || steps.length === 0) return '';
+    
     let html = '<div class="gauss-steps">';
+    html += '<h4>Пошаговое решение методом Гаусса</h4>';
     
     steps.forEach((step, index) => {
         html += `<div class="gauss-step step-${step.type}">`;
-        html += `<h4>${step.label}</h4>`;
+        html += `<h5>${step.label}</h5>`;
         
         if (step.type === 'initial' || step.type === 'after_forward' || 
             step.type === 'row_swap' || step.type === 'elimination') {
-            // Выводим матрицу
-            html += `<div class="matrix-container">`;
+            //выводим матрицу
+            html += '<div class="matrix-container">';
             html += this.formatMatrixTable(step.matrix, variables);
-            html += `</div>`;
+            html += '</div>';
             
-            // Дополнительная информация
+            //дополнительная информация
             if (step.details) {
                 if (step.type === 'row_swap') {
-                    html += `<p class="step-details">Переставлены строки ${step.details.row1} и ${step.details.row2}</p>`;
+                    html += `<p class="step-details">Переставлены строки ${step.details.row1 + 1} и ${step.details.row2 + 1}</p>`;
                 } else if (step.type === 'elimination') {
-                    html += `<p class="step-details">Обнулены элементы под диагональю в столбце ${step.details.column}</p>`;
+                    html += `<p class="step-details">Обнулены элементы под диагональю в столбце ${step.details.column + 1}</p>`;
                 }
             }
             
         } else if (step.type === 'back_substitution') {
-            // Выводим шаги обратной подстановки
-            html += `<div class="back-substitution">`;
-            step.steps.forEach(subStep => {
-                html += `
-                    <div class="substitution-step">
-                        <span class="step-number">Шаг ${subStep.step}:</span>
-                        <span class="variable">${subStep.variable}</span>
-                        <span class="equation">${subStep.equation}</span>
-                    </div>
-                `;
-            });
-            html += `</div>`;
+            //выводим шаги обратной подстановки
+            html += '<div class="back-substitution">';
+            if (step.steps && step.steps.length > 0) {
+                step.steps.forEach(subStep => {
+                    html += `
+                        <div class="substitution-step">
+                            <span class="step-number">Шаг ${subStep.step}:</span>
+                            <span class="variable">${subStep.variable}</span>
+                            <span class="equation">${subStep.equation}</span>
+                        </div>
+                    `;
+                });
+            }
+            html += '</div>';
         } else if (step.type === 'error') {
-            html += `<div class="error-step">
-                <p>Матрица вырождена, решение невозможно</p>
-            </div>`;
+            html += '<div class="error-step">';
+            html += '<p>Матрица вырождена, решение невозможно</p>';
+            html += '</div>';
         }
         
-        html += `</div>`;
+        html += '</div>';
     });
     
     html += '</div>';
@@ -1237,18 +1784,21 @@ displayGaussSteps(steps, variables) {
 
 formatMatrixTable(matrix, variables) {
     const n = matrix.length;
-    const m = matrix[0].length; // n+1 для расширенной матрицы
+    const m = matrix[0].length; //n+1 для расширенной матрицы
     
     let table = '<table class="matrix-table">';
     
-    // Заголовок с именами переменных
-    table += '<thead><tr><th></th>';
+    //заголовок с именами переменных
+    table += '<thead>';
+    table += '<tr><th></th>';
     for (let j = 0; j < m - 1; j++) {
-        table += `<th>${variables?.[j] || `x${j+1}`}</th>`;
+        const varName = variables && variables[j] ? variables[j] : `x${j+1}`;
+        table += `<th>${varName}</th>`;
     }
-    table += '<th class="vector-col">b</th></tr></thead>';
+    table += '<th class="vector-col">b</th>';
+    table += '</tr></thead>';
     
-    // Данные матрицы
+    //данные матрицы
     table += '<tbody>';
     for (let i = 0; i < n; i++) {
         table += '<tr>';
@@ -1259,7 +1809,6 @@ formatMatrixTable(matrix, variables) {
             let displayValue = value.toFixed(4);
             let cellClass = '';
             
-            // Подсветка
             if (Math.abs(value) < 1e-10) {
                 displayValue = '0.0000';
                 cellClass = 'zero';
@@ -1269,7 +1818,7 @@ formatMatrixTable(matrix, variables) {
                 cellClass = 'below-diagonal';
             }
             
-            // Последний столбец (вектор b)
+            //последний столбец (вектор b)
             if (j === m - 1) {
                 cellClass += ' vector-cell';
             }
@@ -1286,128 +1835,208 @@ formatMatrixTable(matrix, variables) {
 
 
 
-generateSystemIterationsTable(iterations, variables) {
+
+//метод для отображения таблиц итераций с возможностью разворачивания
+displayIterationsTable(container, iterations, config = {}) {
+    if (!iterations || iterations.length === 0) return;
+    
+    const {
+        columns = ['Итерация', 'x', 'f(x)', 'Ошибка'],
+        extractRow = (iter, index) => [
+            iter.iteration || index + 1,
+            iter.x?.toFixed(6) || iter.mid?.toFixed(6) || '-',
+            iter.fx?.toFixed(6) || iter.fMid?.toFixed(6) || iter.fCurrent?.toFixed(6) || '-',
+            iter.error?.toFixed(6) || '-'
+        ],
+        title = 'Процесс итераций:',
+        showFirst = 10,
+        showLast = 5,
+        collapseThreshold = 30
+    } = config;
+    
+    const total = iterations.length;
+    const shouldCollapse = total > collapseThreshold;
+    
+    //уникальный id для этой таблицы
+    const tableId = 'iter-table-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    
     let tableHTML = `
-        <div class="iterations-table-container">
-            <h4>Процесс итераций:</h4>
+        <div class="iterations-table-container" id="${tableId}">
+            <h4>${title} (всего ${total} итераций)</h4>
             <table class="iterations-table">
                 <thead>
                     <tr>
-                        <th>Итерация</th>
-    `;
-    
-    // Заголовки для переменных
-    variables.forEach((varName, idx) => {
-        tableHTML += `<th>${varName}</th>`;
-    });
-    
-    tableHTML += `
-                        <th>Невязка</th>
+                        ${columns.map(col => `<th>${col}</th>`).join('')}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="iterations-body">
     `;
     
-    // Показываем первые 10 шагов
-    const showFirst = Math.min(10, iterations.length);
-    for (let i = 0; i < showFirst; i++) {
-        tableHTML += this.generateSystemIterationRow(iterations[i], variables, i);
-    }
+    //функция добавления строк
+    const addRows = (start, end) => {
+        let rows = '';
+        for (let i = start; i < end; i++) {
+            const row = extractRow(iterations[i], i);
+            rows += `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+        }
+        return rows;
+    };
     
-    // Пропускаем если много итераций
-    if (iterations.length > 15) {
+    if (shouldCollapse) {
+        const hiddenCount = total - showFirst - showLast;
+        
+        //первые строки
+        tableHTML += addRows(0, showFirst);
+        
+        //строка-кнопка показать
         tableHTML += `
-            <tr>
-                <td colspan="${variables.length + 2}" style="text-align: center; color: #666; font-style: italic;">
-                    ... ${iterations.length - 15} промежуточных итераций ...
-                </td>
-            </tr>
+            <tr class="expand-row show-btn" id="${tableId}-show-btn">
+                <td colspan="${columns.length}" class="expand-cell">
+                    <button class="expand-btn show-btn" data-table="${tableId}">
+                        <span class="expand-text">⋯ еще ${hiddenCount} промежуточных итераций ⋯</span>
+                    </button>
+                  </td>
+              </tr>
         `;
         
-        // Показываем последние 5 шагов
-        for (let i = Math.max(showFirst, iterations.length - 5); i < iterations.length; i++) {
-            tableHTML += this.generateSystemIterationRow(iterations[i], variables, i);
-        }
+        //скрытые промежуточные строки
+        tableHTML += `
+            <tbody class="hidden-iterations" style="display: none;" id="${tableId}-hidden">
+                ${addRows(showFirst, total - showLast)}
+            </tbody>
+        `;
+        
+        //Последние строки
+        tableHTML += addRows(total - showLast, total);
+        
+        //кнопка скрыть
+        tableHTML += `
+            <tr class="collapse-row" style="display: none;" id="${tableId}-collapse-btn">
+                <td colspan="${columns.length}" class="expand-cell">
+                    <button class="expand-btn collapse-btn" data-table="${tableId}">
+                        <span class="collapse-text">скрыть промежуточные итерации</span>
+                    </button>
+                  </td>
+              </tr>
+        `;
+        
+    } else {
+        //если итераций меньше 30 показываем все
+        tableHTML += addRows(0, total);
     }
     
     tableHTML += `
                 </tbody>
-            </table>
+              </table>
         </div>
     `;
     
-    return tableHTML;
-}
-
-generateSystemIterationRow(iter, variables, index) {
-    let row = `<tr>`;
-    row += `<td>${iter.iteration || index + 1}</td>`;
+    //добавляем таблицу в контейнер
+    container.insertAdjacentHTML('beforeend', tableHTML);
     
-    // Значения переменных
-    variables.forEach((_, idx) => {
-        const value = iter.x?.[idx] || iter.solution?.[idx] || 0;
-        row += `<td>${value.toFixed(6)}</td>`;
-    });
+    //добавляем обработчики на кнопки
+    const showBtn = document.querySelector(`#${tableId}-show-btn .expand-btn`);
+    const collapseBtn = document.querySelector(`#${tableId}-collapse-btn .expand-btn`);
+    const showRow = document.getElementById(`${tableId}-show-btn`);
+    const collapseRow = document.getElementById(`${tableId}-collapse-btn`);
+    const hiddenRows = document.getElementById(`${tableId}-hidden`);
     
-    // Только невязка
-    row += `<td>${iter.residual?.toFixed(6) || '—'}</td>`;
-    
-    row += `</tr>`;
-    return row;
-}
-
-
-
-    displayIterationsTable(container, iterations) {
-        const tableHTML = `
-            <div class="iterations-table-container">
-                <h4>Процесс итераций:</h4>
-                <table class="iterations-table">
-                    <thead>
-                        <tr>
-                            <th>Итерация</th>
-                            <th>x</th>
-                            <th>f(x)</th>
-                            <th>Ошибка</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${iterations.map(iter => `
-                            <tr>
-                                <td>${iter.iteration}</td>
-                                <td>${iter.x?.toFixed(6) || iter.mid?.toFixed(6) || '-'}</td>
-                                <td>${iter.fx?.toFixed(6) || iter.fMid?.toFixed(6) || iter.fCurrent?.toFixed(6) || '-'}</td>
-                                <td>${iter.error?.toFixed(6) || '-'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        
-        container.insertAdjacentHTML('beforeend', tableHTML);
+    if (showBtn) {
+        showBtn.addEventListener('click', () => {
+            //разворачиваем
+            showRow.style.display = 'none';
+            hiddenRows.style.display = 'table-row-group';
+            collapseRow.style.display = 'table-row';
+        });
     }
+    
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+            //сворачиваем
+            showRow.style.display = 'table-row';
+            hiddenRows.style.display = 'none';
+            collapseRow.style.display = 'none';
+        });
+    }
+}
 
-    displayComparison(results, containerId, title) {
-        const container = document.getElementById(containerId);
-        let html = `<div class="comparison-results"><h3>Сравнение методов: ${title}</h3>`;
-        for (const [method, result] of Object.entries(results)) {
-            const methodClass = result.converged ? 'method-success' : 'method-error';
-            html += `<div class="method-result ${methodClass}"><h4>${method}</h4>`;
-            if (result.converged) {
-                html += `<p>${result.message}</p>`;
-                if (result.probability) html += `<p>Вероятность: ${result.probability}%</p>`;
-                if (result.roots) html += `<p>Корни: ${result.roots.map(r => r.x.toFixed(6)).join(', ')}</p>`;
-                if (result.result !== undefined) html += `<p>Результат: ${result.result.toFixed(6)}</p>`;
-                if (result.solution && Array.isArray(result.solution)) html += `<p>Решение: [${result.solution.map(x => x.toFixed(6)).join(', ')}]</p>`;
-            } else {
-                html += `<p>${result.message}</p>`;
+
+
+autoDetectParameters(func) {
+    const parser = this.app.getMathParser();
+    const f = parser.parseFunction(func);
+    
+    // Начинаем поиск с диапазона от -10 до 10
+    let start = -10;
+    let end = 10;
+    let step = 0.5;
+    let interval = null;
+    let maxAttempts = 5;  //макс расширений
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        //ищем корень в текущем диапазоне
+        for (let x = start; x <= end - step; x += step) {
+            const fx = f(x);
+            const fxNext = f(x + step);
+            
+            if (fx * fxNext < 0) {
+                interval = [x, x + step];
+                break;
             }
-            html += `</div>`;
         }
-        html += `</div>`;
-        container.innerHTML = html;
+        
+        //нашли — возвращаем
+        if (interval) {
+            break;
+        }
+        
+        //не нашли — расширяем диапазон на 20 и увелич шаг
+        const expand = 20; 
+        start -= expand;
+        end += expand;
+        step = Math.min(step * 1.5, 5);
     }
+    
+    //все равно не нашли — интервал от -50 до 50
+    if (!interval) {
+        interval = [-50, 50];
+    }
+    
+    //параметры для методов
+    const newtonX0 = (interval[0] + interval[1]) / 2;
+    const secantX1 = interval[0];
+    const secantX2 = interval[1];
+    
+    //подбираем лямбда для метода простой итерации
+    let lambda = 0.1;
+    const lambdas = [0.01, 0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0];
+    
+    for (const l of lambdas) {
+        try {
+            let x = newtonX0;
+            let converged = true;
+            for (let i = 0; i < 100; i++) {
+                const newX = x - l * f(x);
+                if (Math.abs(newX - x) < 1e-8) {
+                    lambda = l;
+                    break;
+                }
+                if (Math.abs(newX) > 1e10 || !isFinite(newX)) {
+                    converged = false;
+                    break;
+                }
+                x = newX;
+            }
+            if (converged) {
+                lambda = l;
+                break;
+            }
+        } catch(e) {}
+    }
+    
+    return { interval, newtonX0, secantX1, secantX2, lambda };
+}
+
 }
 
 export default EventManager;

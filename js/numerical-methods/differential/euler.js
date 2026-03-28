@@ -9,7 +9,7 @@ class EulerMethod {
             
             if (x0 >= xEnd || step <= 0) {
                 return {
-                    method: "Метод Эйлера", // ← ДОБАВЬ
+                    method: "Метод Эйлера",
                     solution: null,
                     iterations: [],
                     converged: false,
@@ -47,7 +47,7 @@ class EulerMethod {
                 
                 if (!this._isFiniteNumber(y)) {
                     return {
-                        method: "Метод Эйлера", // ← ДОБАВЬ
+                        method: "Метод Эйлера",
                         solution: null,
                         iterations: iterations,
                         converged: false,
@@ -57,7 +57,7 @@ class EulerMethod {
             }
             
             return {
-                method: "Метод Эйлера", // ← ДОБАВЬ ЭТО
+                method: "Метод Эйлера",
                 solution: {
                     x: iterations.map(point => point.x),
                     y: iterations.map(point => point.y)
@@ -73,7 +73,7 @@ class EulerMethod {
             
         } catch (error) {
             return {
-                method: "Метод Эйлера", // ← ДОБАВЬ
+                method: "Метод Эйлера",
                 solution: null,
                 iterations: [],
                 converged: false,

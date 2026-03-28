@@ -1057,10 +1057,10 @@ body {
 }
 
 .vector-input-field {
-    width: 50px !important;  /* принудительно 50px */
-    height: 50px !important; /* принудительно 50px */
-    min-width: 50px !important; /* не меньше 50px */
-    max-width: 50px !important; /* не больше 50px */
+    width: 50px !important; 
+    height: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
     padding: 0 !important;
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -1103,4 +1103,138 @@ body {
         font-size: 20px;
         width: 16px;
     }
+}
+
+
+
+
+/* Общие стили для всех таблиц */
+.comparison-table,
+.matrix-table,
+.iterations-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 14px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Заголовки таблиц */
+.comparison-table th,
+.matrix-table th,
+.iterations-table th {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-weight: 600;
+    padding: 12px 16px;
+    text-align: center;
+    border-bottom: 2px solid #e2e8f0;
+    font-size: 14px;
+}
+
+/* Ячейки таблиц */
+.comparison-table td,
+.matrix-table td,
+.iterations-table td {
+    padding: 10px 16px;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+
+/* При наведении */
+.comparison-table tr:hover,
+.matrix-table tr:hover,
+.iterations-table tr:hover {
+    background-color: #fef9e3;
+    transition: background 0.2s;
+}
+
+/* Успешные строки (сходится) */
+.comparison-table .status-success {
+    background-color: #f0fdf4;
+}
+
+/* Ошибочные строки (расходится) */
+.comparison-table .status-error {
+    background-color: #fef2f2;
+}
+.comparison-table .status-error td:last-child {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+/* Таблица матриц Гаусса */
+.matrix-table .diagonal {
+    background-color: #dbeafe;
+    font-weight: 600;
+}
+
+.matrix-table .zero {
+    color: #94a3b8;
+}
+
+.matrix-table .vector-col {
+    background-color: #fef9c3;
+}
+
+.matrix-table .vector-cell {
+    background-color: #fef9c3;
+}
+
+/* Таблица итераций */
+.iterations-table th {
+    background: #e2e8f0;
+}
+
+.iterations-table td {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+/* Кнопка разворачивания таблицы */
+.expand-btn {
+    background: #e2e8f0;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #334155;
+}
+
+.expand-btn:hover {
+    background: #cbd5e1;
+    transform: scale(1.02);
+}
+
+.expand-cell {
+    text-align: center;
+    padding: 8px;
+    background: #f8fafc;
+}
+
+/* Скрытые строки */
+.hidden-iterations {
+    background: #fef9e3;
+}
+
+.hidden-iterations-content {
+    padding: 8px 0;
+}
+
+
+/* Скрываем пустой график */
+.visualization-container {
+    display: none;
+}
+
+/* Показываем только когда есть данные */
+.visualization-container:has(canvas[data-loaded="true"]) {
+    display: flex;
 }
