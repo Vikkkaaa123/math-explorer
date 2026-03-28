@@ -372,13 +372,13 @@ async compareEquationMethods() {
         const histId = 'hist-' + Date.now();
         html += '<div class="chart-container" style="margin-top: 2rem;">';
         html += '<h4>Количество итераций</h4>';
-        html += '<canvas id="' + histId + '" style="width: 100%; height: 300px;"></canvas>';
+        html += '<canvas id="' + histId + '" style="width: 100%; height: 450px;"></canvas>';
         html += '</div>';
         
         const accuracyId = 'accuracy-' + Date.now();
         html += '<div class="chart-container" style="margin-top: 2rem;">';
         html += '<h4>График точности</h4>';
-        html += '<canvas id="' + accuracyId + '" style="width: 100%; height: 400px;"></canvas>';
+        html += '<canvas id="' + accuracyId + '" style="width: 100%; height: 450px;"></canvas>';
         html += '</div>';
         
         container.innerHTML = html;
@@ -508,19 +508,25 @@ if (accuracyCanvas) {
 
 
 displayEquationResult(result) {
-    const container = document.getElementById('equation-results');
+    //контейнер для графика
+    const chartContainer = document.querySelector(`#${this.app.currentTab}-tab .visualization-container`);
+    if (chartContainer) {
+        chartContainer.style.display = 'none';
+    }
     
-    if (!container) {
+    //контейнер для результатов
+    const resultsContainer = document.getElementById('equation-results');
+    if (!resultsContainer) {
         console.error('Контейнер equation-results не найден');
         return;
     }
     
     if (!result.converged) {
-        container.innerHTML = `<div class="error-message">${result.message}</div>`;
+        resultsContainer.innerHTML = `<div class="error-message">${result.message}</div>`;
         return;
     }
     
-    // Формируем HTML
+    //формируем HTML
     let content = `
         <div class="result-success">
             <h3>Результаты расчета</h3>
@@ -567,10 +573,10 @@ displayEquationResult(result) {
         </div>
     `;
     
-    container.innerHTML = content;
+    resultsContainer.innerHTML = content;
     
     if (result.iterations && result.iterations.length > 0) {
-        this.displayIterationsTable(container, result.iterations);
+        this.displayIterationsTable(resultsContainer, result.iterations);
     }
     
     //рисуем график
@@ -578,6 +584,11 @@ displayEquationResult(result) {
         const method = document.getElementById('equation-method').value;
         const func = document.getElementById('equation-function').value;
         this.chartBuilder.drawEquationChart(func, result.root, result.iterations, method);
+        
+        //показываем контейнер с графиком после отрисовки
+        if (chartContainer) {
+            chartContainer.style.display = 'block';
+        }
     }
 }
 
@@ -743,13 +754,13 @@ async compareIntegrationMethods() {
         const histId = 'hist-' + Date.now();
         html += '<div class="chart-container" style="margin-top: 2rem;">';
         html += '<h4>Количество итераций</h4>';
-        html += '<canvas id="' + histId + '" style="width: 100%; height: 300px;"></canvas>';
+        html += '<canvas id="' + histId + '" style="width: 100%; height: 450px;"></canvas>';
         html += '</div>';
         
         const accuracyId = 'accuracy-' + Date.now();
         html += '<div class="chart-container" style="margin-top: 2rem;">';
         html += '<h4>График точности</h4>';
-        html += '<canvas id="' + accuracyId + '" style="width: 100%; height: 400px;"></canvas>';
+        html += '<canvas id="' + accuracyId + '" style="width: 100%; height: 450px;"></canvas>';
         html += '</div>';
         
         container.innerHTML = html;
@@ -869,8 +880,14 @@ async compareIntegrationMethods() {
 
 
 displayIntegrationResult(result) {
-    const container = document.getElementById('integration-results');
+    //контейнер для графика
+    const chartContainer = document.querySelector(`#${this.app.currentTab}-tab .visualization-container`);
+    if (chartContainer) {
+        chartContainer.style.display = 'none';
+    }
     
+    //контейнер для результатов
+    const container = document.getElementById('integration-results');
     if (!container) {
         console.error('Контейнер integration-results не найден');
         return;
@@ -890,6 +907,11 @@ displayIntegrationResult(result) {
     if (func && !isNaN(a) && !isNaN(b) && method) {
         this.lastIntegrationData = { func, a, b, method, iterations: result.iterations };
         this.chartBuilder.drawIntegrationChart(func, a, b, method, result.iterations);
+        
+        //показываем контейнер с графиком после отрисовки
+        if (chartContainer) {
+            chartContainer.style.display = 'block';
+        }
     }
     
     const resultValue = typeof result.result === 'string' 
@@ -943,7 +965,6 @@ displayIntegrationResult(result) {
         });
     }
 }
-
 
 
 
@@ -1098,8 +1119,14 @@ displayIntegrationResult(result) {
 
 
 displayDifferentialResult(result) {
-    const container = document.getElementById('differential-results');
+    //контейнер для графика
+    const chartContainer = document.querySelector(`#${this.app.currentTab}-tab .visualization-container`);
+    if (chartContainer) {
+        chartContainer.style.display = 'none';
+    }
     
+    //контейнер для результатов
+    const container = document.getElementById('differential-results');
     if (!container) {
         console.error('Контейнер differential-results не найден');
         return;
@@ -1224,9 +1251,13 @@ displayDifferentialResult(result) {
             result.iterationsCount || result.iterations.length,
             result.iterations
         );
+        
+        //показываем контейнер с графиком после отрисовки
+        if (chartContainer) {
+            chartContainer.style.display = 'block';
+        }
     }
 }
-
 
 
 
@@ -1453,7 +1484,7 @@ getIterationParameters(method, n) {
             const histId = 'hist-' + Date.now();
             html += '<div class="chart-container" style="margin-top: 2rem;">';
             html += '<h4>Количество итераций (итерационные методы)</h4>';
-            html += '<canvas id="' + histId + '" style="width: 100%; height: 300px;"></canvas>';
+            html += '<canvas id="' + histId + '" style="width: 100%; height: 450px;"></canvas>';
             html += '</div>';
             container.innerHTML = html;
             
@@ -1496,7 +1527,7 @@ getIterationParameters(method, n) {
             const accuracyId = 'accuracy-' + Date.now();
             const accuracyHtml = '<div class="chart-container" style="margin-top: 2rem;">' +
                 '<h4>График сходимости итерационных методов</h4>' +
-                '<canvas id="' + accuracyId + '" style="width: 100%; height: 400px;"></canvas>' +
+                '<canvas id="' + accuracyId + '" style="width: 100%; height: 450px;"></canvas>' +
                 '</div>';
             
             container.insertAdjacentHTML('beforeend', accuracyHtml);
@@ -1597,7 +1628,13 @@ getIterationParameters(method, n) {
 
 
 
-    displaySystemResult(result) {    
+    displaySystemResult(result) {
+    //контейнер для графика
+    const chartContainer = document.querySelector(`#${this.app.currentTab}-tab .visualization-container`);
+    if (chartContainer) {
+        chartContainer.style.display = 'none';
+    }
+    
     const container = document.getElementById('system-results');
     if (!container) {
         console.error('Контейнер system-results не найден!');
@@ -1696,10 +1733,9 @@ getIterationParameters(method, n) {
         html += tempDiv.innerHTML;
     }
     
-    
     container.innerHTML = html;
     
-    // проверяем, что система 2д и рисуем основной график
+    //проверяем что система 2д и рисуем основной график
     if (result.variables && result.variables.length === 2 && 
         result.matrix && result.matrix.length === 2 && 
         result.vector && result.vector.length === 2 &&
@@ -1719,14 +1755,17 @@ getIterationParameters(method, n) {
                     result
                 );
                 
+                //показываем контейнер с графиком после отрисовки
+                if (chartContainer) {
+                    chartContainer.style.display = 'block';
+                }
+                
             } catch (error) {
                 console.warn('Ошибка построения основного графика:', error);
             }
         }, 100);
     }
 }
-
-
 
 displayGaussSteps(steps, variables) {
     if (!steps || steps.length === 0) return '';
