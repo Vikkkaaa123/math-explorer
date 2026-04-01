@@ -307,6 +307,51 @@
     animation: slideDown 0.3s ease-out;
 }
 
+.method-help {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 4px solid var(--gold);
+    border-radius: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.method-help h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--gold-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.method-help h4::before {
+    content: '\f059';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--gold);
+}
+
+.method-help p {
+    margin: 0.25rem 0;
+    line-height: 1.5;
+}
+
+.method-help .formula {
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    overflow-x: auto;
+}
+
 /* адаптивность */
 @media (max-width: 992px) {
     .input-row.two-columns,

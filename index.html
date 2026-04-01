@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="css/tables.css">
     <link rel="stylesheet" href="css/charts.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@latest/lib/browser/math.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -75,9 +74,8 @@
                 <option value="secant">Метод секущих</option>
             </select>
         </div>
-        
+        <div id="equation-method-help" class="method-help" style="display: none;"></div>
         <div id="method-inputs-container">
-
         </div>
         
         <div class="button-group">
@@ -237,7 +235,7 @@
                 <option value="monte-carlo">Метод Монте-Карло</option>
             </select>
         </div>
-        
+        <div id="integration-method-help" class="method-help" style="display: none;"></div>
         <div class="input-row two-columns">
             <div class="input-group">
                 <label for="integration-precision">Точность:</label>
@@ -318,7 +316,7 @@
                 </select>
             </div>
         </div>
-        
+        <div id="differential-method-help" class="method-help" style="display: none;"></div>
         <div class="button-group">
             <button class="calculate-btn" id="calculate-differential">
                 <i class="fas fa-play"></i> Рассчитать
@@ -378,8 +376,7 @@
                 <option value="zeidel">Метод Зейделя</option>
             </select>
         </div>
-        
-
+        <div id="system-method-help" class="method-help" style="display: none;"></div>
         <div id="system-method-inputs"></div>
         
         <div class="button-group">
@@ -456,5 +453,6 @@
     </div>
 
     <script type="module" src="js/core/main.js"></script>
+    <!--<script type="module" src="tests/analiz.js"></script>-->
 </body>
 </html>

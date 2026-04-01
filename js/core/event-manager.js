@@ -15,6 +15,10 @@ import ZeidelMethod from '../numerical-methods/systems/zeidel.js';
 import ChartBuilder from '../visualization/charts/chart-builder.js';
 import MathParserDE from '../math-core/math-parserDE.js';
 import SystemParser from '../math-core/system-parser.js';
+import EquationMethodSelector from '../numerical-methods/equations/method-selector.js';
+import IntegrationMethodSelector from '../numerical-methods/integration/method-selector.js';
+import DifferentialMethodSelector from '../numerical-methods/differential/method-selector.js';
+import SystemMethodSelector from '../numerical-methods/systems/method-selector.js';
 
 class EventManager {
     constructor() {
@@ -31,11 +35,18 @@ class EventManager {
     this.mathParserDE.initialize();
     this.systemParser = new SystemParser();
     this.initMethods();
+    this.equationSelector = new EquationMethodSelector(this.app.getMathParser());
+    this.integrationSelector = new IntegrationMethodSelector(this.app.getMathParser());
+    this.differentialSelector = new DifferentialMethodSelector();
+    this.systemSelector = new SystemMethodSelector();
     this.setupTabHandlers();
     this.setupCalculationHandlers();
     this.setupEquationInterface();
+    this.setupIntegrationInterface();
+    this.setupDifferentialInterface();
     this.setupSystemInterface();
 }
+
 
     initMethods() {
         const parser = this.app.getMathParser();
@@ -72,6 +83,7 @@ class EventManager {
 setupEquationInterface() {
     const methodSelect = document.getElementById('equation-method');
     const container = document.getElementById('method-inputs-container');
+    const funcInput = document.getElementById('equation-function');
     
     if (!methodSelect || !container) return;
     
@@ -85,8 +97,73 @@ setupEquationInterface() {
         }
     };
     
-    methodSelect.addEventListener('change', (e) => updateInputs(e.target.value));
+    methodSelect.addEventListener('change', (e) => {
+        updateInputs(e.target.value);
+        this.showEquationMethodHelp(e.target.value);
+    });
+    
     updateInputs(methodSelect.value);
+    
+    if (funcInput) {
+        funcInput.addEventListener('input', () => this.updateEquationRecommendation());
+        funcInput.addEventListener('change', () => this.updateEquationRecommendation());
+        this.updateEquationRecommendation();
+    }
+    
+    this.showEquationMethodHelp(methodSelect.value);
+}
+
+
+setupIntegrationInterface() {
+    const methodSelect = document.getElementById('integration-method');
+    const funcInput = document.getElementById('integration-function');
+    const aInput = document.getElementById('integration-a');
+    const bInput = document.getElementById('integration-b');
+    
+    if (!methodSelect) return;
+    
+    const update = () => this.updateIntegrationRecommendation();
+    
+    if (funcInput) {
+        funcInput.addEventListener('input', update);
+        funcInput.addEventListener('change', update);
+    }
+    if (aInput) {
+        aInput.addEventListener('input', update);
+        aInput.addEventListener('change', update);
+    }
+    if (bInput) {
+        bInput.addEventListener('input', update);
+        bInput.addEventListener('change', update);
+    }
+    
+    methodSelect.addEventListener('change', (e) => {
+        this.showIntegrationMethodHelp(e.target.value);
+    });
+    
+    this.updateIntegrationRecommendation();
+    this.showIntegrationMethodHelp(methodSelect.value);
+}
+
+setupDifferentialInterface() {
+    const methodSelect = document.getElementById('diff-method');
+    const eqInput = document.getElementById('diff-equation');
+    
+    if (!methodSelect) return;
+    
+    const update = () => this.updateDifferentialRecommendation();
+    
+    if (eqInput) {
+        eqInput.addEventListener('input', update);
+        eqInput.addEventListener('change', update);
+    }
+    
+    methodSelect.addEventListener('change', (e) => {
+        this.showDifferentialMethodHelp(e.target.value);
+    });
+    
+    this.updateDifferentialRecommendation();
+    this.showDifferentialMethodHelp(methodSelect.value);
 }
 
 //динамический интерфейс для систем
@@ -113,43 +190,41 @@ setupSystemInterface() {
         }
     };
     
-const createInitialGuessFields = (method) => {
-    const vectorContainer = document.getElementById(`${method}-vector-inputs`);
-    if (!vectorContainer) return;
-    
-    const count = parseInt(countInput.value) || 2;
-    vectorContainer.innerHTML = '';
-    vectorContainer.className = 'vector-input-container';
-    
-    //левая скобка
-    const leftBracket = document.createElement('span');
-    leftBracket.className = 'vector-bracket';
-    leftBracket.textContent = '[';
-    vectorContainer.appendChild(leftBracket);
-    
-    for (let i = 0; i < count; i++) {
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.className = 'vector-input-field';
-        input.id = `${method}-initial-${i}`;
-        input.value = '0';
-        input.step = 'any';
-        vectorContainer.appendChild(input);
+    const createInitialGuessFields = (method) => {
+        const vectorContainer = document.getElementById(`${method}-vector-inputs`);
+        if (!vectorContainer) return;
         
-        if (i < count - 1) {
-            const separator = document.createElement('span');
-            separator.className = 'vector-separator';
-            separator.textContent = ',';
-            vectorContainer.appendChild(separator);
+        const count = parseInt(countInput.value) || 2;
+        vectorContainer.innerHTML = '';
+        vectorContainer.className = 'vector-input-container';
+        
+        const leftBracket = document.createElement('span');
+        leftBracket.className = 'vector-bracket';
+        leftBracket.textContent = '[';
+        vectorContainer.appendChild(leftBracket);
+        
+        for (let i = 0; i < count; i++) {
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'vector-input-field';
+            input.id = `${method}-initial-${i}`;
+            input.value = '0';
+            input.step = 'any';
+            vectorContainer.appendChild(input);
+            
+            if (i < count - 1) {
+                const separator = document.createElement('span');
+                separator.className = 'vector-separator';
+                separator.textContent = ',';
+                vectorContainer.appendChild(separator);
+            }
         }
-    }
-    
-    //правая скобка
-    const rightBracket = document.createElement('span');
-    rightBracket.className = 'vector-bracket';
-    rightBracket.textContent = ']';
-    vectorContainer.appendChild(rightBracket);
-};
+        
+        const rightBracket = document.createElement('span');
+        rightBracket.className = 'vector-bracket';
+        rightBracket.textContent = ']';
+        vectorContainer.appendChild(rightBracket);
+    };
     
     const updateEquationInputs = (count) => {
         const eqContainer = document.getElementById('system-equations');
@@ -169,14 +244,25 @@ const createInitialGuessFields = (method) => {
             input.className = 'system-eq';
             input.placeholder = `Введите уравнение ${i + 1}`;
             
+            //добавляем слушатели на каждое уравнение
+            input.addEventListener('input', () => this.updateSystemRecommendation());
+            input.addEventListener('change', () => this.updateSystemRecommendation());
+            
             wrapper.appendChild(label);
             wrapper.appendChild(input);
             eqContainer.appendChild(wrapper);
         }
+        
+        //после обновления полей вызываем рекомендацию
+        setTimeout(() => this.updateSystemRecommendation(), 50);
     };
     
     //слушатели
-    methodSelect.addEventListener('change', (e) => updateMethodInputs(e.target.value));
+    methodSelect.addEventListener('change', (e) => {
+        updateMethodInputs(e.target.value);
+        this.showSystemMethodHelp(e.target.value);
+    });
+    
     countInput.addEventListener('change', (e) => {
         const count = parseInt(e.target.value);
         updateEquationInputs(count);
@@ -185,13 +271,23 @@ const createInitialGuessFields = (method) => {
         if (currentMethod === 'jacobi' || currentMethod === 'zeidel') {
             createInitialGuessFields(currentMethod);
         }
+        
+        //вызываем рекомендацию после изменения количества
+        setTimeout(() => this.updateSystemRecommendation(), 100);
     });
     
     //инициализация
     updateEquationInputs(parseInt(countInput.value));
     updateMethodInputs(methodSelect.value);
+    
+    //вызываем рекомендацию для начального состояния
+    setTimeout(() => this.updateSystemRecommendation(), 100);
+    
+    //показываем справку для выбранного метода
+    if (methodSelect.value) {
+        this.showSystemMethodHelp(methodSelect.value);
+    }
 }
-
 
 
 
@@ -2074,6 +2170,243 @@ autoDetectParameters(func) {
     }
     
     return { interval, newtonX0, secantX1, secantX2, lambda };
+}
+
+
+// ========== РЕКОМЕНДАЦИИ И СПРАВКИ ==========
+
+updateEquationRecommendation() {
+    const funcInput = document.getElementById('equation-function');
+    const methodSelect = document.getElementById('equation-method');
+    if (!funcInput || !methodSelect) return;
+    
+    const funcStr = funcInput.value;
+    if (!funcStr) return;
+    
+    try {
+        const analysis = this.equationSelector.analyze(funcStr);
+        const recommended = analysis.recommendedMethod;
+        
+        const options = methodSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const value = option.value;
+            let originalText = '';
+            if (value === 'newton') originalText = 'Метод Ньютона';
+            else if (value === 'bisection') originalText = 'Метод половинного деления';
+            else if (value === 'iteration') originalText = 'Метод простой итерации';
+            else if (value === 'secant') originalText = 'Метод секущих';
+            else originalText = value;
+            
+            if (value === recommended) {
+                option.text = originalText + ' (рекомендуется)';
+            } else {
+                option.text = originalText;
+            }
+        }
+    } catch (e) {
+        console.warn('ошибка анализа:', e);
+    }
+}
+
+showEquationMethodHelp(method) {
+    const container = document.getElementById('equation-method-help');
+    if (!container) return;
+
+    if (!method || method === '') {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const help = this.equationSelector.getMethodHelp(method);
+    if (!help) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.innerHTML = `
+        <h4>${help.title}</h4>
+        <p>${help.description}</p>
+        <p><strong>когда применять:</strong> ${help.when}</p>
+        <div class="formula">${help.formula}</div>
+    `;
+    container.style.display = 'block';
+}
+
+updateIntegrationRecommendation() {
+    const funcInput = document.getElementById('integration-function');
+    const aInput = document.getElementById('integration-a');
+    const bInput = document.getElementById('integration-b');
+    const methodSelect = document.getElementById('integration-method');
+    if (!funcInput || !methodSelect) return;
+    
+    const funcStr = funcInput.value;
+    const a = parseFloat(aInput?.value);
+    const b = parseFloat(bInput?.value);
+    if (!funcStr || isNaN(a) || isNaN(b)) return;
+    
+    try {
+        const analysis = this.integrationSelector.analyze(funcStr, a, b);
+        const recommended = analysis.recommendedMethod;
+        
+        const options = methodSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const value = option.value;
+            let originalText = '';
+            if (value === 'simpson') originalText = 'Метод Симпсона';
+            else if (value === 'trapezoidal') originalText = 'Метод трапеций';
+            else if (value === 'rectangles') originalText = 'Метод прямоугольников';
+            else if (value === 'monte-carlo') originalText = 'Метод Монте-Карло';
+            else originalText = value;
+            
+            if (value === recommended) {
+                option.text = originalText + ' (рекомендуется)';
+            } else {
+                option.text = originalText;
+            }
+        }
+    } catch (e) {
+        console.warn('ошибка анализа:', e);
+    }
+}
+
+showIntegrationMethodHelp(method) {
+    const container = document.getElementById('integration-method-help');
+    if (!container) return;
+
+    if (!method || method === '') {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const help = this.integrationSelector.getMethodHelp(method);
+    if (!help) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.innerHTML = `
+        <h4>${help.title}</h4>
+        <p>${help.description}</p>
+        <p><strong>когда применять:</strong> ${help.when}</p>
+        <div class="formula">${help.formula}</div>
+    `;
+    container.style.display = 'block';
+}
+
+updateDifferentialRecommendation() {
+    const eqInput = document.getElementById('diff-equation');
+    const methodSelect = document.getElementById('diff-method');
+    if (!eqInput || !methodSelect) return;
+    
+    const equation = eqInput.value;
+    if (!equation) return;
+    
+    try {
+        const analysis = this.differentialSelector.analyze(equation, 0, 0, 1);
+        const recommended = analysis.recommendedMethod;
+        
+        const options = methodSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const value = option.value;
+            let originalText = '';
+            if (value === 'euler') originalText = 'Метод Эйлера';
+            else if (value === 'runge-kutta') originalText = 'Метод Рунге-Кутты 4-го порядка';
+            else originalText = value;
+            
+            if (value === recommended) {
+                option.text = originalText + ' (рекомендуется)';
+            } else {
+                option.text = originalText;
+            }
+        }
+    } catch (e) {
+        console.warn('ошибка анализа:', e);
+    }
+}
+
+showDifferentialMethodHelp(method) {
+    const container = document.getElementById('differential-method-help');
+    if (!container) return;
+
+    if (!method || method === '') {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const help = this.differentialSelector.getMethodHelp(method);
+    if (!help) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.innerHTML = `
+        <h4>${help.title}</h4>
+        <p>${help.description}</p>
+        <p><strong>когда применять:</strong> ${help.when}</p>
+        <div class="formula">${help.formula}</div>
+    `;
+    container.style.display = 'block';
+}
+
+updateSystemRecommendation() {
+    const eqInputs = document.querySelectorAll('.system-eq');
+    const methodSelect = document.getElementById('system-method');
+    if (!methodSelect) return;
+    
+    const equations = Array.from(eqInputs).map(inp => inp.value).filter(e => e.trim());
+    if (equations.length === 0) return;
+    
+    try {
+        const { matrix } = this.systemParser.parseEquations(equations);
+        const analysis = this.systemSelector.analyze(matrix);
+        const recommended = analysis.recommendedMethod;
+        
+        const options = methodSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const value = option.value;
+            let originalText = '';
+            if (value === 'gauss') originalText = 'Метод Гаусса';
+            else if (value === 'jacobi') originalText = 'Метод Якоби';
+            else if (value === 'zeidel') originalText = 'Метод Зейделя';
+            else originalText = value;
+            
+            if (value === recommended) {
+                option.text = originalText + ' (рекомендуется)';
+            } else {
+                option.text = originalText;
+            }
+        }
+    } catch (e) {
+        console.warn('ошибка анализа:', e);
+    }
+}
+
+showSystemMethodHelp(method) {
+    const container = document.getElementById('system-method-help');
+    if (!container) return;
+
+    if (!method || method === '') {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const help = this.systemSelector.getMethodHelp(method);
+    if (!help) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.innerHTML = `
+        <h4>${help.title}</h4>
+        <p>${help.description}</p>
+        <p><strong>когда применять:</strong> ${help.when}</p>
+        <div class="formula">${help.formula}</div>
+    `;
+    container.style.display = 'block';
 }
 
 }
